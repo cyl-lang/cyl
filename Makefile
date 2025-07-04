@@ -1,6 +1,6 @@
 # Build script for Cyl language project
 
-.PHONY: all build test clean install setup dev
+.PHONY: all build test clean install setup dev ci-test
 
 # Default target
 all: build
@@ -137,4 +137,17 @@ help:
 	@echo "  lint            - Lint source code"
 	@echo "  docs            - Generate documentation"
 	@echo "  version         - Show version information"
+	@echo "  ci-test         - Test GitHub Actions locally (requires act)"
 	@echo "  help            - Show this help message"
+
+# Test GitHub Actions locally
+ci-test:
+	@echo "Testing GitHub Actions workflows locally..."
+	@if command -v act >/dev/null 2>&1; then \
+		echo "Running CI workflow with act..."; \
+		act -W .github/workflows/ci.yml; \
+	else \
+		echo "❌ 'act' is not installed. Install it with:"; \
+		echo "   brew install act  # on macOS"; \
+		echo "   # or visit: https://github.com/nektos/act"; \
+	fi

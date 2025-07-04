@@ -1,0 +1,111 @@
+name: Feature Request
+description: Suggest an idea for the Cyl language
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+assignees:
+  - clxrityy
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature for the Cyl programming language!
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Is your feature request related to a problem?
+      description: A clear and concise description of what the problem is.
+      placeholder: I'm always frustrated when...
+    validations:
+      required: false
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Describe the solution you'd like
+      description: A clear and concise description of what you want to happen.
+      placeholder: I would like to be able to...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Describe alternatives you've considered
+      description: A clear and concise description of any alternative solutions or features you've considered.
+      placeholder: Alternative approaches could be...
+    validations:
+      required: false
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Feature Category
+      description: What category does this feature fall into?
+      options:
+        - Language Syntax
+        - Standard Library
+        - Compiler Optimization
+        - Developer Tools
+        - Documentation
+        - Testing
+        - Build System
+        - IDE/Editor Support
+        - Performance
+        - Security
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to you?
+      options:
+        - Low - Nice to have
+        - Medium - Would improve workflow
+        - High - Blocking current work
+        - Critical - Essential for project
+    validations:
+      required: true
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: Code Examples
+      description: If applicable, provide examples of how this feature would be used
+      render: text
+      placeholder: |
+        // Example of proposed syntax:
+        fn example() -> void {
+            // Your feature usage here
+        }
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: Implementation Ideas
+      description: If you have ideas about how this could be implemented, please share them
+      placeholder: This could be implemented by...
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: research
+    attributes:
+      label: Research
+      description: Have you looked into how other languages handle this?
+      options:
+        - label: I have researched how other programming languages implement similar features
+          required: false
+        - label: I am willing to help implement this feature
+          required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Add any other context, screenshots, or examples about the feature request here.
+    validations:
+      required: false

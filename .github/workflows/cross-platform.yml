@@ -1,0 +1,120 @@
+name: Cross-Platform Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    # Run daily at 3 AM UTC
+    - cron: "0 3 * * *"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test-matrix:
+    name: Test on ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        rust: [stable, beta]
+        node: ["18", "20"]
+        exclude:
+          # Reduce matrix size by excluding some combinations
+          - os: windows-latest
+            rust: beta
+          - os: macos-latest
+            rust: beta
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust ${{ matrix.rust }}
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+          components: rustfmt, clippy
+
+      - name: Setup Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: "npm"
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+            compiler/target/
+          key: ${{ runner.os }}-${{ matrix.rust }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.rust }}-cargo-
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Build Rust compiler
+        run: cd compiler && cargo build --verbose
+
+      - name: Run Rust tests
+        run: cd compiler && cargo test --verbose
+
+      - name: Run design tools tests
+        run: npm run test:design
+
+      - name: Build release binary
+        run: cd compiler && cargo build --release
+
+      - name: Test CLI (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          ./target/release/cylc --help
+          ./target/release/cylc test
+
+      - name: Test CLI (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          .\target\release\cylc.exe --help
+          .\target\release\cylc.exe test
+
+      - name: Run integration tests
+        run: make test
+
+  test-minimum-versions:
+    name: Test Minimum Supported Versions
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install minimum Rust version
+        uses: dtolnay/rust-toolchain@master
+        with:
+          # Test with Rust 1.70.0 (adjust based on your MSRV)
+          toolchain: 1.70.0
+
+      - name: Setup minimum Node.js version
+        uses: actions/setup-node@v4
+        with:
+          # Test with Node.js 16 (minimum LTS)
+          node-version: "16"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and test with minimum versions
+        run: |
+          cd compiler && cargo build
+          cd .. && npm run test:design

@@ -1,5 +1,9 @@
 # cyl `.cyl`
 
+[![CI](https://github.com/clxrityy/cyl/actions/workflows/ci.yml/badge.svg)](https://github.com/clxrityy/cyl/actions/workflows/ci.yml)
+[![Cross-Platform Tests](https://github.com/clxrityy/cyl/actions/workflows/cross-platform.yml/badge.svg)](https://github.com/clxrityy/cyl/actions/workflows/cross-platform.yml)
+[![codecov](https://codecov.io/gh/clxrityy/cyl/branch/main/graph/badge.svg)](https://codecov.io/gh/clxrityy/cyl)
+
 - [Implementation Plan](IMPLEMENTATION_PLAN.md)
 - [Language Specification](LANGUAGE_SPEC.md)
 - [Tests](tests/README.md)
@@ -59,12 +63,36 @@ cylc test
 - [x] AST generation
 - [x] Automated test system
 - [x] CLI with syntax checking
+- [x] Cross-platform CI/CD with GitHub Actions
+- [x] Automated testing on Linux, Windows, and macOS
+- [x] Security auditing and dependency updates
 
 **In Progress:**
 
 - [ ] Code generation (LLVM backend stubbed)
 - [ ] Standard library integration
 - [ ] Advanced language features
+
+## Development & CI/CD
+
+### Local Development
+
+```bash
+make setup          # Set up development environment
+make test           # Run all tests
+make install        # Install cylc globally
+```
+
+### Continuous Integration
+
+- ✅ **Automated testing** on push/PR to main branches
+- ✅ **Cross-platform testing** on Ubuntu, Windows, macOS
+- ✅ **Security auditing** for Rust and npm dependencies
+- ✅ **Code coverage** reporting with Codecov
+- ✅ **Automated releases** on version tags
+- ✅ **Weekly dependency updates** via automated PRs
+
+See [CI/CD Documentation](.github/workflows/README.md) for details.
 
 ---
 
