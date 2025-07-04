@@ -1,0 +1,56 @@
+{
+    "name": "cyl-lang",
+    "version": "0.1.0",
+    "description": "Cyl programming language with Rust compiler backend and TypeScript design tools",
+    "main": "design/src/index.ts",
+    "scripts": {
+        "build": "npm run build:design && npm run build:compiler",
+        "build:design": "tsc",
+        "build:compiler": "cd compiler && cargo build --release",
+        "dev": "ts-node design/src/index.ts",
+        "test": "npm run test:design && npm run test:compiler",
+        "test:design": "jest",
+        "test:design:watch": "jest --watch",
+        "test:design:coverage": "jest --coverage",
+        "test:compiler": "cd compiler && cargo test",
+        "test:compiler:cyl": "cd compiler && cargo run -- test",
+        "grammar:validate": "ts-node design/src/tools/grammar-validator.ts",
+        "ast:generate": "ts-node design/src/tools/ast-generator.ts",
+        "syntax:check": "ts-node design/src/tools/syntax-checker.ts",
+        "compiler:dev": "cd compiler && cargo run",
+        "compiler:install": "cd compiler && cargo install --path .",
+        "setup": "npm install && cd compiler && cargo build"
+    },
+    "devDependencies": {
+        "@types/jest": "^30.0.0",
+        "@types/node": "^24.0.10",
+        "jest": "^30.0.4",
+        "ts-jest": "^29.4.0",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.8.3",
+        "yaml": "^2.8.0"
+    },
+    "dependencies": {
+        "chalk": "^5.4.1"
+    },
+    "keywords": [
+        "programming-language",
+        "compiler",
+        "systems-programming",
+        "language-design",
+        "rust",
+        "typescript",
+        "native-compilation"
+    ],
+    "author": {
+        "name": "MJ Anglin",
+        "email": "contact@mjanglin.com",
+        "url": "https://www.mjanglin.com"
+    },
+    "license": "MIT",
+    "pnpm": {
+        "onlyBuiltDependencies": [
+            "unrs-resolver"
+        ]
+    }
+}

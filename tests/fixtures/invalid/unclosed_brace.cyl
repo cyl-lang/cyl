@@ -1,0 +1,3 @@
+// Unclosed brace
+fn main() {
+    let x = 42;

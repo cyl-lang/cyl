@@ -1,0 +1,6 @@
+// TODO: Implement statement compilation
+function main() -> void {
+  os.println(""Hello, World!"")
+  os.println(""Welcome to Cyl programming language!"")
+}
+

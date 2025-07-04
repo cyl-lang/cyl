@@ -1,0 +1,7 @@
+// Hello World example in Cyl
+import os;
+
+fn main() -> void {
+    os.println("Hello, World!");
+    os.println("Welcome to Cyl programming language!");
+}

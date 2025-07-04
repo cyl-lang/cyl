@@ -1,0 +1,81 @@
+// File processing example
+import fs;
+import string;
+import os;
+
+struct LogEntry {
+    timestamp: string,
+    level: string,
+    message: string
+}
+
+fn parse_log_line(line: string) -> Option<LogEntry> {
+    let trimmed = string.trim(line);
+    if trimmed.len() == 0 {
+        return None;
+    }
+    
+    let parts = string.split(trimmed, " ");
+    if parts.len() < 3 {
+        return None;
+    }
+    
+    return Some(LogEntry {
+        timestamp: parts[0] + " " + parts[1],
+        level: parts[2],
+        message: string.join(parts[3..], " ")
+    });
+}
+
+fn process_log_file(filename: string) -> Result<void, string> {
+    let content = fs.read(filename)?;
+    let lines = string.split(content, "\n");
+    
+    let mut error_count = 0;
+    let mut warning_count = 0;
+    let mut info_count = 0;
+    
+    for line in lines {
+        match parse_log_line(line) {
+            Some(entry) => {
+                match entry.level {
+                    "ERROR" => error_count = error_count + 1,
+                    "WARN" => warning_count = warning_count + 1,
+                    "INFO" => info_count = info_count + 1,
+                    _ => {}
+                }
+            },
+            None => {}
+        }
+    }
+    
+    os.println("Log Analysis Results:");
+    os.println("  Errors: " + error_count);
+    os.println("  Warnings: " + warning_count);
+    os.println("  Info: " + info_count);
+    os.println("  Total: " + (error_count + warning_count + info_count));
+    
+    return Ok(());
+}
+
+fn main() -> void {
+    let args = os.args();
+    if args.len() < 2 {
+        os.println("Usage: log_analyzer <logfile>");
+        os.exit(1);
+    }
+    
+    let filename = args[1];
+    if !fs.exists(filename) {
+        os.println("Error: File '" + filename + "' not found");
+        os.exit(1);
+    }
+    
+    match process_log_file(filename) {
+        Ok(_) => os.println("Analysis complete!"),
+        Err(error) => {
+            os.println("Error processing file: " + error);
+            os.exit(1);
+        }
+    }
+}

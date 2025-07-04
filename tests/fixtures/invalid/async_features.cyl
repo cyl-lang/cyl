@@ -1,0 +1,4 @@
+// This should fail - using unimplemented features
+async fn test() -> void {
+    let x = SomeStruct { field: 42 };
+}

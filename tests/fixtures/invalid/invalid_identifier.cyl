@@ -1,0 +1,3 @@
+// Invalid identifier
+fn 123invalid() {
+}

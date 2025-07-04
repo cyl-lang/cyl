@@ -1,0 +1,36 @@
+[package]
+authors = ["clxrity"]
+description = "Cyl programming language compiler"
+edition = "2021"
+license = "MIT"
+name = "cylc"
+version = "0.1.0"
+
+[[bin]]
+name = "cylc"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = {workspace = true}
+clap = {workspace = true}
+serde = {workspace = true}
+serde_json = {workspace = true}
+thiserror = {workspace = true}
+
+# Lexer and Parser
+chumsky = "0.9"
+logos = "0.13"
+
+# Code generation
+# inkwell = { version = "0.4", features = ["llvm17-0"] }  # Temporarily disabled
+
+# File handling
+path-absolutize = "3.1"
+walkdir = "2.4"
+
+# Standard library integration
+libc = "0.2"
+
+[dev-dependencies]
+criterion = "0.5"
+pretty_assertions = "1.4"

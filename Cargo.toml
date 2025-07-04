@@ -1,0 +1,11 @@
+[workspace]
+members = ["compiler"]
+resolver = "2"
+
+[workspace.dependencies]
+# Common dependencies for the workspace
+anyhow = "1.0"
+clap = {version = "4.0", features = ["derive"]}
+serde = {version = "1.0", features = ["derive"]}
+serde_json = "1.0"
+thiserror = "1.0"

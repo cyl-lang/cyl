@@ -1,0 +1,6 @@
+import fs;
+import string;
+
+fn main() -> void {
+    let x = 42;
+}
