@@ -47,10 +47,5 @@
         "email": "contact@mjanglin.com",
         "url": "https://www.mjanglin.com"
     },
-    "license": "MIT",
-    "pnpm": {
-        "onlyBuiltDependencies": [
-            "unrs-resolver"
-        ]
-    }
+    "license": "MIT"
 }
