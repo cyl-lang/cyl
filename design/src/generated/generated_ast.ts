@@ -34,7 +34,6 @@ export enum ASTNodeType {
     VoidType = 'VoidType',
     DeclareStatement = 'DeclareStatement',
     MutabilityModifier = 'MutabilityModifier',
-    ExpressionStatement = 'ExpressionStatement',
     Identifier = 'Identifier',
     IntLiteral = 'IntLiteral',
     FloatLiteral = 'FloatLiteral',
@@ -51,41 +50,43 @@ export enum ASTNodeType {
     AssignmentExpression = 'AssignmentExpression',
 }
 
-export type Statement =
-    | FunctionDeclaration
-    | IfStatement
-    | ElseStatement
-    | ImportStatement
-    | ReturnStatement
-    | StructDeclaration
-    | EnumDeclaration
-    | MatchStatement
-    | ForStatement
-    | WhileStatement
-    | BreakStatement
-    | ContinueStatement
-    | TryStatement
-    | CatchStatement
-    | ThrowStatement
-    | AsyncFunctionDeclaration
-    | DeclareStatement
-    | ExpressionStatement;
+export type Statement = 
+  | FunctionDeclaration
+  | IfStatement
+  | ElseStatement
+  | ImportStatement
+  | ReturnStatement
+  | StructDeclaration
+  | EnumDeclaration
+  | MatchStatement
+  | ForStatement
+  | WhileStatement
+  | BreakStatement
+  | ContinueStatement
+  | TryStatement
+  | CatchStatement
+  | ThrowStatement
+  | AsyncFunctionDeclaration
+  | DeclareStatement
+  | DeclareStatement
+  | DeclareStatement
+  | ExpressionStatement;
 
 export type Expression =
-    | Identifier
-    | IntLiteral
-    | FloatLiteral
-    | StringLiteral
-    | BoolLiteral
-    | CharLiteral
-    | ArrayLiteral
-    | ObjectLiteral
-    | BinaryExpression
-    | UnaryExpression
-    | CallExpression
-    | MemberExpression
-    | IndexExpression
-    | AssignmentExpression;
+  | Identifier
+  | IntLiteral
+  | FloatLiteral
+  | StringLiteral
+  | BoolLiteral
+  | CharLiteral
+  | ArrayLiteral
+  | ObjectLiteral
+  | BinaryExpression
+  | UnaryExpression
+  | CallExpression
+  | MemberExpression
+  | IndexExpression
+  | AssignmentExpression;
 
 /**
  * Function declaration keyword
@@ -216,173 +217,26 @@ export interface AsyncFunctionDeclaration extends BaseASTNode {
 }
 
 /**
- * Variable/constant declaration statement
+ * Variable declaration (legacy)
  */
 export interface DeclareStatement extends BaseASTNode {
     type: ASTNodeType.DeclareStatement;
-    kind: 'let' | 'const' | 'var';
-    identifier: Identifier;
-    typeAnnotation?: Identifier;
-    initializer?: Expression;
+    // TODO: Add specific properties for DeclareStatement
 }
 
 /**
- * Expression statement wrapper
+ * Variable declaration
  */
-export interface ExpressionStatement extends BaseASTNode {
-    type: ASTNodeType.ExpressionStatement;
-    expression: Expression;
+export interface DeclareStatement extends BaseASTNode {
+    type: ASTNodeType.DeclareStatement;
+    // TODO: Add specific properties for DeclareStatement
 }
 
 /**
- * Identifier (variable/function names)
+ * Constant declaration
  */
-export interface Identifier extends BaseASTNode {
-    type: ASTNodeType.Identifier;
-    name: string;
-}
-
-/**
- * Integer literal
- */
-export interface IntLiteral extends BaseASTNode {
-    type: ASTNodeType.IntLiteral;
-    value: number;
-}
-
-/**
- * Float literal
- */
-export interface FloatLiteral extends BaseASTNode {
-    type: ASTNodeType.FloatLiteral;
-    value: number;
-}
-
-/**
- * String literal
- */
-export interface StringLiteral extends BaseASTNode {
-    type: ASTNodeType.StringLiteral;
-    value: string;
-}
-
-/**
- * Boolean literal
- */
-export interface BoolLiteral extends BaseASTNode {
-    type: ASTNodeType.BoolLiteral;
-    value: boolean;
-}
-
-/**
- * Character literal
- */
-export interface CharLiteral extends BaseASTNode {
-    type: ASTNodeType.CharLiteral;
-    value: string;
-}
-
-/**
- * Array literal
- */
-export interface ArrayLiteral extends BaseASTNode {
-    type: ASTNodeType.ArrayLiteral;
-    elements: Expression[];
-}
-
-/**
- * Object literal
- */
-export interface ObjectLiteral extends BaseASTNode {
-    type: ASTNodeType.ObjectLiteral;
-    properties: ObjectProperty[];
-}
-
-/**
- * Object property
- */
-export interface ObjectProperty {
-    key: Identifier | StringLiteral;
-    value: Expression;
-}
-
-/**
- * Binary expression (e.g., a + b)
- */
-export interface BinaryExpression extends BaseASTNode {
-    type: ASTNodeType.BinaryExpression;
-    operator: string;
-    left: Expression;
-    right: Expression;
-}
-
-/**
- * Unary expression (e.g., !a, -b)
- */
-export interface UnaryExpression extends BaseASTNode {
-    type: ASTNodeType.UnaryExpression;
-    operator: string;
-    argument: Expression;
-}
-
-/**
- * Function call expression
- */
-export interface CallExpression extends BaseASTNode {
-    type: ASTNodeType.CallExpression;
-    callee: Expression;
-    arguments: Expression[];
-}
-
-/**
- * Member access expression (e.g., obj.prop)
- */
-export interface MemberExpression extends BaseASTNode {
-    type: ASTNodeType.MemberExpression;
-    object: Expression;
-    property: Identifier;
-    computed: boolean;
-}
-
-/**
- * Index access expression (e.g., arr[0])
- */
-export interface IndexExpression extends BaseASTNode {
-    type: ASTNodeType.IndexExpression;
-    object: Expression;
-    index: Expression;
-}
-
-/**
- * Assignment expression
- */
-export interface AssignmentExpression extends BaseASTNode {
-    type: ASTNodeType.AssignmentExpression;
-    operator: string;
-    left: Expression;
-    right: Expression;
-}
-
-/**
- * Await expression
- */
-export interface AwaitExpression extends BaseASTNode {
-    type: ASTNodeType.AwaitExpression;
-    argument: Expression;
-}
-
-/**
- * Void type annotation
- */
-export interface VoidType extends BaseASTNode {
-    type: ASTNodeType.VoidType;
-}
-
-/**
- * Mutability modifier
- */
-export interface MutabilityModifier extends BaseASTNode {
-    type: ASTNodeType.MutabilityModifier;
-    kind: 'let' | 'const' | 'mut';
+export interface DeclareStatement extends BaseASTNode {
+    type: ASTNodeType.DeclareStatement;
+    // TODO: Add specific properties for DeclareStatement
 }
 

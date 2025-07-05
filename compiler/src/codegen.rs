@@ -3,6 +3,7 @@ use crate::error::CylError;
 use std::collections::HashMap;
 use std::path::Path;
 
+#[allow(dead_code)] // Fields will be used in future development
 pub struct CodeGenerator {
     opt_level: u8,
     debug: bool,
@@ -32,18 +33,25 @@ impl CodeGenerator {
 
     pub fn compile_program(&mut self, program: &Program) -> Result<String, CylError> {
         // TODO: Implement proper code generation
-        println!("Compiling program with {} statements", program.statements.len());
-        
+        println!(
+            "Compiling program with {} statements",
+            program.statements.len()
+        );
+
         let mut output = String::new();
         for statement in &program.statements {
             output.push_str(&self.compile_statement(statement)?);
             output.push('\n');
         }
-        
+
         Ok(output)
     }
 
-    pub fn compile_to_file(&mut self, program: &Program, output_path: &Path) -> Result<(), CylError> {
+    pub fn compile_to_file(
+        &mut self,
+        program: &Program,
+        output_path: &Path,
+    ) -> Result<(), CylError> {
         let code = self.compile_program(program)?;
         std::fs::write(output_path, code).map_err(CylError::IoError)?;
         Ok(())
@@ -72,15 +80,15 @@ impl CodeGenerator {
 
     fn compile_function(&mut self, func: &FunctionDeclaration) -> Result<String, CylError> {
         let mut result = String::new();
-        
+
         if func.is_async {
             result.push_str("async ");
         }
-        
+
         result.push_str("function ");
         result.push_str(&func.name);
         result.push('(');
-        
+
         for (i, param) in func.parameters.iter().enumerate() {
             if i > 0 {
                 result.push_str(", ");
@@ -89,52 +97,52 @@ impl CodeGenerator {
             result.push_str(": ");
             result.push_str(&self.compile_type(&param.param_type)?);
         }
-        
+
         result.push(')');
-        
+
         if let Some(return_type) = &func.return_type {
             result.push_str(" -> ");
             result.push_str(&self.compile_type(return_type)?);
         }
-        
+
         result.push_str(" {\n");
         result.push_str(&self.compile_block(&func.body)?);
         result.push_str("}\n");
-        
+
         Ok(result)
     }
 
     fn compile_declare(&mut self, decl: &DeclareStatement) -> Result<String, CylError> {
         let mut result = String::new();
-        
+
         if decl.is_mutable {
             result.push_str("let mut ");
         } else {
             result.push_str("let ");
         }
-        
+
         result.push_str(&decl.name);
-        
+
         if let Some(var_type) = &decl.var_type {
             result.push_str(": ");
             result.push_str(&self.compile_type(var_type)?);
         }
-        
+
         result.push_str(" = ");
         result.push_str(&self.compile_expression(&decl.value)?);
         result.push(';');
-        
+
         Ok(result)
     }
 
     fn compile_return(&mut self, ret: &ReturnStatement) -> Result<String, CylError> {
         let mut result = String::from("return");
-        
+
         if let Some(value) = &ret.value {
             result.push(' ');
             result.push_str(&self.compile_expression(value)?);
         }
-        
+
         result.push(';');
         Ok(result)
     }
@@ -145,12 +153,12 @@ impl CodeGenerator {
         result.push_str(" {\n");
         result.push_str(&self.compile_block(&if_stmt.then_block)?);
         result.push('}');
-        
+
         if let Some(else_block) = &if_stmt.else_block {
             result.push_str(" else ");
             result.push_str(&self.compile_statement(else_block)?);
         }
-        
+
         Ok(result)
     }
 
@@ -160,7 +168,7 @@ impl CodeGenerator {
         result.push_str(" {\n");
         result.push_str(&self.compile_block(&while_stmt.body)?);
         result.push('}');
-        
+
         Ok(result)
     }
 
@@ -172,19 +180,19 @@ impl CodeGenerator {
         result.push_str(" {\n");
         result.push_str(&self.compile_block(&for_stmt.body)?);
         result.push('}');
-        
+
         Ok(result)
     }
 
     fn compile_block(&mut self, block: &BlockStatement) -> Result<String, CylError> {
         let mut result = String::new();
-        
+
         for statement in &block.statements {
             result.push_str("  ");
             result.push_str(&self.compile_statement(statement)?);
             result.push('\n');
         }
-        
+
         Ok(result)
     }
 
@@ -207,7 +215,11 @@ impl CodeGenerator {
                 result.push(']');
                 Ok(result)
             }
-            Expression::BinaryOp { left, operator, right } => {
+            Expression::BinaryOp {
+                left,
+                operator,
+                right,
+            } => {
                 let left_str = self.compile_expression(left)?;
                 let right_str = self.compile_expression(right)?;
                 let op_str = self.compile_binary_op(operator);
@@ -252,6 +264,7 @@ impl CodeGenerator {
         }
     }
 
+    #[allow(clippy::only_used_in_recursion)] // Recursive function by design
     fn compile_type(&self, type_def: &Type) -> Result<String, CylError> {
         match type_def {
             Type::Int => Ok("int".to_string()),

@@ -5,12 +5,14 @@ pub struct StdLib {
     modules: HashMap<String, Module>,
 }
 
+#[allow(dead_code)] // Fields will be used in future development
 pub struct Module {
     pub name: String,
     pub functions: HashMap<String, Function>,
     pub types: HashMap<String, Type>,
 }
 
+#[allow(dead_code)] // Fields will be used in future development  
 pub struct Function {
     pub name: String,
     pub signature: String,
@@ -18,6 +20,7 @@ pub struct Function {
     pub is_builtin: bool,
 }
 
+#[allow(dead_code)] // Fields will be used in future development
 pub struct Type {
     pub name: String,
     pub description: String,
@@ -28,7 +31,7 @@ impl StdLib {
         let mut stdlib = Self {
             modules: HashMap::new(),
         };
-        
+
         stdlib.add_core_modules();
         stdlib
     }
@@ -40,7 +43,7 @@ impl StdLib {
             functions: HashMap::new(),
             types: HashMap::new(),
         };
-        
+
         os_module.functions.insert(
             "print".to_string(),
             Function {
@@ -141,17 +144,17 @@ impl StdLib {
         self.modules.insert("fs".to_string(), fs_module);
     }
 
+    #[allow(dead_code)] // Methods will be used in future development
     pub fn get_module(&self, name: &str) -> Option<&Module> {
         self.modules.get(name)
     }
 
+    #[allow(dead_code)] // Methods will be used in future development
     pub fn get_function(&self, module: &str, function: &str) -> Option<&Function> {
-        self.modules
-            .get(module)?
-            .functions
-            .get(function)
+        self.modules.get(module)?.functions.get(function)
     }
 
+    #[allow(dead_code)] // Methods will be used in future development
     pub fn list_modules(&self) -> Vec<&str> {
         self.modules.keys().map(|s| s.as_str()).collect()
     }

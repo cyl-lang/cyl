@@ -146,7 +146,7 @@ pub enum Expression {
     CharLiteral(char),
     ArrayLiteral(Vec<Expression>),
     ObjectLiteral(HashMap<String, Expression>),
-    
+
     // Operations
     BinaryOp {
         left: Box<Expression>,
@@ -157,7 +157,7 @@ pub enum Expression {
         operator: UnaryOperator,
         operand: Box<Expression>,
     },
-    
+
     // Function and member access
     Call {
         callee: Box<Expression>,
@@ -171,10 +171,10 @@ pub enum Expression {
         object: Box<Expression>,
         index: Box<Expression>,
     },
-    
+
     // Async
     Await(Box<Expression>),
-    
+
     // Assignment
     Assignment {
         target: Box<Expression>,
@@ -185,46 +185,68 @@ pub enum Expression {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum BinaryOperator {
     // Arithmetic
-    Add, Subtract, Multiply, Divide, Modulo,
-    
+    Add,
+    Subtract,
+    Multiply,
+    Divide,
+    Modulo,
+
     // Comparison
-    Equal, NotEqual, Less, LessEqual, Greater, GreaterEqual,
-    
+    Equal,
+    NotEqual,
+    Less,
+    LessEqual,
+    Greater,
+    GreaterEqual,
+
     // Logical
-    And, Or,
-    
+    And,
+    Or,
+
     // Bitwise
-    BitwiseAnd, BitwiseOr, BitwiseXor, LeftShift, RightShift,
+    BitwiseAnd,
+    BitwiseOr,
+    BitwiseXor,
+    LeftShift,
+    RightShift,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum UnaryOperator {
-    Not, Minus, Plus, BitwiseNot,
+    Not,
+    Minus,
+    Plus,
+    BitwiseNot,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Type {
     // Primitive types
-    Int, Float, String, Bool, Char, Void,
-    
+    Int,
+    Float,
+    String,
+    Bool,
+    Char,
+    Void,
+
     // Collection types
     Array(Box<Type>),
-    
+
     // Custom types
     Custom(String),
-    
+
     // Generic types
     Generic {
         name: String,
         type_arguments: Vec<Type>,
     },
-    
+
     // Function types
     Function {
         parameters: Vec<Type>,
         return_type: Box<Type>,
     },
-    
+
     // Optional types
     Optional(Box<Type>),
 }

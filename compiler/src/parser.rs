@@ -1,6 +1,6 @@
 use crate::ast::*;
-use crate::lexer::{Token, TokenWithLocation};
 use crate::error::CylError;
+use crate::lexer::{Token, TokenWithLocation};
 
 pub struct Parser {
     tokens: Vec<TokenWithLocation>,
@@ -14,11 +14,11 @@ impl Parser {
 
     pub fn parse(&mut self) -> Result<Program, CylError> {
         let mut statements = Vec::new();
-        
+
         while !self.is_at_end() {
             statements.push(self.parse_statement()?);
         }
-        
+
         Ok(Program { statements })
     }
 
@@ -55,7 +55,7 @@ impl Parser {
 
     fn parse_import(&mut self) -> Result<Statement, CylError> {
         self.consume(Token::Import, "Expected 'import'")?;
-        
+
         let module = match &self.peek().token {
             Token::Identifier(name) => name.clone(),
             // Allow type keywords as module names
@@ -73,14 +73,14 @@ impl Parser {
                 });
             }
         };
-        
+
         self.advance();
-        
+
         // TODO: Handle selective imports
         let items = None;
-        
+
         self.consume(Token::Semicolon, "Expected ';' after import")?;
-        
+
         Ok(Statement::Import(ImportStatement { module, items }))
     }
 
@@ -89,9 +89,9 @@ impl Parser {
         if is_async {
             self.advance();
         }
-        
+
         self.consume(Token::Fn, "Expected 'fn'")?;
-        
+
         let name = if let Token::Identifier(name) = &self.peek().token {
             let name = name.clone();
             self.advance();
@@ -105,7 +105,7 @@ impl Parser {
         };
 
         self.consume(Token::LeftParen, "Expected '(' after function name")?;
-        
+
         let mut parameters = Vec::new();
         while !self.check(&Token::RightParen) && !self.is_at_end() {
             let param_name = if let Token::Identifier(name) = &self.peek().token {
@@ -122,7 +122,7 @@ impl Parser {
 
             self.consume(Token::Colon, "Expected ':' after parameter name")?;
             let param_type = self.parse_type()?;
-            
+
             parameters.push(Parameter {
                 name: param_name,
                 param_type,
@@ -133,9 +133,9 @@ impl Parser {
                 self.consume(Token::Comma, "Expected ',' between parameters")?;
             }
         }
-        
+
         self.consume(Token::RightParen, "Expected ')' after parameters")?;
-        
+
         let return_type = if self.match_token(&Token::Arrow) {
             Some(self.parse_type()?)
         } else {
@@ -155,14 +155,14 @@ impl Parser {
 
     fn parse_block(&mut self) -> Result<BlockStatement, CylError> {
         self.consume(Token::LeftBrace, "Expected '{'")?;
-        
+
         let mut statements = Vec::new();
         while !self.check(&Token::RightBrace) && !self.is_at_end() {
             statements.push(self.parse_statement()?);
         }
-        
+
         self.consume(Token::RightBrace, "Expected '}'")?;
-        
+
         Ok(BlockStatement { statements })
     }
 
@@ -203,11 +203,13 @@ impl Parser {
                 self.consume(Token::RightBracket, "Expected ']' after array element type")?;
                 Type::Array(Box::new(element_type))
             }
-            _ => return Err(CylError::ParseError {
-                message: "Expected type".to_string(),
-                line: self.peek().line,
-                column: self.peek().column,
-            }),
+            _ => {
+                return Err(CylError::ParseError {
+                    message: "Expected type".to_string(),
+                    line: self.peek().line,
+                    column: self.peek().column,
+                })
+            }
         };
 
         // Check for optional type modifier
@@ -319,7 +321,8 @@ impl Parser {
     fn parse_factor(&mut self) -> Result<Expression, CylError> {
         let mut expr = self.parse_unary()?;
 
-        while let Some(op) = self.match_binary_op(&[Token::Multiply, Token::Divide, Token::Modulo]) {
+        while let Some(op) = self.match_binary_op(&[Token::Multiply, Token::Divide, Token::Modulo])
+        {
             let right = self.parse_unary()?;
             expr = Expression::BinaryOp {
                 left: Box::new(expr),
@@ -445,7 +448,7 @@ impl Parser {
             Token::LeftBracket => {
                 self.advance();
                 let mut elements = Vec::new();
-                
+
                 if !self.check(&Token::RightBracket) {
                     loop {
                         elements.push(self.parse_expression()?);
@@ -454,7 +457,7 @@ impl Parser {
                         }
                     }
                 }
-                
+
                 self.consume(Token::RightBracket, "Expected ']' after array elements")?;
                 Ok(Expression::ArrayLiteral(elements))
             }
@@ -470,9 +473,9 @@ impl Parser {
     fn parse_declare(&mut self) -> Result<Statement, CylError> {
         let is_mutable = matches!(self.peek().token, Token::Let);
         let is_const = matches!(self.peek().token, Token::Const);
-        
+
         self.advance(); // consume 'let' or 'const'
-        
+
         // Check for 'mut' keyword
         let is_mutable = if is_mutable && self.match_token(&Token::Mut) {
             true
@@ -513,15 +516,15 @@ impl Parser {
 
     fn parse_return(&mut self) -> Result<Statement, CylError> {
         self.consume(Token::Return, "Expected 'return'")?;
-        
+
         let value = if self.check(&Token::Semicolon) {
             None
         } else {
             Some(self.parse_expression()?)
         };
-        
+
         self.consume(Token::Semicolon, "Expected ';' after return statement")?;
-        
+
         Ok(Statement::Return(ReturnStatement { value }))
     }
 
@@ -529,7 +532,7 @@ impl Parser {
         self.consume(Token::If, "Expected 'if'")?;
         let condition = self.parse_expression()?;
         let then_block = self.parse_block()?;
-        
+
         let else_block = if self.match_token(&Token::Else) {
             if self.check(&Token::If) {
                 // else if
@@ -537,7 +540,9 @@ impl Parser {
             } else {
                 // else block
                 let _else_body = self.parse_block()?;
-                Some(Box::new(Statement::Expression(Expression::Identifier("block_placeholder".to_string()))))
+                Some(Box::new(Statement::Expression(Expression::Identifier(
+                    "block_placeholder".to_string(),
+                ))))
             }
         } else {
             None
@@ -560,7 +565,7 @@ impl Parser {
 
     fn parse_for(&mut self) -> Result<Statement, CylError> {
         self.consume(Token::For, "Expected 'for'")?;
-        
+
         let variable = if let Token::Identifier(name) = &self.peek().token {
             let name = name.clone();
             self.advance();
@@ -587,7 +592,7 @@ impl Parser {
 
     fn parse_struct(&mut self) -> Result<Statement, CylError> {
         self.consume(Token::Struct, "Expected 'struct'")?;
-        
+
         let name = if let Token::Identifier(name) = &self.peek().token {
             let name = name.clone();
             self.advance();
@@ -604,12 +609,12 @@ impl Parser {
         let type_parameters = Vec::new();
 
         self.consume(Token::LeftBrace, "Expected '{' after struct name")?;
-        
+
         let mut fields = Vec::new();
         while !self.check(&Token::RightBrace) && !self.is_at_end() {
             // TODO: Handle pub keyword
             let is_public = false;
-            
+
             let field_name = if let Token::Identifier(name) = &self.peek().token {
                 let name = name.clone();
                 self.advance();
@@ -624,7 +629,7 @@ impl Parser {
 
             self.consume(Token::Colon, "Expected ':' after field name")?;
             let field_type = self.parse_type()?;
-            
+
             fields.push(StructField {
                 name: field_name,
                 field_type,
@@ -635,7 +640,7 @@ impl Parser {
                 self.consume(Token::Comma, "Expected ',' between struct fields")?;
             }
         }
-        
+
         self.consume(Token::RightBrace, "Expected '}' after struct fields")?;
 
         Ok(Statement::Struct(StructDeclaration {
@@ -647,7 +652,7 @@ impl Parser {
 
     fn parse_enum(&mut self) -> Result<Statement, CylError> {
         self.consume(Token::Enum, "Expected 'enum'")?;
-        
+
         let name = if let Token::Identifier(name) = &self.peek().token {
             let name = name.clone();
             self.advance();
@@ -661,7 +666,7 @@ impl Parser {
         };
 
         self.consume(Token::LeftBrace, "Expected '{' after enum name")?;
-        
+
         let mut variants = Vec::new();
         while !self.check(&Token::RightBrace) && !self.is_at_end() {
             let variant_name = if let Token::Identifier(name) = &self.peek().token {
@@ -678,7 +683,7 @@ impl Parser {
 
             // TODO: Handle variant fields (Variant(Type1, Type2))
             let fields = None;
-            
+
             variants.push(EnumVariant {
                 name: variant_name,
                 fields,
@@ -688,7 +693,7 @@ impl Parser {
                 self.consume(Token::Comma, "Expected ',' between enum variants")?;
             }
         }
-        
+
         self.consume(Token::RightBrace, "Expected '}' after enum variants")?;
 
         Ok(Statement::Enum(EnumDeclaration { name, variants }))
@@ -697,19 +702,19 @@ impl Parser {
     fn parse_match(&mut self) -> Result<Statement, CylError> {
         self.consume(Token::Match, "Expected 'match'")?;
         let expression = self.parse_expression()?;
-        
+
         self.consume(Token::LeftBrace, "Expected '{' after match expression")?;
-        
+
         let mut arms = Vec::new();
         while !self.check(&Token::RightBrace) && !self.is_at_end() {
             let pattern = self.parse_pattern()?;
-            
+
             // TODO: Handle guard expressions (pattern if condition)
             let guard = None;
-            
+
             self.consume(Token::FatArrow, "Expected '=>' after match pattern")?;
             let body = self.parse_block()?;
-            
+
             arms.push(MatchArm {
                 pattern,
                 guard,
@@ -720,7 +725,7 @@ impl Parser {
                 self.consume(Token::Comma, "Expected ',' between match arms")?;
             }
         }
-        
+
         self.consume(Token::RightBrace, "Expected '}' after match arms")?;
 
         Ok(Statement::Match(MatchStatement { expression, arms }))
@@ -729,15 +734,15 @@ impl Parser {
     fn parse_try(&mut self) -> Result<Statement, CylError> {
         self.consume(Token::Try, "Expected 'try'")?;
         let body = self.parse_block()?;
-        
+
         let mut catch_clauses = Vec::new();
         while self.match_token(&Token::Catch) {
             // TODO: Handle specific exception types
             let exception_type = None;
             let variable = None;
-            
+
             let catch_body = self.parse_block()?;
-            
+
             catch_clauses.push(CatchClause {
                 exception_type,
                 variable,
@@ -745,7 +750,10 @@ impl Parser {
             });
         }
 
-        Ok(Statement::Try(TryStatement { body, catch_clauses }))
+        Ok(Statement::Try(TryStatement {
+            body,
+            catch_clauses,
+        }))
     }
 
     fn parse_pattern(&mut self) -> Result<Pattern, CylError> {
@@ -755,15 +763,16 @@ impl Parser {
                 self.advance();
                 Ok(Pattern::Identifier(name))
             }
-            Token::IntLiteral(_) | Token::FloatLiteral(_) | Token::StringLiteral(_) | 
-            Token::BoolLiteral(_) | Token::CharLiteral(_) => {
+            Token::IntLiteral(_)
+            | Token::FloatLiteral(_)
+            | Token::StringLiteral(_)
+            | Token::BoolLiteral(_)
+            | Token::CharLiteral(_) => {
                 let expr = self.parse_primary()?;
                 Ok(Pattern::Literal(expr))
             }
             // TODO: Handle wildcard pattern (_)
-            _ => {
-                Ok(Pattern::Wildcard)
-            }
+            _ => Ok(Pattern::Wildcard),
         }
     }
 

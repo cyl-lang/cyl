@@ -1,6 +1,8 @@
 use thiserror::Error;
 
 #[derive(Error, Debug)]
+#[allow(clippy::enum_variant_names)] // Error suffix is conventional for error types
+#[allow(dead_code)] // Error variants will be used as the compiler develops
 pub enum CylError {
     #[error("Lexical error: {message} at line {line}, column {column}")]
     LexError {

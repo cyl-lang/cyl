@@ -1,17 +1,17 @@
-use clap::{Parser, Subcommand};
 use anyhow::Result;
+use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
-mod lexer;
-mod parser;
 mod ast;
 mod codegen;
 mod error;
+mod lexer;
+mod parser;
 mod stdlib;
 
+use crate::codegen::CodeGenerator;
 use crate::lexer::Lexer;
 use crate::parser::Parser as CylParser;
-use crate::codegen::CodeGenerator;
 
 #[derive(Parser)]
 #[command(name = "cylc")]
@@ -80,10 +80,19 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Run { file, opt_level, debug } => {
+        Commands::Run {
+            file,
+            opt_level,
+            debug,
+        } => {
             compile_and_run(&file, opt_level, debug)?;
         }
-        Commands::Build { file, output, opt_level, debug } => {
+        Commands::Build {
+            file,
+            output,
+            opt_level,
+            debug,
+        } => {
             compile_to_executable(&file, output, opt_level, debug)?;
         }
         Commands::Check { file } => {
@@ -92,7 +101,11 @@ fn main() -> Result<()> {
         Commands::Ast { file, format } => {
             show_ast(&file, &format)?;
         }
-        Commands::Test { pattern, verbose, continue_on_failure } => {
+        Commands::Test {
+            pattern,
+            verbose,
+            continue_on_failure,
+        } => {
             run_tests(pattern, verbose, continue_on_failure)?;
         }
     }
@@ -102,91 +115,89 @@ fn main() -> Result<()> {
 
 fn compile_and_run(file: &PathBuf, opt_level: u8, debug: bool) -> Result<()> {
     println!("Compiling and running: {}", file.display());
-    
+
     // Read source file
     let source = std::fs::read_to_string(file)?;
-    
+
     // Lexical analysis
     let mut lexer = Lexer::new(&source);
     let tokens = lexer.tokenize()?;
-    
+
     // Parsing
     let mut parser = CylParser::new(tokens);
     let ast = parser.parse()?;
-    
+
     // Code generation
     let mut codegen = CodeGenerator::new(opt_level, debug);
     let executable = codegen.compile_to_executable(&ast)?;
-    
+
     // Execute
     executable.run()?;
-    
+
     Ok(())
 }
 
 fn compile_to_executable(
-    file: &PathBuf, 
-    output: Option<PathBuf>, 
-    opt_level: u8, 
-    debug: bool
+    file: &PathBuf,
+    output: Option<PathBuf>,
+    opt_level: u8,
+    debug: bool,
 ) -> Result<()> {
-    let output_name = output.unwrap_or_else(|| {
-        file.with_extension("")
-    });
-    
+    let output_name = output.unwrap_or_else(|| file.with_extension(""));
+
     println!("Compiling {} to {}", file.display(), output_name.display());
-    
+
     // Read source file
     let source = std::fs::read_to_string(file)?;
-    
+
     // Lexical analysis
     let mut lexer = Lexer::new(&source);
     let tokens = lexer.tokenize()?;
-    
+
     // Parsing
     let mut parser = CylParser::new(tokens);
     let ast = parser.parse()?;
-    
+
     // Code generation
     let mut codegen = CodeGenerator::new(opt_level, debug);
     codegen.compile_to_file(&ast, &output_name)?;
-    
+
     println!("Successfully compiled to {}", output_name.display());
-    
+
     Ok(())
 }
 
 fn check_syntax(file: &PathBuf) -> Result<()> {
     println!("Checking syntax: {}", file.display());
-    
+
     // Read source file
     let source = std::fs::read_to_string(file)?;
-    
+
     // Lexical analysis
     let mut lexer = Lexer::new(&source);
     let tokens = lexer.tokenize()?;
-    
+
     // Parsing (syntax check)
     let mut parser = CylParser::new(tokens);
     let _ast = parser.parse()?;
-    
+
     println!("✓ Syntax is valid");
-    
+
     Ok(())
 }
 
 fn show_ast(file: &PathBuf, format: &str) -> Result<()> {
     // Read source file
     let source = std::fs::read_to_string(file)?;
-    
+
     // Lexical analysis
     let mut lexer = Lexer::new(&source);
     let tokens = lexer.tokenize()?;
-    
+
     // Parsing
     let mut parser = CylParser::new(tokens);
     let ast = parser.parse()?;
-    
+
     match format {
         "json" => {
             let json = serde_json::to_string_pretty(&ast)?;
@@ -199,58 +210,68 @@ fn show_ast(file: &PathBuf, format: &str) -> Result<()> {
             anyhow::bail!("Unknown format: {}. Use 'json' or 'pretty'", format);
         }
     }
-    
+
     Ok(())
 }
 
 fn run_tests(pattern: Option<String>, verbose: bool, continue_on_failure: bool) -> Result<()> {
-    use std::fs;
-    
     println!("🧪 Running Cyl automated tests...\n");
-    
+
     let tests_dir = PathBuf::from("tests");
     if !tests_dir.exists() {
         anyhow::bail!("Tests directory not found. Expected 'tests/' directory in project root.");
     }
-    
+
     let fixtures_dir = tests_dir.join("fixtures");
     if !fixtures_dir.exists() {
         anyhow::bail!("Test fixtures directory not found. Expected 'tests/fixtures/' directory.");
     }
-    
+
     let valid_dir = fixtures_dir.join("valid");
     let invalid_dir = fixtures_dir.join("invalid");
-    
+
     let mut total_tests = 0;
     let mut passed_tests = 0;
     let mut failed_tests = 0;
-    
+
     // Run valid tests (should parse successfully)
     if valid_dir.exists() {
         println!("📂 Running valid test cases...");
-        let (total, passed, failed) = run_test_directory(&valid_dir, true, pattern.as_deref(), verbose, continue_on_failure)?;
+        let (total, passed, failed) = run_test_directory(
+            &valid_dir,
+            true,
+            pattern.as_deref(),
+            verbose,
+            continue_on_failure,
+        )?;
         total_tests += total;
         passed_tests += passed;
         failed_tests += failed;
         println!();
     }
-    
+
     // Run invalid tests (should fail to parse)
     if invalid_dir.exists() {
         println!("📂 Running invalid test cases...");
-        let (total, passed, failed) = run_test_directory(&invalid_dir, false, pattern.as_deref(), verbose, continue_on_failure)?;
+        let (total, passed, failed) = run_test_directory(
+            &invalid_dir,
+            false,
+            pattern.as_deref(),
+            verbose,
+            continue_on_failure,
+        )?;
         total_tests += total;
         passed_tests += passed;
         failed_tests += failed;
         println!();
     }
-    
+
     // Print summary
     println!("📊 Test Summary:");
     println!("   Total:  {}", total_tests);
     println!("   Passed: {} ✅", passed_tests);
     println!("   Failed: {} ❌", failed_tests);
-    
+
     if failed_tests > 0 {
         println!("\n❌ Some tests failed");
         if !continue_on_failure {
@@ -259,50 +280,50 @@ fn run_tests(pattern: Option<String>, verbose: bool, continue_on_failure: bool) 
     } else {
         println!("\n✅ All tests passed!");
     }
-    
+
     Ok(())
 }
 
 fn run_test_directory(
-    dir: &PathBuf, 
-    should_succeed: bool, 
-    pattern: Option<&str>, 
+    dir: &PathBuf,
+    should_succeed: bool,
+    pattern: Option<&str>,
     verbose: bool,
-    continue_on_failure: bool
+    continue_on_failure: bool,
 ) -> Result<(usize, usize, usize)> {
     use std::fs;
-    
+
     let mut total = 0;
     let mut passed = 0;
     let mut failed = 0;
-    
+
     let entries = fs::read_dir(dir)?;
     let mut test_files: Vec<_> = entries
         .filter_map(|entry| entry.ok())
         .filter(|entry| {
             let path = entry.path();
-            path.extension().map_or(false, |ext| ext == "cyl")
+            path.extension().is_some_and(|ext| ext == "cyl")
         })
         .collect();
-    
+
     // Sort for consistent test ordering
     test_files.sort_by_key(|entry| entry.file_name());
-    
+
     for entry in test_files {
         let path = entry.path();
         let filename = path.file_name().unwrap().to_string_lossy();
-        
+
         // Filter by pattern if provided
         if let Some(pattern) = pattern {
             if !filename.contains(pattern) {
                 continue;
             }
         }
-        
+
         total += 1;
-        
+
         let test_result = run_single_test(&path, should_succeed, verbose);
-        
+
         match test_result {
             Ok(true) => {
                 passed += 1;
@@ -326,11 +347,14 @@ fn run_test_directory(
             }
         }
     }
-    
+
     if !verbose {
-        println!("  Ran {} tests: {} passed, {} failed", total, passed, failed);
+        println!(
+            "  Ran {} tests: {} passed, {} failed",
+            total, passed, failed
+        );
     }
-    
+
     Ok((total, passed, failed))
 }
 
@@ -345,10 +369,10 @@ fn run_single_test(file: &PathBuf, should_succeed: bool, verbose: bool) -> Resul
             return Ok(false);
         }
     };
-    
+
     // Try to parse the file
     let parse_result = try_parse_file(&source);
-    
+
     match (should_succeed, parse_result) {
         (true, Ok(_)) => {
             if verbose {
@@ -381,10 +405,10 @@ fn try_parse_file(source: &str) -> Result<crate::ast::Program> {
     // Lexical analysis
     let mut lexer = Lexer::new(source);
     let tokens = lexer.tokenize()?;
-    
+
     // Parsing
     let mut parser = CylParser::new(tokens);
     let ast = parser.parse()?;
-    
+
     Ok(ast)
 }

@@ -1,6 +1,6 @@
+use crate::error::CylError;
 use logos::Logos;
 use serde::{Deserialize, Serialize};
-use crate::error::CylError;
 
 #[derive(Logos, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Token {
@@ -65,17 +65,17 @@ pub enum Token {
     // Literals
     #[regex(r#""([^"\\]|\\.)*""#, |lex| lex.slice().to_owned())]
     StringLiteral(String),
-    
+
     #[regex(r"[0-9]+", |lex| lex.slice().parse::<i64>().ok())]
     IntLiteral(i64),
-    
+
     #[regex(r"[0-9]+\.[0-9]+", |lex| lex.slice().parse::<f64>().ok())]
     FloatLiteral(f64),
-    
+
     #[token("true", |_| true)]
     #[token("false", |_| false)]
     BoolLiteral(bool),
-    
+
     #[regex(r"'[^']*'", |lex| lex.slice().chars().nth(1))]
     CharLiteral(char),
 
@@ -193,12 +193,12 @@ impl<'source> Lexer<'source> {
 
     pub fn tokenize(&mut self) -> Result<Vec<TokenWithLocation>, CylError> {
         let mut tokens = Vec::new();
-        
+
         while let Some(result) = self.lexer.next() {
             let span = self.lexer.span();
             let token_line = self.current_line;
             let token_column = self.current_column;
-            
+
             // Update line and column tracking first
             let slice = self.lexer.slice();
             for ch in slice.chars() {
@@ -209,7 +209,7 @@ impl<'source> Lexer<'source> {
                     self.current_column += 1;
                 }
             }
-            
+
             match result {
                 Ok(token) => {
                     tokens.push(TokenWithLocation {
@@ -228,14 +228,14 @@ impl<'source> Lexer<'source> {
                 }
             }
         }
-        
+
         tokens.push(TokenWithLocation {
             token: Token::Eof,
             line: self.current_line,
             column: self.current_column,
             span: self.lexer.span(),
         });
-        
+
         Ok(tokens)
     }
 }
