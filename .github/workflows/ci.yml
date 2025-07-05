@@ -53,7 +53,7 @@ jobs:
         run: cd compiler && cargo build --release
 
       - name: Test Cyl language tests
-        run: cd compiler && ./target/release/cylc test --verbose
+        run: ./target/release/cylc test --verbose
 
   test-design-tools:
     name: Test TypeScript Design Tools
