@@ -78,14 +78,14 @@ jobs:
       - name: Test CLI (Unix)
         if: runner.os != 'Windows'
         run: |
-          ./target/release/cylc --help
-          ./target/release/cylc test
+          cd compiler && ./target/release/cylc --help
+          cd compiler && ./target/release/cylc test
 
       - name: Test CLI (Windows)
         if: runner.os == 'Windows'
         run: |
-          .\target\release\cylc.exe --help
-          .\target\release\cylc.exe test
+          cd compiler && .\target\release\cylc.exe --help
+          cd compiler && .\target\release\cylc.exe test
 
       - name: Run integration tests
         run: make test
