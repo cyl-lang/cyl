@@ -12,7 +12,7 @@ pub struct Module {
     pub types: HashMap<String, Type>,
 }
 
-#[allow(dead_code)] // Fields will be used in future development  
+#[allow(dead_code)] // Fields will be used in future development
 pub struct Function {
     pub name: String,
     pub signature: String,
