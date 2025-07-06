@@ -1,5 +1,4 @@
 import { CylLanguageDesign } from '../src/index';
-import { LanguageGrammar } from '../src/types/grammar';
 
 describe('CylLanguageDesign', () => {
     let cylDesign: CylLanguageDesign;

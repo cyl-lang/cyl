@@ -14,9 +14,9 @@
         "test:design:coverage": "jest --coverage",
         "test:compiler": "cd compiler && cargo test",
         "test:compiler:cyl": "cd compiler && cargo run -- test",
-        "grammar:validate": "ts-node design/src/tools/grammar-validator.ts",
-        "ast:generate": "ts-node design/src/tools/ast-generator.ts",
-        "syntax:check": "ts-node design/src/tools/syntax-checker.ts",
+        "grammar:validate": "ts-node --loader ts-node/esm design/src/tools/grammar-validator.ts",
+        "ast:generate": "ts-node --loader ts-node/esm design/src/tools/ast-generator.ts",
+        "syntax:check": "ts-node --loader ts-node/esm design/src/tools/syntax-checker.ts",
         "compiler:dev": "cd compiler && cargo run",
         "compiler:install": "cd compiler && cargo install --path .",
         "setup": "npm install && cd compiler && cargo build"
