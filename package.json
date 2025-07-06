@@ -8,7 +8,7 @@
         "build": "npm run build:design && npm run build:compiler",
         "build:design": "tsc",
         "build:compiler": "cd compiler && cargo build --release",
-        "dev": "npm run build:design && node dist/index.js",
+        "dev": "npm run build:design && node dist/src/index.js",
         "test": "npm run test:design && npm run test:compiler",
         "pretest:design": "npm run build:design",
         "test:design": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
