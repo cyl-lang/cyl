@@ -47,5 +47,8 @@
         "email": "contact@mjanglin.com",
         "url": "https://www.mjanglin.com"
     },
-    "license": "MIT"
+    "license": "MIT",
+    "engines": {
+        "node": ">=22.0.0"
+    }
 }
