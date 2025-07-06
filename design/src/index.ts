@@ -1,8 +1,8 @@
-import { LanguageGrammar } from './types/grammar';
-import { loadGrammar, saveGrammar, getDefaultGrammar } from './grammar';
-import { GrammarValidator, ValidationResult } from './tools/grammar-validator';
-import { ASTGenerator } from './tools/ast-generator';
-import { SyntaxChecker, SyntaxCheckResult } from './tools/syntax-checker';
+import type { LanguageGrammar } from './types/grammar.ts';
+import { loadGrammar, saveGrammar, getDefaultGrammar } from './grammar/index.ts';
+import { GrammarValidator, ValidationResult } from './tools/grammar-validator.ts';
+import { ASTGenerator } from './tools/ast-generator.ts';
+import { SyntaxChecker, SyntaxCheckResult } from './tools/syntax-checker.ts';
 import chalk from 'chalk';
 
 export class CylLanguageDesign {
@@ -172,15 +172,15 @@ export class CylLanguageDesign {
 }
 
 // Export everything for external use
-export * from './types/grammar';
-export * from './ast/nodes';
-export * from './grammar';
-export * from './tools/grammar-validator';
-export * from './tools/ast-generator';
-export * from './tools/syntax-checker';
+export * from './types/grammar.ts';
+export * from './ast/nodes.ts';
+export * from './grammar/index.ts';
+export * from './tools/grammar-validator.ts';
+export * from './tools/ast-generator.ts';
+export * from './tools/syntax-checker.ts';
 
 // CLI interface
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}` || import.meta.url === process.argv[1]) {
     const design = new CylLanguageDesign();
 
     const args = process.argv.slice(2);
@@ -218,10 +218,11 @@ if (require.main === module) {
             }
             break;
 
-        case 'full':
+        case 'full': {
             const success = design.runFullCheck();
             process.exit(success ? 0 : 1);
             break;
+        }
 
         default:
             console.log(chalk.cyan('Cyl Language Design Tool'));

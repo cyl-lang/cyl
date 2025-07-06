@@ -1,7 +1,12 @@
-import { LanguageGrammar } from '../types/grammar';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+import type { LanguageGrammar } from '../types/grammar.ts';
 import * as yaml from 'yaml';
 import * as fs from 'fs';
-import * as path from 'path';
 
 export function loadGrammar(): LanguageGrammar {
     const grammarPath = path.join(__dirname, '../../specs/syntax.yaml');

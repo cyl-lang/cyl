@@ -1,4 +1,4 @@
-import { LanguageGrammar } from '../types/grammar';
+import type { LanguageGrammar } from '../types/grammar';
 
 export class GrammarValidator {
     private readonly grammar: LanguageGrammar;
@@ -152,36 +152,34 @@ export interface ValidationWarning {
     location?: string;
 }
 
-// CLI tool
-if (require.main === module) {
-    import('../grammar').then(({ loadGrammar }) => {
-        const grammar = loadGrammar();
-        const validator = new GrammarValidator(grammar);
-        const result = validator.validate();
+// CLI tool (ESM-compatible, always runs when executed)
+import('../grammar/index.ts').then(({ loadGrammar }) => {
+    const grammar = loadGrammar();
+    const validator = new GrammarValidator(grammar);
+    const result = validator.validate();
 
-        console.log('Grammar Validation Results:');
-        console.log('==========================');
+    console.log('Grammar Validation Results:');
+    console.log('==========================');
 
-        if (result.isValid) {
-            console.log('✅ Grammar is valid!');
-        } else {
-            console.log('❌ Grammar validation failed!');
-        }
+    if (result.isValid) {
+        console.log('✅ Grammar is valid!');
+    } else {
+        console.log('❌ Grammar validation failed!');
+    }
 
-        if (result.errors.length > 0) {
-            console.log('\nErrors:');
-            result.errors.forEach(error => {
-                console.log(`  ❌ [${error.type}] ${error.message}`);
-            });
-        }
+    if (result.errors.length > 0) {
+        console.log('\nErrors:');
+        result.errors.forEach(error => {
+            console.log(`  ❌ [${error.type}] ${error.message}`);
+        });
+    }
 
-        if (result.warnings.length > 0) {
-            console.log('\nWarnings:');
-            result.warnings.forEach(warning => {
-                console.log(`  ⚠️  [${warning.type}] ${warning.message}`);
-            });
-        }
+    if (result.warnings.length > 0) {
+        console.log('\nWarnings:');
+        result.warnings.forEach(warning => {
+            console.log(`  ⚠️  [${warning.type}] ${warning.message}`);
+        });
+    }
 
-        process.exit(result.isValid ? 0 : 1);
-    });
-}
+    process.exit(result.isValid ? 0 : 1);
+});

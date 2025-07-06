@@ -1,5 +1,6 @@
-import { LanguageGrammar } from '../types/grammar';
-import { loadGrammar } from '../grammar';
+import type { LanguageGrammar } from '../types/grammar.ts';
+import { loadGrammar } from '../grammar/index.ts';
+import fs from 'fs';
 
 export class SyntaxChecker {
     private readonly grammar: LanguageGrammar;
@@ -335,9 +336,8 @@ export interface SyntaxSuggestion {
     suggestions: string[];
 }
 
-// CLI tool
-if (require.main === module) {
-    const fs = require('fs');
+// CLI tool (ESM-compatible)
+if (import.meta.url === `file://${process.argv[1]}` || import.meta.url === process.argv[1]) {
     const args = process.argv.slice(2);
 
     if (args.length === 0) {

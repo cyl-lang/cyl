@@ -12,7 +12,9 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "downlevelIteration": true,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "allowImportingTsExtensions": true,
+    "emitDeclarationOnly": true
   },
   "include": ["design/src/**/*"],
   "exclude": ["node_modules", "dist", "compiler"]

@@ -1,10 +1,9 @@
-import { ASTNodeType, Program, Statement, Expression, TypeNode } from '../ast/nodes';
-import { LanguageGrammar } from '../types/grammar';
-import * as fs from 'fs';
-import * as path from 'path';
+import type { LanguageGrammar } from '../types/grammar';
+import fs from 'fs';
+import path from 'path';
 
 export class ASTGenerator {
-    private grammar: LanguageGrammar;
+    private readonly grammar: LanguageGrammar;
 
     constructor(grammar: LanguageGrammar) {
         this.grammar = grammar;
@@ -510,7 +509,7 @@ impl Default for Program {
 }
 
 // CLI tool
-if (require.main === module) {
+if (import.meta.url === new URL('../compiler/src/generated/ast-generator', import.meta.url).href) {
     import('../grammar').then(({ loadGrammar }) => {
         const grammar = loadGrammar();
         const generator = new ASTGenerator(grammar);
