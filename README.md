@@ -31,6 +31,17 @@ fn main() -> void {
 
 ---
 
+- [Usage](#usage)
+  - [Installation](#installation)
+  - [Commands](#commands)
+- [Current Implementation Status](#current-implementation-status)
+- [Development & CI/CD](#development--cicd)
+  - [Local Development](#local-development)
+  - [Continuous Integration](#continuous-integration)
+- [Key Syntax Features](#key-syntax-features)
+
+---
+
 ## Usage
 
 ### Installation

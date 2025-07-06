@@ -4,6 +4,7 @@ description = "Cyl programming language compiler"
 edition = "2021"
 license = "MIT"
 name = "cylc"
+rust-version = "1.75.0"
 version = "0.1.0"
 
 [[bin]]

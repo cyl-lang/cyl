@@ -201,10 +201,10 @@ fn show_ast(file: &PathBuf, format: &str) -> Result<()> {
     match format {
         "json" => {
             let json = serde_json::to_string_pretty(&ast)?;
-            println!("{}", json);
+            println!("{json}");
         }
         "pretty" => {
-            println!("{:#?}", ast);
+            println!("{ast:#?}");
         }
         _ => {
             anyhow::bail!("Unknown format: {}. Use 'json' or 'pretty'", format);
@@ -268,9 +268,9 @@ fn run_tests(pattern: Option<String>, verbose: bool, continue_on_failure: bool) 
 
     // Print summary
     println!("📊 Test Summary:");
-    println!("   Total:  {}", total_tests);
-    println!("   Passed: {} ✅", passed_tests);
-    println!("   Failed: {} ❌", failed_tests);
+    println!("   Total:  {total_tests}");
+    println!("   Passed: {passed_tests} ✅");
+    println!("   Failed: {failed_tests} ❌");
 
     if failed_tests > 0 {
         println!("\n❌ Some tests failed");
@@ -328,19 +328,19 @@ fn run_test_directory(
             Ok(true) => {
                 passed += 1;
                 if verbose {
-                    println!("  ✅ {}", filename);
+                    println!("  ✅ {filename}");
                 }
             }
             Ok(false) => {
                 failed += 1;
-                println!("  ❌ {}", filename);
+                println!("  ❌ {filename}");
                 if !continue_on_failure {
                     break;
                 }
             }
             Err(e) => {
                 failed += 1;
-                println!("  ❌ {} (error: {})", filename, e);
+                println!("  ❌ {filename} (error: {e})");
                 if !continue_on_failure {
                     break;
                 }
@@ -349,10 +349,7 @@ fn run_test_directory(
     }
 
     if !verbose {
-        println!(
-            "  Ran {} tests: {} passed, {} failed",
-            total, passed, failed
-        );
+        println!("  Ran {total} tests: {passed} passed, {failed} failed");
     }
 
     Ok((total, passed, failed))
@@ -364,7 +361,7 @@ fn run_single_test(file: &PathBuf, should_succeed: bool, verbose: bool) -> Resul
         Ok(s) => s,
         Err(e) => {
             if verbose {
-                println!("    Failed to read file: {}", e);
+                println!("    Failed to read file: {e}");
             }
             return Ok(false);
         }
@@ -382,7 +379,7 @@ fn run_single_test(file: &PathBuf, should_succeed: bool, verbose: bool) -> Resul
         }
         (true, Err(e)) => {
             if verbose {
-                println!("    Parse failed unexpectedly: {}", e);
+                println!("    Parse failed unexpectedly: {e}");
             }
             Ok(false)
         }

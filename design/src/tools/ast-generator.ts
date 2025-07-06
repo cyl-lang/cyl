@@ -97,6 +97,11 @@ pub enum ASTNodeType {
 
         // Generate from keywords
         const processedTypes = new Set<string>();
+
+        // Add ExpressionStatement first
+        code += `    ExpressionStatement = 'ExpressionStatement',\n`;
+        processedTypes.add('ExpressionStatement');
+
         if (this.grammar.keywords) {
             for (const keyword of this.grammar.keywords) {
                 if (!processedTypes.has(keyword.type)) {
@@ -200,17 +205,20 @@ pub enum Expression {
         let code = `export type Statement = 
 `;
 
-        // Generate union type for statements
+        // Generate union type for statements - avoid duplicates
+        const statementTypes = new Set<string>();
+
         if (this.grammar.keywords) {
-            const statements = this.grammar.keywords
-                .filter(k => k.type.includes('Statement') || k.type.includes('Declaration'))
-                .map(k => `  | ${k.type}`)
-                .join('\n');
-            code += statements;
+            for (const keyword of this.grammar.keywords) {
+                if ((keyword.type.includes('Statement') || keyword.type.includes('Declaration')) &&
+                    !statementTypes.has(keyword.type)) {
+                    code += `  | ${keyword.type}\n`;
+                    statementTypes.add(keyword.type);
+                }
+            }
         }
 
-        code += `
-  | ExpressionStatement;
+        code += `  | ExpressionStatement;
 
 export type Expression =
   | Identifier
@@ -228,18 +236,171 @@ export type Expression =
   | IndexExpression
   | AssignmentExpression;
 
+// Base interfaces with proper properties
+export interface ExpressionStatement extends BaseASTNode {
+    type: ASTNodeType.ExpressionStatement;
+    expression: Expression;
+}
+
+export interface Identifier extends BaseASTNode {
+    type: ASTNodeType.Identifier;
+    name: string;
+}
+
+export interface IntLiteral extends BaseASTNode {
+    type: ASTNodeType.IntLiteral;
+    value: number;
+}
+
+export interface FloatLiteral extends BaseASTNode {
+    type: ASTNodeType.FloatLiteral;
+    value: number;
+}
+
+export interface StringLiteral extends BaseASTNode {
+    type: ASTNodeType.StringLiteral;
+    value: string;
+}
+
+export interface BoolLiteral extends BaseASTNode {
+    type: ASTNodeType.BoolLiteral;
+    value: boolean;
+}
+
+export interface CharLiteral extends BaseASTNode {
+    type: ASTNodeType.CharLiteral;
+    value: string;
+}
+
+export interface ArrayLiteral extends BaseASTNode {
+    type: ASTNodeType.ArrayLiteral;
+    elements: Expression[];
+}
+
+export interface ObjectLiteral extends BaseASTNode {
+    type: ASTNodeType.ObjectLiteral;
+    properties: Array<{ key: string; value: Expression }>;
+}
+
+export interface BinaryExpression extends BaseASTNode {
+    type: ASTNodeType.BinaryExpression;
+    left: Expression;
+    operator: string;
+    right: Expression;
+}
+
+export interface UnaryExpression extends BaseASTNode {
+    type: ASTNodeType.UnaryExpression;
+    operator: string;
+    operand: Expression;
+}
+
+export interface CallExpression extends BaseASTNode {
+    type: ASTNodeType.CallExpression;
+    callee: Expression;
+    arguments: Expression[];
+}
+
+export interface MemberExpression extends BaseASTNode {
+    type: ASTNodeType.MemberExpression;
+    object: Expression;
+    property: string;
+}
+
+export interface IndexExpression extends BaseASTNode {
+    type: ASTNodeType.IndexExpression;
+    object: Expression;
+    index: Expression;
+}
+
+export interface AssignmentExpression extends BaseASTNode {
+    type: ASTNodeType.AssignmentExpression;
+    target: Expression;
+    value: Expression;
+}
+
 `;
 
-        // Generate specific interfaces
+        // Generate specific interfaces for keywords
+        const processedInterfaces = new Set<string>();
         if (this.grammar.keywords) {
             for (const keyword of this.grammar.keywords) {
-                if (keyword.type.includes('Statement') || keyword.type.includes('Declaration')) {
-                    code += this.generateTSInterface(keyword.type, keyword.description || '');
+                if ((keyword.type.includes('Statement') || keyword.type.includes('Declaration')) &&
+                    !processedInterfaces.has(keyword.type)) {
+                    code += this.generateTSInterfaceWithProperties(keyword.type, keyword.description ?? '');
+                    processedInterfaces.add(keyword.type);
                 }
             }
         }
 
         return code;
+    }
+
+    private generateTSInterfaceWithProperties(typeName: string, description: string): string {
+        let properties = '';
+
+        // Add specific properties based on the type
+        switch (typeName) {
+            case 'FunctionDeclaration':
+                properties = `    name: string;
+    parameters: Array<{ name: string; type?: string }>;
+    returnType?: string;
+    body: Statement[];
+    isAsync?: boolean;`;
+                break;
+            case 'IfStatement':
+                properties = `    condition: Expression;
+    thenBranch: Statement;
+    elseBranch?: Statement;`;
+                break;
+            case 'ImportStatement':
+                properties = `    module: string;
+    items?: string[];`;
+                break;
+            case 'ReturnStatement':
+                properties = `    value?: Expression;`;
+                break;
+            case 'StructDeclaration':
+                properties = `    name: string;
+    fields: Array<{ name: string; type: string; isPublic?: boolean }>;`;
+                break;
+            case 'EnumDeclaration':
+                properties = `    name: string;
+    variants: Array<{ name: string; fields?: string[] }>;`;
+                break;
+            case 'MatchStatement':
+                properties = `    expression: Expression;
+    arms: Array<{ pattern: string; body: Statement }>;`;
+                break;
+            case 'ForStatement':
+                properties = `    variable: string;
+    iterable: Expression;
+    body: Statement;`;
+                break;
+            case 'WhileStatement':
+                properties = `    condition: Expression;
+    body: Statement;`;
+                break;
+            case 'DeclareStatement':
+                properties = `    name: string;
+    valueType?: string;
+    value: Expression;
+    isMutable?: boolean;`;
+                break;
+            default:
+                // For other statement types, just add basic properties
+                properties = `    // Properties for ${typeName}`;
+        }
+
+        return `/**
+ * ${description}
+ */
+export interface ${typeName} extends BaseASTNode {
+    type: ASTNodeType.${typeName};
+${properties}
+}
+
+`;
     }
 
     private generateTSInterface(typeName: string, description: string): string {

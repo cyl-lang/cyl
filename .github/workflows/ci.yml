@@ -143,7 +143,9 @@ jobs:
         run: cargo install cargo-audit
 
       - name: Run Rust security audit
-        run: cd compiler && cargo audit
+        run: |
+          # Run from workspace root where Cargo.lock is located
+          cargo audit --file Cargo.lock
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

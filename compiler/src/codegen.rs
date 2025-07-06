@@ -201,9 +201,9 @@ impl CodeGenerator {
             Expression::Identifier(name) => Ok(name.clone()),
             Expression::IntLiteral(value) => Ok(value.to_string()),
             Expression::FloatLiteral(value) => Ok(value.to_string()),
-            Expression::StringLiteral(value) => Ok(format!("\"{}\"", value)),
+            Expression::StringLiteral(value) => Ok(format!("\"{value}\"")),
             Expression::BoolLiteral(value) => Ok(value.to_string()),
-            Expression::CharLiteral(value) => Ok(format!("'{}'", value)),
+            Expression::CharLiteral(value) => Ok(format!("'{value}'")),
             Expression::ArrayLiteral(elements) => {
                 let mut result = String::from("[");
                 for (i, element) in elements.iter().enumerate() {
@@ -223,12 +223,12 @@ impl CodeGenerator {
                 let left_str = self.compile_expression(left)?;
                 let right_str = self.compile_expression(right)?;
                 let op_str = self.compile_binary_op(operator);
-                Ok(format!("({} {} {})", left_str, op_str, right_str))
+                Ok(format!("({left_str} {op_str} {right_str})"))
             }
             Expression::UnaryOp { operator, operand } => {
                 let operand_str = self.compile_expression(operand)?;
                 let op_str = self.compile_unary_op(operator);
-                Ok(format!("({}{})", op_str, operand_str))
+                Ok(format!("({op_str}{operand_str})"))
             }
             Expression::Call { callee, arguments } => {
                 let mut result = self.compile_expression(callee)?;
@@ -244,21 +244,21 @@ impl CodeGenerator {
             }
             Expression::MemberAccess { object, property } => {
                 let object_str = self.compile_expression(object)?;
-                Ok(format!("{}.{}", object_str, property))
+                Ok(format!("{object_str}.{property}"))
             }
             Expression::IndexAccess { object, index } => {
                 let object_str = self.compile_expression(object)?;
                 let index_str = self.compile_expression(index)?;
-                Ok(format!("{}[{}]", object_str, index_str))
+                Ok(format!("{object_str}[{index_str}]"))
             }
             Expression::Assignment { target, value } => {
                 let target_str = self.compile_expression(target)?;
                 let value_str = self.compile_expression(value)?;
-                Ok(format!("{} = {}", target_str, value_str))
+                Ok(format!("{target_str} = {value_str}"))
             }
             Expression::Await(expr) => {
                 let expr_str = self.compile_expression(expr)?;
-                Ok(format!("await {}", expr_str))
+                Ok(format!("await {expr_str}"))
             }
             _ => Ok("/* TODO: Expression compilation */".to_string()),
         }
@@ -276,11 +276,11 @@ impl CodeGenerator {
             Type::Custom(name) => Ok(name.clone()),
             Type::Array(element_type) => {
                 let element_str = self.compile_type(element_type)?;
-                Ok(format!("[{}]", element_str))
+                Ok(format!("[{element_str}]"))
             }
             Type::Optional(inner_type) => {
                 let inner_str = self.compile_type(inner_type)?;
-                Ok(format!("{}?", inner_str))
+                Ok(format!("{inner_str}?"))
             }
             _ => Ok("unknown".to_string()),
         }

@@ -101,8 +101,9 @@ jobs:
       - name: Install minimum Rust version
         uses: dtolnay/rust-toolchain@master
         with:
-          # Test with Rust 1.70.0 (adjust based on your MSRV)
-          toolchain: 1.70.0
+          # Test with Rust 1.75.0 (stable version with good compatibility)
+          toolchain: 1.75.0
+          components: rustfmt, clippy
 
       - name: Setup minimum Node.js version
         uses: actions/setup-node@v4
@@ -114,7 +115,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Regenerate lock file with minimum Rust version
+        run: |
+          # Remove existing lock file to regenerate with minimum Cargo version
+          rm -f Cargo.lock
+          # Generate lock file from workspace root to handle workspace properly
+          cargo generate-lockfile
+          echo "Generated lock file with Cargo $(cargo --version)"
+
       - name: Build and test with minimum versions
         run: |
-          cd compiler && cargo build
+          echo "Testing with Rust $(rustc --version)"
+          cd compiler && cargo build --verbose
+          cd compiler && cargo test --verbose
           cd .. && npm run test:design

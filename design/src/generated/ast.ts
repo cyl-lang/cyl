@@ -51,41 +51,41 @@ export enum ASTNodeType {
     AssignmentExpression = 'AssignmentExpression',
 }
 
-export type Statement = 
-  | FunctionDeclaration
-  | IfStatement
-  | ElseStatement
-  | ImportStatement
-  | ReturnStatement
-  | StructDeclaration
-  | EnumDeclaration
-  | MatchStatement
-  | ForStatement
-  | WhileStatement
-  | BreakStatement
-  | ContinueStatement
-  | TryStatement
-  | CatchStatement
-  | ThrowStatement
-  | AsyncFunctionDeclaration
-  | DeclareStatement
-  | ExpressionStatement;
+export type Statement =
+    | FunctionDeclaration
+    | IfStatement
+    | ElseStatement
+    | ImportStatement
+    | ReturnStatement
+    | StructDeclaration
+    | EnumDeclaration
+    | MatchStatement
+    | ForStatement
+    | WhileStatement
+    | BreakStatement
+    | ContinueStatement
+    | TryStatement
+    | CatchStatement
+    | ThrowStatement
+    | AsyncFunctionDeclaration
+    | DeclareStatement
+    | ExpressionStatement;
 
 export type Expression =
-  | Identifier
-  | IntLiteral
-  | FloatLiteral
-  | StringLiteral
-  | BoolLiteral
-  | CharLiteral
-  | ArrayLiteral
-  | ObjectLiteral
-  | BinaryExpression
-  | UnaryExpression
-  | CallExpression
-  | MemberExpression
-  | IndexExpression
-  | AssignmentExpression;
+    | Identifier
+    | IntLiteral
+    | FloatLiteral
+    | StringLiteral
+    | BoolLiteral
+    | CharLiteral
+    | ArrayLiteral
+    | ObjectLiteral
+    | BinaryExpression
+    | UnaryExpression
+    | CallExpression
+    | MemberExpression
+    | IndexExpression
+    | AssignmentExpression;
 
 // Base interfaces with proper properties
 export interface ExpressionStatement extends BaseASTNode {
