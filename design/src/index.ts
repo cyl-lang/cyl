@@ -1,8 +1,8 @@
-import type { LanguageGrammar } from './types/grammar.ts';
-import { loadGrammar, saveGrammar, getDefaultGrammar } from './grammar/index.ts';
-import { GrammarValidator, ValidationResult } from './tools/grammar-validator.ts';
-import { ASTGenerator } from './tools/ast-generator.ts';
-import { SyntaxChecker, SyntaxCheckResult } from './tools/syntax-checker.ts';
+import type { LanguageGrammar } from './types/grammar.js';
+import { loadGrammar, saveGrammar, getDefaultGrammar } from './grammar/index.js';
+import { GrammarValidator, ValidationResult } from './tools/grammar-validator.js';
+import { ASTGenerator } from './tools/ast-generator.js';
+import { SyntaxChecker, SyntaxCheckResult } from './tools/syntax-checker.js';
 import chalk from 'chalk';
 
 export class CylLanguageDesign {
@@ -172,12 +172,12 @@ export class CylLanguageDesign {
 }
 
 // Export everything for external use
-export * from './types/grammar.ts';
-export * from './ast/nodes.ts';
-export * from './grammar/index.ts';
-export * from './tools/grammar-validator.ts';
-export * from './tools/ast-generator.ts';
-export * from './tools/syntax-checker.ts';
+export * from './types/grammar.js';
+export * from './ast/nodes.js';
+export * from './grammar/index.js';
+export * from './tools/grammar-validator.js';
+export * from './tools/ast-generator.js';
+export * from './tools/syntax-checker.js';
 
 // CLI interface
 if (import.meta.url === `file://${process.argv[1]}` || import.meta.url === process.argv[1]) {
@@ -210,17 +210,23 @@ if (import.meta.url === `file://${process.argv[1]}` || import.meta.url === proce
                     design.checkSyntax(code);
                 } else {
                     console.error(chalk.red(`File not found: ${args[1]}`));
-                    process.exit(1);
+                    if (typeof process.env.JEST_WORKER_ID === 'undefined') {
+                        process.exit(1);
+                    }
                 }
             } else {
                 console.error(chalk.red('Please provide a file to check'));
-                process.exit(1);
+                if (typeof process.env.JEST_WORKER_ID === 'undefined') {
+                    process.exit(1);
+                }
             }
             break;
 
         case 'full': {
             const success = design.runFullCheck();
-            process.exit(success ? 0 : 1);
+            if (typeof process.env.JEST_WORKER_ID === 'undefined') {
+                process.exit(success ? 0 : 1);
+            }
             break;
         }
 

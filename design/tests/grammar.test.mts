@@ -1,11 +1,7 @@
-import { fileURLToPath } from 'url';
 import { loadGrammar, saveGrammar, getDefaultGrammar } from '../src/grammar/index.js';
 import { LanguageGrammar } from '../src/types/grammar.js';
 import * as fs from 'fs';
 import * as path from 'path';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 describe('Grammar Module', () => {
     describe('loadGrammar', () => {

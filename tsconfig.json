@@ -1,21 +1,21 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "es2020",
     "lib": ["ES2020"],
-    "module": "ESNext",
+    "module": "node16",
     "declaration": true,
     "outDir": "./dist",
-    "rootDir": "./design/src",
+    "rootDir": "./design",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "downlevelIteration": true,
-    "moduleResolution": "node",
-    "allowImportingTsExtensions": true,
-    "emitDeclarationOnly": true
+    "moduleResolution": "nodenext",
+    "isolatedModules": true,
+    "emitDeclarationOnly": false
   },
-  "include": ["design/src/**/*"],
+  "include": ["design/src/**/*", "design/tests/**/*"],
   "exclude": ["node_modules", "dist", "compiler"]
 }

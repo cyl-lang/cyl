@@ -1,4 +1,4 @@
-import type { LanguageGrammar } from '../types/grammar';
+import type { LanguageGrammar } from '../types/grammar.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -510,7 +510,7 @@ impl Default for Program {
 
 // CLI tool
 if (import.meta.url === new URL('../compiler/src/generated/ast-generator', import.meta.url).href) {
-    import('../grammar').then(({ loadGrammar }) => {
+    import('../grammar/index.js').then(({ loadGrammar }) => {
         const grammar = loadGrammar();
         const generator = new ASTGenerator(grammar);
 

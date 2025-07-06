@@ -1,5 +1,5 @@
-import type { LanguageGrammar } from '../types/grammar.ts';
-import { loadGrammar } from '../grammar/index.ts';
+import type { LanguageGrammar } from '../types/grammar.js';
+import { loadGrammar } from '../grammar/index.js';
 import fs from 'fs';
 
 export class SyntaxChecker {
@@ -342,14 +342,18 @@ if (import.meta.url === `file://${process.argv[1]}` || import.meta.url === proce
 
     if (args.length === 0) {
         console.log('Usage: syntax-checker <file.cyl>');
-        process.exit(1);
+        if (typeof process.env.JEST_WORKER_ID === 'undefined') {
+            process.exit(1);
+        }
     }
 
     const filename = args[0];
 
     if (!fs.existsSync(filename)) {
         console.error(`File not found: ${filename}`);
-        process.exit(1);
+        if (typeof process.env.JEST_WORKER_ID === 'undefined') {
+            process.exit(1);
+        }
     }
 
     const code = fs.readFileSync(filename, 'utf8');
@@ -380,5 +384,7 @@ if (import.meta.url === `file://${process.argv[1]}` || import.meta.url === proce
         });
     }
 
-    process.exit(result.isValid ? 0 : 1);
+    if (typeof process.env.JEST_WORKER_ID === 'undefined') {
+        process.exit(result.isValid ? 0 : 1);
+    }
 }

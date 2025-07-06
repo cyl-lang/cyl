@@ -171,7 +171,7 @@ export interface AssignmentExpression extends BaseASTNode {
 }
 
 /**
- * Function declaration keyword
+ * Function declaration
  */
 export interface FunctionDeclaration extends BaseASTNode {
     type: ASTNodeType.FunctionDeclaration;
@@ -193,7 +193,7 @@ export interface IfStatement extends BaseASTNode {
 }
 
 /**
- * Alternative branch for conditional
+ * Alternative branch
  */
 export interface ElseStatement extends BaseASTNode {
     type: ASTNodeType.ElseStatement;
@@ -201,7 +201,7 @@ export interface ElseStatement extends BaseASTNode {
 }
 
 /**
- * Module import statement
+ * Module import
  */
 export interface ImportStatement extends BaseASTNode {
     type: ASTNodeType.ImportStatement;
@@ -236,7 +236,7 @@ export interface EnumDeclaration extends BaseASTNode {
 }
 
 /**
- * Pattern matching statement
+ * Pattern matching
  */
 export interface MatchStatement extends BaseASTNode {
     type: ASTNodeType.MatchStatement;
@@ -245,7 +245,7 @@ export interface MatchStatement extends BaseASTNode {
 }
 
 /**
- * For loop statement
+ * Loop statement
  */
 export interface ForStatement extends BaseASTNode {
     type: ASTNodeType.ForStatement;
@@ -255,7 +255,7 @@ export interface ForStatement extends BaseASTNode {
 }
 
 /**
- * While loop statement
+ * While loop
  */
 export interface WhileStatement extends BaseASTNode {
     type: ASTNodeType.WhileStatement;
@@ -272,7 +272,7 @@ export interface BreakStatement extends BaseASTNode {
 }
 
 /**
- * Continue to next iteration
+ * Continue loop
  */
 export interface ContinueStatement extends BaseASTNode {
     type: ASTNodeType.ContinueStatement;
@@ -280,7 +280,7 @@ export interface ContinueStatement extends BaseASTNode {
 }
 
 /**
- * Exception handling block
+ * Exception handling
  */
 export interface TryStatement extends BaseASTNode {
     type: ASTNodeType.TryStatement;
@@ -288,7 +288,7 @@ export interface TryStatement extends BaseASTNode {
 }
 
 /**
- * Exception catching block
+ * Exception catching
  */
 export interface CatchStatement extends BaseASTNode {
     type: ASTNodeType.CatchStatement;
@@ -296,7 +296,7 @@ export interface CatchStatement extends BaseASTNode {
 }
 
 /**
- * Throw an exception
+ * Throw exception
  */
 export interface ThrowStatement extends BaseASTNode {
     type: ASTNodeType.ThrowStatement;
@@ -304,7 +304,7 @@ export interface ThrowStatement extends BaseASTNode {
 }
 
 /**
- * Asynchronous function declaration
+ * Async function
  */
 export interface AsyncFunctionDeclaration extends BaseASTNode {
     type: ASTNodeType.AsyncFunctionDeclaration;
@@ -312,7 +312,7 @@ export interface AsyncFunctionDeclaration extends BaseASTNode {
 }
 
 /**
- * Variable declaration (legacy)
+ * Variable declaration
  */
 export interface DeclareStatement extends BaseASTNode {
     type: ASTNodeType.DeclareStatement;

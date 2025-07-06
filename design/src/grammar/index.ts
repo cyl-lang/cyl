@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-import type { LanguageGrammar } from '../types/grammar.ts';
+import type { LanguageGrammar } from '../types/grammar.js';
 import * as yaml from 'yaml';
 import * as fs from 'fs';
 

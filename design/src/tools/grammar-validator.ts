@@ -1,4 +1,4 @@
-import type { LanguageGrammar } from '../types/grammar';
+import type { LanguageGrammar } from '../types/grammar.js';
 
 export class GrammarValidator {
     private readonly grammar: LanguageGrammar;
@@ -153,7 +153,7 @@ export interface ValidationWarning {
 }
 
 // CLI tool (ESM-compatible, always runs when executed)
-import('../grammar/index.ts').then(({ loadGrammar }) => {
+import('../grammar/index.js').then(({ loadGrammar }) => {
     const grammar = loadGrammar();
     const validator = new GrammarValidator(grammar);
     const result = validator.validate();
@@ -181,5 +181,8 @@ import('../grammar/index.ts').then(({ loadGrammar }) => {
         });
     }
 
-    process.exit(result.isValid ? 0 : 1);
+    // Only exit if not running in a test environment
+    if (typeof process.env.JEST_WORKER_ID === 'undefined') {
+        process.exit(result.isValid ? 0 : 1);
+    }
 });
