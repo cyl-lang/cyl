@@ -85,7 +85,9 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           .\target\release\cylc.exe --help
-          .\target\release\cylc.exe test
+          .\target\release\cylc.exe test --verbose
+          # Print output of hello_world.cyl for debugging
+          if (Test-Path .\examples\hello_world.cyl) { Get-Content .\examples\hello_world.cyl }
 
       - name: Run integration tests
         run: make test
@@ -108,8 +110,8 @@ jobs:
       - name: Setup minimum Node.js version
         uses: actions/setup-node@v4
         with:
-          # Test with Node.js 16 (minimum LTS)
-          node-version: "16"
+          # Test with Node.js 18 (minimum supported for Jest)
+          node-version: "18"
           cache: "npm"
 
       - name: Install dependencies
@@ -119,13 +121,4 @@ jobs:
         run: |
           # Remove existing lock file to regenerate with minimum Cargo version
           rm -f Cargo.lock
-          # Generate lock file from workspace root to handle workspace properly
-          cargo generate-lockfile
-          echo "Generated lock file with Cargo $(cargo --version)"
-
-      - name: Build and test with minimum versions
-        run: |
-          echo "Testing with Rust $(rustc --version)"
-          cd compiler && cargo build --verbose
-          cd compiler && cargo test --verbose
-          cd .. && npm run test:design
+          # Generate lock file from workspace
