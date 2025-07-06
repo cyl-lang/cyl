@@ -5,5 +5,5 @@ module.exports = {
   collectCoverageFrom: ["dist/**/*.js", "!dist/**/*.d.ts"],
   coverageDirectory: "coverage",
   coverageReporters: ["text", "lcov", "html"],
-  transform: {}
+  transform: {},
 };

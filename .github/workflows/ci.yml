@@ -75,6 +75,9 @@ jobs:
       - name: Run TypeScript type checking
         run: npx tsc --noEmit
 
+      - name: Build TypeScript (for tests)
+        run: npm run build:design
+
       - name: Run design tools tests
         run: npm run test:design
 
