@@ -49,6 +49,10 @@ pub enum Token {
     Const,
     #[token("mut")]
     Mut,
+    #[token("null")]
+    Null,
+    #[token("dynamic")]
+    Dynamic,
 
     // Types
     #[token("int")]
@@ -156,6 +160,8 @@ pub enum Token {
     FatArrow,
     #[token("?")]
     Question,
+    #[token("_")]
+    Underscore,
 
     // Special
     #[regex(r"//[^\n\r]*", logos::skip)]

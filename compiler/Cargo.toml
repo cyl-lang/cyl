@@ -11,6 +11,10 @@ version = "0.1.0"
 name = "cylc"
 path = "src/main.rs"
 
+[lib]
+name = "cylc"
+path = "src/lib.rs"
+
 [dependencies]
 anyhow = {workspace = true}
 clap = {workspace = true}

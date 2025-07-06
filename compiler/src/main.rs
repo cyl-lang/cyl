@@ -1,5 +1,5 @@
 use anyhow::Result;
-use clap::{Parser, Subcommand};
+pub use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
 mod ast;
@@ -11,7 +11,6 @@ mod stdlib;
 
 use crate::codegen::CodeGenerator;
 use crate::lexer::Lexer;
-use crate::parser::Parser as CylParser;
 
 #[derive(Parser)]
 #[command(name = "cylc")]
@@ -124,7 +123,7 @@ fn compile_and_run(file: &PathBuf, opt_level: u8, debug: bool) -> Result<()> {
     let tokens = lexer.tokenize()?;
 
     // Parsing
-    let mut parser = CylParser::new(tokens);
+    let mut parser = parser::helpers::Parser::new(tokens);
     let ast = parser.parse()?;
 
     // Code generation
@@ -155,7 +154,7 @@ fn compile_to_executable(
     let tokens = lexer.tokenize()?;
 
     // Parsing
-    let mut parser = CylParser::new(tokens);
+    let mut parser = parser::helpers::Parser::new(tokens);
     let ast = parser.parse()?;
 
     // Code generation
@@ -178,7 +177,7 @@ fn check_syntax(file: &PathBuf) -> Result<()> {
     let tokens = lexer.tokenize()?;
 
     // Parsing (syntax check)
-    let mut parser = CylParser::new(tokens);
+    let mut parser = parser::helpers::Parser::new(tokens);
     let _ast = parser.parse()?;
 
     println!("✓ Syntax is valid");
@@ -195,7 +194,7 @@ fn show_ast(file: &PathBuf, format: &str) -> Result<()> {
     let tokens = lexer.tokenize()?;
 
     // Parsing
-    let mut parser = CylParser::new(tokens);
+    let mut parser = parser::helpers::Parser::new(tokens);
     let ast = parser.parse()?;
 
     match format {
@@ -212,6 +211,18 @@ fn show_ast(file: &PathBuf, format: &str) -> Result<()> {
     }
 
     Ok(())
+}
+
+fn try_parse_file(source: &str) -> Result<crate::ast::Program> {
+    // Lexical analysis
+    let mut lexer = Lexer::new(source);
+    let tokens = lexer.tokenize()?;
+
+    // Parsing
+    let mut parser = crate::parser::helpers::Parser::new(tokens);
+    let ast = parser.parse()?;
+
+    Ok(ast)
 }
 
 fn run_tests(pattern: Option<String>, verbose: bool, continue_on_failure: bool) -> Result<()> {
@@ -396,16 +407,4 @@ fn run_single_test(file: &PathBuf, should_succeed: bool, verbose: bool) -> Resul
             Ok(false)
         }
     }
-}
-
-fn try_parse_file(source: &str) -> Result<crate::ast::Program> {
-    // Lexical analysis
-    let mut lexer = Lexer::new(source);
-    let tokens = lexer.tokenize()?;
-
-    // Parsing
-    let mut parser = CylParser::new(tokens);
-    let ast = parser.parse()?;
-
-    Ok(ast)
 }

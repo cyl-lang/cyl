@@ -1,6 +1,6 @@
 {
     "name": "cyl-lang",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "description": "Cyl programming language with Rust compiler backend and TypeScript design tools",
     "main": "design/src/index.ts",
     "type": "module",
@@ -21,11 +21,13 @@
         "syntax:check": "ts-node --esm design/src/tools/syntax-checker.ts",
         "compiler:dev": "cd compiler && cargo run",
         "compiler:install": "cd compiler && cargo install --path .",
-        "setup": "npm install && cd compiler && cargo build"
+        "setup": "npm install && cd compiler && cargo build",
+        "changeset": "npx changeset"
     },
     "devDependencies": {
         "@babel/preset-env": "^7.28.0",
         "@babel/preset-typescript": "^7.27.1",
+        "@changesets/cli": "^2.29.5",
         "@types/jest": "^30.0.0",
         "@types/node": "^24.0.10",
         "babel-jest": "^30.0.4",

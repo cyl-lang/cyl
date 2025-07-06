@@ -37,6 +37,7 @@ pub struct FunctionDeclaration {
     pub return_type: Option<Type>,
     pub body: BlockStatement,
     pub is_async: bool,
+    pub type_parameters: Vec<String>, // NEW: generics
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -44,6 +45,7 @@ pub struct Parameter {
     pub name: String,
     pub param_type: Type,
     pub is_mutable: bool,
+    pub default_value: Option<Expression>, // NEW: default args
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -64,6 +66,7 @@ pub struct StructField {
 pub struct EnumDeclaration {
     pub name: String,
     pub variants: Vec<EnumVariant>,
+    pub type_parameters: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -146,6 +149,9 @@ pub enum Expression {
     CharLiteral(char),
     ArrayLiteral(Vec<Expression>),
     ObjectLiteral(HashMap<String, Expression>),
+    // Null and Dynamic expressions
+    Null,    // NEW: null literal
+    Dynamic, // NEW: dynamic literal
 
     // Operations
     BinaryOp {
@@ -228,25 +234,20 @@ pub enum Type {
     Bool,
     Char,
     Void,
-
+    Dynamic, // NEW: gradual typing
+    Null,    // NEW: null type
     // Collection types
     Array(Box<Type>),
-
+    Tuple(Vec<Type>), // NEW: tuple types
     // Custom types
     Custom(String),
-
     // Generic types
-    Generic {
-        name: String,
-        type_arguments: Vec<Type>,
-    },
-
+    Generic(String, Vec<String>), // e.g., Result<T, E>
     // Function types
     Function {
         parameters: Vec<Type>,
         return_type: Box<Type>,
     },
-
     // Optional types
     Optional(Box<Type>),
 }
@@ -264,4 +265,6 @@ pub enum Pattern {
         variant: String,
         fields: Vec<Pattern>,
     },
+    TupleOrEnum(String, Vec<Pattern>), // NEW: tuple/enum destructuring
+    Tuple(Vec<Pattern>), // NEW: tuple pattern
 }
