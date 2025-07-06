@@ -158,7 +158,7 @@ pub enum Token {
     Question,
 
     // Special
-    #[regex(r"//[^\n]*", logos::skip)]
+    #[regex(r"//[^\n\r]*", logos::skip)]
     #[regex(r"/\*([^*]|\*[^/])*\*/", logos::skip)]
     Comment,
 
@@ -184,8 +184,12 @@ pub struct TokenWithLocation {
 
 impl<'source> Lexer<'source> {
     pub fn new(source: &'source str) -> Self {
+        // Normalize all line endings to \n for cross-platform compatibility
+        let normalized: String = source.replace("\r\n", "\n");
+        // Leak the string to extend its lifetime for logos
+        let static_source: &'static str = Box::leak(normalized.into_boxed_str());
         Self {
-            lexer: Token::lexer(source),
+            lexer: Token::lexer(static_source),
             current_line: 1,
             current_column: 1,
         }
