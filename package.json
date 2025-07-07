@@ -1,6 +1,6 @@
 {
-    "name": "cyl-lang",
-    "version": "0.1.2",
+    "name": "cyl",
+    "version": "0.1.3",
     "description": "Cyl programming language with Rust compiler backend and TypeScript design tools",
     "main": "design/src/index.ts",
     "type": "module",
@@ -22,7 +22,7 @@
         "compiler:dev": "cd compiler && cargo run",
         "compiler:install": "cd compiler && cargo install --path .",
         "setup": "npm install && cd compiler && cargo build",
-        "changeset": "npx changeset"
+        "version": "npx changeset version"
     },
     "devDependencies": {
         "@babel/preset-env": "^7.28.0",

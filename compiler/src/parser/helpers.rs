@@ -102,9 +102,13 @@ impl Parser {
 
     pub fn parse_generics(&mut self) -> Result<Vec<String>, CylError> {
         let mut type_parameters = Vec::new();
-        if self.check(&Token::LeftAngle) {
+        if self.check(&Token::Less) {
             self.advance();
-            while !self.check(&Token::RightAngle) && !self.is_at_end() {
+            if self.check(&Token::Greater) {
+                self.advance();
+                return Ok(type_parameters);
+            }
+            while !self.check(&Token::Greater) && !self.is_at_end() {
                 if let Token::Identifier(param) = &self.peek().token {
                     type_parameters.push(param.clone());
                     self.advance();
@@ -117,14 +121,15 @@ impl Parser {
                 }
                 if self.check(&Token::Comma) {
                     self.advance();
-                } else if self.check(&Token::RightAngle) {
+                } else if self.check(&Token::Greater) {
                     break;
                 } else {
                     // allow no comma
                     break;
                 }
             }
-            self.consume(Token::RightAngle, "Expected '>' after generic parameters")?;
+            self.consume(Token::Greater, "Expected '>' after generic parameters")?;
+            // Do NOT advance here; leave at the next token after '>'
         }
         Ok(type_parameters)
     }

@@ -225,9 +225,23 @@ impl Parser {
             }
             Token::LeftParen => {
                 self.advance();
-                let expr = self.parse_expression()?;
-                self.consume(Token::RightParen, "Expected ')' after expression")?;
-                Ok(expr)
+                // Check for tuple literal: (expr, ...)
+                let first = self.parse_expression()?;
+                if self.check(&Token::Comma) {
+                    // Tuple literal
+                    let mut elements = vec![first];
+                    while self.match_token(&Token::Comma) {
+                        // Allow trailing comma
+                        if self.check(&Token::RightParen) { break; }
+                        elements.push(self.parse_expression()?);
+                    }
+                    self.consume(Token::RightParen, "Expected ')' after tuple literal")?;
+                    Ok(Expression::TupleLiteral(elements))
+                } else {
+                    // Parenthesized expression
+                    self.consume(Token::RightParen, "Expected ')' after expression")?;
+                    Ok(first)
+                }
             }
             Token::LeftBracket => {
                 self.advance();

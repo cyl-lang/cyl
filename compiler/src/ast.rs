@@ -177,7 +177,7 @@ pub enum Expression {
         object: Box<Expression>,
         index: Box<Expression>,
     },
-
+    TupleLiteral(Vec<Expression>), // NEW: tuple literal
     // Async
     Await(Box<Expression>),
 
@@ -250,6 +250,7 @@ pub enum Type {
     },
     // Optional types
     Optional(Box<Type>),
+    Infer, // NEW: type inference for parameters
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
