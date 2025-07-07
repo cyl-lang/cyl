@@ -1,8 +1,8 @@
-mod functions;
-mod statements;
 mod expressions;
+mod functions;
 pub mod helpers;
 mod patterns;
+mod statements;
 
 // The main Parser struct and parse() entrypoint can remain here, delegating to the submodules.
 

@@ -267,5 +267,5 @@ pub enum Pattern {
         fields: Vec<Pattern>,
     },
     TupleOrEnum(String, Vec<Pattern>), // NEW: tuple/enum destructuring
-    Tuple(Vec<Pattern>), // NEW: tuple pattern
+    Tuple(Vec<Pattern>),               // NEW: tuple pattern
 }

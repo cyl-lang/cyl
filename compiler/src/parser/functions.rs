@@ -1,7 +1,7 @@
-use crate::lexer::Token;
-use crate::error::CylError;
-use crate::ast::*;
 use super::helpers::*;
+use crate::ast::*;
+use crate::error::CylError;
+use crate::lexer::Token;
 
 // Function, struct, enum parsing logic will be moved here.
 
@@ -16,8 +16,18 @@ impl Parser {
         let is_async = self.match_token(&Token::Async);
         self.consume(Token::Fn, "Expected 'fn'")?;
         let name = match &self.peek().token {
-            Token::Identifier(n) => { let n = n.clone(); self.advance(); n },
-            _ => return Err(CylError::ParseError { message: "Expected function name".to_string(), line: self.peek().line, column: self.peek().column })
+            Token::Identifier(n) => {
+                let n = n.clone();
+                self.advance();
+                n
+            }
+            _ => {
+                return Err(CylError::ParseError {
+                    message: "Expected function name".to_string(),
+                    line: self.peek().line,
+                    column: self.peek().column,
+                })
+            }
         };
         // Always check for generics after the name
         let type_parameters = if self.check(&Token::Less) {
@@ -26,13 +36,26 @@ impl Parser {
         } else {
             Vec::new()
         };
-        self.consume(Token::LeftParen, "Expected '(' after function name and generics")?;
+        self.consume(
+            Token::LeftParen,
+            "Expected '(' after function name and generics",
+        )?;
         let mut parameters = Vec::new();
         if !self.check(&Token::RightParen) {
             loop {
                 let param_name = match &self.peek().token {
-                    Token::Identifier(n) => { let n = n.clone(); self.advance(); n },
-                    _ => return Err(CylError::ParseError { message: "Expected parameter name".to_string(), line: self.peek().line, column: self.peek().column })
+                    Token::Identifier(n) => {
+                        let n = n.clone();
+                        self.advance();
+                        n
+                    }
+                    _ => {
+                        return Err(CylError::ParseError {
+                            message: "Expected parameter name".to_string(),
+                            line: self.peek().line,
+                            column: self.peek().column,
+                        })
+                    }
                 };
                 // Accept <type> or :type or nothing (type inference)
                 let param_type = if self.check(&Token::Less) {
@@ -45,11 +68,11 @@ impl Parser {
                                 type_names.push(tn.clone());
                                 saw_identifier = true;
                                 self.advance();
-                            },
+                            }
                             Token::Greater => {
                                 self.advance();
                                 break;
-                            },
+                            }
                             _ => {
                                 self.advance();
                             }
@@ -109,8 +132,18 @@ impl Parser {
     pub fn parse_struct(&mut self) -> Result<Statement, CylError> {
         self.consume(Token::Struct, "Expected 'struct'")?;
         let name = match &self.peek().token {
-            Token::Identifier(n) => { let n = n.clone(); self.advance(); n },
-            _ => return Err(CylError::ParseError { message: "Expected struct name".to_string(), line: self.peek().line, column: self.peek().column })
+            Token::Identifier(n) => {
+                let n = n.clone();
+                self.advance();
+                n
+            }
+            _ => {
+                return Err(CylError::ParseError {
+                    message: "Expected struct name".to_string(),
+                    line: self.peek().line,
+                    column: self.peek().column,
+                })
+            }
         };
         // Always check for generics after the name
         let type_parameters = if self.check(&Token::Less) {
@@ -119,7 +152,10 @@ impl Parser {
         } else {
             Vec::new()
         };
-        self.consume(Token::LeftBrace, "Expected '{' after struct name and generics")?;
+        self.consume(
+            Token::LeftBrace,
+            "Expected '{' after struct name and generics",
+        )?;
         let mut fields = Vec::new();
         while !self.check(&Token::RightBrace) && !self.is_at_end() {
             if let Token::Identifier(field_name) = &self.peek().token {
@@ -128,25 +164,47 @@ impl Parser {
                 self.consume(Token::Colon, "Expected ':' after field name")?;
                 let field_type = self.parse_type()?;
                 let is_public = false; // TODO: support pub fields
-                fields.push(StructField { name: field_name, field_type, is_public });
+                fields.push(StructField {
+                    name: field_name,
+                    field_type,
+                    is_public,
+                });
                 if self.match_token(&Token::Comma) || self.check(&Token::RightBrace) {
                     // continue
                 } else {
-                    return Err(CylError::ParseError { message: "Expected ',' or '}' after struct field".to_string(), line: self.peek().line, column: self.peek().column });
+                    return Err(CylError::ParseError {
+                        message: "Expected ',' or '}' after struct field".to_string(),
+                        line: self.peek().line,
+                        column: self.peek().column,
+                    });
                 }
             } else {
                 break;
             }
         }
         self.consume(Token::RightBrace, "Expected '}' after struct fields")?;
-        Ok(Statement::Struct(StructDeclaration { name, fields, type_parameters }))
+        Ok(Statement::Struct(StructDeclaration {
+            name,
+            fields,
+            type_parameters,
+        }))
     }
 
     pub fn parse_enum(&mut self) -> Result<Statement, CylError> {
         self.consume(Token::Enum, "Expected 'enum'")?;
         let name = match &self.peek().token {
-            Token::Identifier(n) => { let n = n.clone(); self.advance(); n },
-            _ => return Err(CylError::ParseError { message: "Expected enum name".to_string(), line: self.peek().line, column: self.peek().column })
+            Token::Identifier(n) => {
+                let n = n.clone();
+                self.advance();
+                n
+            }
+            _ => {
+                return Err(CylError::ParseError {
+                    message: "Expected enum name".to_string(),
+                    line: self.peek().line,
+                    column: self.peek().column,
+                })
+            }
         };
         // Always check for generics after the name
         let type_parameters = if self.check(&Token::Less) {
@@ -155,7 +213,10 @@ impl Parser {
         } else {
             Vec::new()
         };
-        self.consume(Token::LeftBrace, "Expected '{' after enum name and generics")?;
+        self.consume(
+            Token::LeftBrace,
+            "Expected '{' after enum name and generics",
+        )?;
         let mut variants = Vec::new();
         while !self.check(&Token::RightBrace) && !self.is_at_end() {
             if let Token::Identifier(variant_name) = &self.peek().token {
@@ -177,17 +238,28 @@ impl Parser {
                 } else {
                     None
                 };
-                variants.push(EnumVariant { name: variant_name, fields });
+                variants.push(EnumVariant {
+                    name: variant_name,
+                    fields,
+                });
                 if self.match_token(&Token::Comma) || self.check(&Token::RightBrace) {
                     // continue
                 } else {
-                    return Err(CylError::ParseError { message: "Expected ',' or '}' after enum variant".to_string(), line: self.peek().line, column: self.peek().column });
+                    return Err(CylError::ParseError {
+                        message: "Expected ',' or '}' after enum variant".to_string(),
+                        line: self.peek().line,
+                        column: self.peek().column,
+                    });
                 }
             } else {
                 break;
             }
         }
         self.consume(Token::RightBrace, "Expected '}' after enum variants")?;
-        Ok(Statement::Enum(EnumDeclaration { name, variants, type_parameters }))
+        Ok(Statement::Enum(EnumDeclaration {
+            name,
+            variants,
+            type_parameters,
+        }))
     }
 }

@@ -1,7 +1,7 @@
+use super::helpers::*;
 use crate::ast::*;
 use crate::error::CylError;
 use crate::lexer::Token;
-use super::helpers::*;
 
 impl Parser {
     // Expression parsing logic
@@ -96,7 +96,8 @@ impl Parser {
 
     fn parse_factor(&mut self) -> Result<Expression, CylError> {
         let mut expr = self.parse_unary()?;
-        while let Some(op) = self.match_binary_op(&[Token::Multiply, Token::Divide, Token::Modulo]) {
+        while let Some(op) = self.match_binary_op(&[Token::Multiply, Token::Divide, Token::Modulo])
+        {
             let right = self.parse_unary()?;
             expr = Expression::BinaryOp {
                 left: Box::new(expr),
@@ -232,7 +233,9 @@ impl Parser {
                     let mut elements = vec![first];
                     while self.match_token(&Token::Comma) {
                         // Allow trailing comma
-                        if self.check(&Token::RightParen) { break; }
+                        if self.check(&Token::RightParen) {
+                            break;
+                        }
                         elements.push(self.parse_expression()?);
                     }
                     self.consume(Token::RightParen, "Expected ')' after tuple literal")?;

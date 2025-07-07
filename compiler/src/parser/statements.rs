@@ -1,7 +1,7 @@
-use crate::lexer::Token;
-use crate::error::CylError;
-use crate::ast::*;
 use super::helpers::*;
+use crate::ast::*;
+use crate::error::CylError;
+use crate::lexer::Token;
 
 // Statement and variable declaration parsing logic will be moved here.
 
@@ -12,20 +12,20 @@ impl Parser {
             Token::Fn | Token::Async => {
                 let stmt = self.parse_function()?;
                 Ok(stmt)
-            },
+            }
             Token::Struct => {
                 let stmt = self.parse_struct()?;
                 Ok(stmt)
-            },
+            }
             Token::Enum => {
                 let stmt = self.parse_enum()?;
                 Ok(stmt)
-            },
+            }
             Token::Let | Token::Const => {
                 let stmt = self.parse_declare()?;
                 self.consume(Token::Semicolon, "Expected ';' after declaration")?;
                 Ok(stmt)
-            },
+            }
             Token::Return => self.parse_return(),
             Token::If => self.parse_if(),
             Token::While => self.parse_while(),
@@ -75,25 +75,51 @@ impl Parser {
             Token::Let => {
                 self.advance();
                 let name = match &self.peek().token {
-                    Token::Identifier(n) => { let n = n.clone(); self.advance(); n },
-                    _ => return Err(CylError::ParseError { message: "Expected identifier after 'let'".to_string(), line: self.peek().line, column: self.peek().column })
+                    Token::Identifier(n) => {
+                        let n = n.clone();
+                        self.advance();
+                        n
+                    }
+                    _ => {
+                        return Err(CylError::ParseError {
+                            message: "Expected identifier after 'let'".to_string(),
+                            line: self.peek().line,
+                            column: self.peek().column,
+                        })
+                    }
                 };
                 (true, name)
-            },
+            }
             Token::Const => {
                 self.advance();
                 let name = match &self.peek().token {
-                    Token::Identifier(n) => { let n = n.clone(); self.advance(); n },
-                    _ => return Err(CylError::ParseError { message: "Expected identifier after 'const'".to_string(), line: self.peek().line, column: self.peek().column })
+                    Token::Identifier(n) => {
+                        let n = n.clone();
+                        self.advance();
+                        n
+                    }
+                    _ => {
+                        return Err(CylError::ParseError {
+                            message: "Expected identifier after 'const'".to_string(),
+                            line: self.peek().line,
+                            column: self.peek().column,
+                        })
+                    }
                 };
                 (false, name)
-            },
+            }
             Token::Identifier(n) => {
                 let name = n.clone();
                 self.advance();
                 (true, name)
-            },
-            _ => return Err(CylError::ParseError { message: "Expected 'let', 'const', or identifier for declaration".to_string(), line: self.peek().line, column: self.peek().column })
+            }
+            _ => {
+                return Err(CylError::ParseError {
+                    message: "Expected 'let', 'const', or identifier for declaration".to_string(),
+                    line: self.peek().line,
+                    column: self.peek().column,
+                })
+            }
         };
         // For variable declarations, treat <...> as a type annotation, not a generic
         let var_type = if self.check(&Token::Less) {
@@ -107,11 +133,11 @@ impl Parser {
                         type_names.push(tn.clone());
                         saw_identifier = true;
                         self.advance();
-                    },
+                    }
                     Token::Greater => {
                         self.advance();
                         break;
-                    },
+                    }
                     // Skip any other token (comma, whitespace, comments, etc.)
                     _ => {
                         self.advance();
@@ -154,13 +180,25 @@ impl Parser {
         }
     }
     pub fn parse_if(&mut self) -> Result<Statement, CylError> {
-        Err(CylError::ParseError { message: "parse_if not yet implemented".to_string(), line: 0, column: 0 })
+        Err(CylError::ParseError {
+            message: "parse_if not yet implemented".to_string(),
+            line: 0,
+            column: 0,
+        })
     }
     pub fn parse_while(&mut self) -> Result<Statement, CylError> {
-        Err(CylError::ParseError { message: "parse_while not yet implemented".to_string(), line: 0, column: 0 })
+        Err(CylError::ParseError {
+            message: "parse_while not yet implemented".to_string(),
+            line: 0,
+            column: 0,
+        })
     }
     pub fn parse_for(&mut self) -> Result<Statement, CylError> {
-        Err(CylError::ParseError { message: "parse_for not yet implemented".to_string(), line: 0, column: 0 })
+        Err(CylError::ParseError {
+            message: "parse_for not yet implemented".to_string(),
+            line: 0,
+            column: 0,
+        })
     }
     pub fn parse_match(&mut self) -> Result<Statement, CylError> {
         self.consume(Token::Match, "Expected 'match'")?;
@@ -182,7 +220,11 @@ impl Parser {
                                 subpatterns.push(Pattern::Identifier(subname.clone()));
                                 self.advance();
                             } else {
-                                return Err(CylError::ParseError { message: "Expected identifier in tuple pattern".to_string(), line: self.peek().line, column: self.peek().column });
+                                return Err(CylError::ParseError {
+                                    message: "Expected identifier in tuple pattern".to_string(),
+                                    line: self.peek().line,
+                                    column: self.peek().column,
+                                });
                             }
                             if !self.match_token(&Token::Comma) {
                                 break;
@@ -195,23 +237,44 @@ impl Parser {
                     Pattern::Identifier(name)
                 }
             } else {
-                return Err(CylError::ParseError { message: "Expected pattern".to_string(), line: self.peek().line, column: self.peek().column });
+                return Err(CylError::ParseError {
+                    message: "Expected pattern".to_string(),
+                    line: self.peek().line,
+                    column: self.peek().column,
+                });
             };
             self.consume(Token::FatArrow, "Expected '=>' after pattern")?;
             let value = self.parse_expression()?;
-            let body = BlockStatement { statements: vec![Statement::Expression(value)] };
-            arms.push(MatchArm { pattern, guard: None, body });
+            let body = BlockStatement {
+                statements: vec![Statement::Expression(value)],
+            };
+            arms.push(MatchArm {
+                pattern,
+                guard: None,
+                body,
+            });
             if self.match_token(&Token::Comma) {
                 // allow trailing comma
             }
         }
         self.consume(Token::RightBrace, "Expected '}' after match arms")?;
-        Ok(Statement::Match(MatchStatement { expression: expr, arms }))
+        Ok(Statement::Match(MatchStatement {
+            expression: expr,
+            arms,
+        }))
     }
     pub fn parse_try(&mut self) -> Result<Statement, CylError> {
-        Err(CylError::ParseError { message: "parse_try not yet implemented".to_string(), line: 0, column: 0 })
+        Err(CylError::ParseError {
+            message: "parse_try not yet implemented".to_string(),
+            line: 0,
+            column: 0,
+        })
     }
     pub fn parse_import(&mut self) -> Result<Statement, CylError> {
-        Err(CylError::ParseError { message: "parse_import not yet implemented".to_string(), line: 0, column: 0 })
+        Err(CylError::ParseError {
+            message: "parse_import not yet implemented".to_string(),
+            line: 0,
+            column: 0,
+        })
     }
 }

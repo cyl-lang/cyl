@@ -1,6 +1,6 @@
-use crate::lexer::Token;
+use crate::ast::{BinaryOperator, BlockStatement, Type, UnaryOperator};
 use crate::error::CylError;
-use crate::ast::{BinaryOperator, UnaryOperator, Type, BlockStatement};
+use crate::lexer::Token;
 
 pub struct Parser {
     pub tokens: Vec<crate::lexer::TokenWithLocation>,
@@ -48,7 +48,11 @@ impl Parser {
         }
     }
 
-    pub fn consume(&mut self, token: Token, message: &str) -> Result<&crate::lexer::TokenWithLocation, CylError> {
+    pub fn consume(
+        &mut self,
+        token: Token,
+        message: &str,
+    ) -> Result<&crate::lexer::TokenWithLocation, CylError> {
         if self.check(&token) {
             Ok(self.advance())
         } else {
@@ -153,14 +157,38 @@ impl Parser {
             }
         }
         let base_type = match &self.peek().token {
-            Token::IntType => { self.advance(); Type::Int }
-            Token::FloatType => { self.advance(); Type::Float }
-            Token::StringType => { self.advance(); Type::String }
-            Token::BoolType => { self.advance(); Type::Bool }
-            Token::CharType => { self.advance(); Type::Char }
-            Token::Void => { self.advance(); Type::Void }
-            Token::Dynamic => { self.advance(); Type::Dynamic }
-            Token::Null => { self.advance(); Type::Null }
+            Token::IntType => {
+                self.advance();
+                Type::Int
+            }
+            Token::FloatType => {
+                self.advance();
+                Type::Float
+            }
+            Token::StringType => {
+                self.advance();
+                Type::String
+            }
+            Token::BoolType => {
+                self.advance();
+                Type::Bool
+            }
+            Token::CharType => {
+                self.advance();
+                Type::Char
+            }
+            Token::Void => {
+                self.advance();
+                Type::Void
+            }
+            Token::Dynamic => {
+                self.advance();
+                Type::Dynamic
+            }
+            Token::Null => {
+                self.advance();
+                Type::Null
+            }
             Token::Identifier(name) => {
                 let name = name.clone();
                 self.advance();
