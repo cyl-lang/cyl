@@ -6,6 +6,10 @@ use cylc::parser::helpers::Parser;
 fn parse_ok(src: &str) {
     let mut lexer = Lexer::new(src);
     let tokens = lexer.tokenize().expect("lexing failed");
+    // DEBUG: Print the token stream before parsing
+    for t in &tokens {
+        println!("TOKEN: {:?} at line {}, col {}", t.token, t.line, t.column);
+    }
     let mut parser = Parser::new(tokens);
     parser.parse().expect("parsing failed");
 }
@@ -31,6 +35,7 @@ fn test_nullable_and_dynamic_types() {
 
 #[test]
 fn test_pattern_matching() {
+    println!("DEBUG: test_pattern_matching starting");
     parse_ok("match result { Ok(v) => v, Err(e) => 0 }");
 }
 

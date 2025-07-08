@@ -4,7 +4,7 @@
     "lib": ["ES2020"],
     "module": "node16",
     "declaration": true,
-    "outDir": "./dist",
+    "outDir": "compiler/dist",
     "rootDir": "./design",
     "strict": true,
     "esModuleInterop": true,
@@ -17,5 +17,5 @@
     "emitDeclarationOnly": false
   },
   "include": ["design/src/**/*", "design/tests/**/*"],
-  "exclude": ["node_modules", "dist", "compiler"]
+  "exclude": ["node_modules", "compiler/dist", "compiler"]
 }

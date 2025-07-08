@@ -26,8 +26,8 @@ async fn fetch_user(id: int) -> Result<User, string> {
             };
             return Ok(user);
         },
-        Ok(_) => return Err("Invalid JSON structure"),
-        Err(error) => return Err("JSON parse error: " + error)
+        Ok(_) => { return Err("Invalid JSON structure"); },
+        Err(error) => { return Err("JSON parse error: " + error); }
     }
 }
 

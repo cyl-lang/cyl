@@ -12,9 +12,7 @@ impl Parser {
     // pub fn parse_struct(&mut self) -> Result<Statement, CylError> { ... }
     // pub fn parse_enum(&mut self) -> Result<Statement, CylError> { ... }
 
-    pub fn parse_function(&mut self) -> Result<Statement, CylError> {
-        let is_async = self.match_token(&Token::Async);
-        self.consume(Token::Fn, "Expected 'fn'")?;
+    pub fn parse_function(&mut self, is_async: bool) -> Result<Statement, CylError> {
         let name = match &self.peek().token {
             Token::Identifier(n) => {
                 let n = n.clone();
@@ -130,7 +128,7 @@ impl Parser {
     }
 
     pub fn parse_struct(&mut self) -> Result<Statement, CylError> {
-        self.consume(Token::Struct, "Expected 'struct'")?;
+        // Do NOT consume Token::Struct here; it is already consumed in parse_statement
         let name = match &self.peek().token {
             Token::Identifier(n) => {
                 let n = n.clone();
@@ -191,7 +189,7 @@ impl Parser {
     }
 
     pub fn parse_enum(&mut self) -> Result<Statement, CylError> {
-        self.consume(Token::Enum, "Expected 'enum'")?;
+        // Do NOT consume Token::Enum here; it is already consumed in parse_statement
         let name = match &self.peek().token {
             Token::Identifier(n) => {
                 let n = n.clone();
@@ -261,5 +259,16 @@ impl Parser {
             variants,
             type_parameters,
         }))
+    }
+
+    pub fn parse_function_async(&mut self) -> Result<Statement, CylError> {
+        let func = match self.parse_function(true)? {
+            Statement::Function(mut f) => {
+                // is_async already set
+                Statement::Function(f)
+            }
+            other => other,
+        };
+        Ok(func)
     }
 }

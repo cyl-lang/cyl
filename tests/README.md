@@ -43,19 +43,19 @@ The test system is integrated into the Cyl compiler CLI. Use the `cyl test` comm
 
 ```bash
 # Run all tests
-cyl test
+cylc test
 
 # Run with verbose output (shows individual test results)
-cyl test --verbose
+cylc test --verbose
 
 # Continue running tests even after failures
-cyl test --continue-on-failure
+cylc test --continue-on-failure
 
 # Filter tests by name pattern
-cyl test --pattern "simple"
+cylc test --pattern "simple"
 
 # Combine options
-cyl test --verbose --pattern "function" --continue-on-failure
+cylc test --verbose --pattern "function" --continue-on-failure
 ```
 
 ### Command Options

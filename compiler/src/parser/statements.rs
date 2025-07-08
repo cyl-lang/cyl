@@ -7,30 +7,73 @@ use crate::lexer::Token;
 
 impl Parser {
     pub fn parse_statement(&mut self) -> Result<Statement, CylError> {
+        // Allow lone semicolons as no-op statements (skip them)
+        if self.check(&Token::Semicolon) {
+            self.advance();
+            // Optionally, return a Statement::NoOp or just skip
+            return self.parse_statement();
+        }
         match &self.peek().token {
             Token::Import => self.parse_import(),
-            Token::Fn | Token::Async => {
-                let stmt = self.parse_function()?;
+            Token::Fn => {
+                self.advance();
+                let stmt = self.parse_function(false)?;
+                // Skip optional semicolon after function declaration (forgiveness)
+                if self.check(&Token::Semicolon) {
+                    self.advance();
+                }
+                Ok(stmt)
+            }
+            Token::Async => {
+                self.advance();
+                self.consume(Token::Fn, "Expected 'fn' after 'async'")?;
+                let stmt = self.parse_function(true)?;
+                // Skip optional semicolon after async function declaration (forgiveness)
+                if self.check(&Token::Semicolon) {
+                    self.advance();
+                }
                 Ok(stmt)
             }
             Token::Struct => {
+                self.consume(Token::Struct, "Expected 'struct'")?;
                 let stmt = self.parse_struct()?;
+                // Skip optional semicolon after struct declaration (forgiveness)
+                if self.check(&Token::Semicolon) {
+                    self.advance();
+                }
                 Ok(stmt)
             }
             Token::Enum => {
+                self.consume(Token::Enum, "Expected 'enum'")?;
                 let stmt = self.parse_enum()?;
+                // Skip optional semicolon after enum declaration (forgiveness)
+                if self.check(&Token::Semicolon) {
+                    self.advance();
+                }
                 Ok(stmt)
             }
             Token::Let | Token::Const => {
                 let stmt = self.parse_declare()?;
-                self.consume(Token::Semicolon, "Expected ';' after declaration")?;
+                // Require a semicolon after declaration, unless next is RightBrace (end of block)
+                if self.check(&Token::Semicolon) {
+                    self.advance();
+                } else if !self.check(&Token::RightBrace) {
+                    return Err(CylError::ParseError {
+                        message: "Expected ';' after declaration".to_string(),
+                        line: self.peek().line,
+                        column: self.peek().column,
+                    });
+                }
                 Ok(stmt)
             }
             Token::Return => self.parse_return(),
             Token::If => self.parse_if(),
             Token::While => self.parse_while(),
             Token::For => self.parse_for(),
-            Token::Match => self.parse_match(),
+            Token::Match => {
+                self.advance();
+                self.parse_match()
+            }
             Token::Try => self.parse_try(),
             Token::Break => {
                 self.advance();
@@ -43,17 +86,20 @@ impl Parser {
                 Ok(Statement::Continue)
             }
             Token::Identifier(_) => {
-                // Robust lookahead for declaration forms:
-                // identifier = ...
-                // identifier <...> = ...
-                // identifier : ... = ...
-                // Only treat as declaration if next token is <, :, or =
                 let is_decl = self.tokens.get(self.current + 1).map_or(false, |t| {
                     matches!(t.token, Token::Less | Token::Colon | Token::Assign)
                 });
                 if is_decl {
                     let stmt = self.parse_declare()?;
-                    self.consume(Token::Semicolon, "Expected ';' after declaration")?;
+                    if self.check(&Token::Semicolon) {
+                        self.advance();
+                    } else if !self.check(&Token::RightBrace) {
+                        return Err(CylError::ParseError {
+                            message: "Expected ';' after declaration".to_string(),
+                            line: self.peek().line,
+                            column: self.peek().column,
+                        });
+                    }
                     Ok(stmt)
                 } else {
                     let expr = self.parse_expression()?;
@@ -180,12 +226,35 @@ impl Parser {
         }
     }
     pub fn parse_if(&mut self) -> Result<Statement, CylError> {
-        Err(CylError::ParseError {
-            message: "parse_if not yet implemented".to_string(),
-            line: 0,
-            column: 0,
-        })
+        self.consume(Token::If, "Expected 'if'")?;
+        let condition = self.parse_expression()?;
+        let then_block = self.parse_block()?;
+        let else_block = if self.match_token(&Token::Else) {
+            if self.check(&Token::If) {
+                // else if
+                Some(Box::new(self.parse_if()?))
+            } else {
+                // else { ... } -- parse as a block, wrap as Statement::BlockStatement
+                let block = self.parse_block()?;
+                // For now, wrap the block as a Statement::Expression with a Block expression if needed
+                // But since Statement does not have Block, just return the first statement or a dummy if empty
+                let stmt = block
+                    .statements
+                    .into_iter()
+                    .next()
+                    .unwrap_or(Statement::Break);
+                Some(Box::new(stmt))
+            }
+        } else {
+            None
+        };
+        Ok(Statement::If(IfStatement {
+            condition,
+            then_block,
+            else_block,
+        }))
     }
+
     pub fn parse_while(&mut self) -> Result<Statement, CylError> {
         Err(CylError::ParseError {
             message: "parse_while not yet implemented".to_string(),
@@ -201,60 +270,47 @@ impl Parser {
         })
     }
     pub fn parse_match(&mut self) -> Result<Statement, CylError> {
-        self.consume(Token::Match, "Expected 'match'")?;
-        let expr = self.parse_expression()?;
+        eprintln!("DEBUG: entered parse_match, peek token: {:?}, current index: {}", self.peek().token, self.current);
+        let expr = self.parse_expression_stop_at_left_brace()?;
+        // DEBUG: After parsing match subject, print current token
+        eprintln!("DEBUG: after match subject, peek token: {:?}, current index: {}", self.peek().token, self.current);
         self.consume(Token::LeftBrace, "Expected '{' after match expression")?;
-        let mut arms = Vec::new();
-        while !self.check(&Token::RightBrace) && !self.is_at_end() {
-            // Parse pattern (simple: Identifier or Identifier(T))
-            let pattern = if let Token::Identifier(name) = &self.peek().token {
-                let name = name.clone();
-                self.advance();
-                if self.check(&Token::LeftParen) {
-                    self.advance();
-                    let mut subpatterns = Vec::new();
-                    if !self.check(&Token::RightParen) {
-                        loop {
-                            // Only identifiers for now
-                            if let Token::Identifier(subname) = &self.peek().token {
-                                subpatterns.push(Pattern::Identifier(subname.clone()));
-                                self.advance();
-                            } else {
-                                return Err(CylError::ParseError {
-                                    message: "Expected identifier in tuple pattern".to_string(),
-                                    line: self.peek().line,
-                                    column: self.peek().column,
-                                });
-                            }
-                            if !self.match_token(&Token::Comma) {
-                                break;
-                            }
-                        }
-                    }
-                    self.consume(Token::RightParen, "Expected ')' in pattern")?;
-                    Pattern::TupleOrEnum(name, subpatterns)
-                } else {
-                    Pattern::Identifier(name)
-                }
-            } else {
+        // DEBUG: Print parser state after consuming '{'
+        eprintln!("DEBUG: after '{{' peek token: {:?}, current index: {}, tokens.len(): {}", self.peek().token, self.current, self.tokens.len());
+        // HARD ERROR: If next token is not Identifier or Underscore, panic
+        match &self.peek().token {
+            Token::Identifier(_) | Token::Underscore | Token::RightBrace => {},
+            other => {
                 return Err(CylError::ParseError {
-                    message: "Expected pattern".to_string(),
+                    message: format!("BUG: Unexpected token after '{{' in match: {:?}", other),
                     line: self.peek().line,
                     column: self.peek().column,
                 });
-            };
+            }
+        }
+        let mut arms = Vec::new();
+        while !self.check(&Token::RightBrace) && !self.is_at_end() {
+            // DEBUG: At start of match arms loop
+            eprintln!("DEBUG: [match arms loop] current token: {:?}, index: {}", self.peek().token, self.current);
+            // DEBUG: Print the current token and position before parsing the pattern
+            eprintln!("DEBUG: parse_match about to parse pattern, token: {:?} at line {}, col {}", self.peek().token, self.peek().line, self.peek().column);
+            let pattern = self.parse_pattern()?;
             self.consume(Token::FatArrow, "Expected '=>' after pattern")?;
-            let value = self.parse_expression()?;
-            let body = BlockStatement {
-                statements: vec![Statement::Expression(value)],
+            let body = if self.check(&Token::LeftBrace) {
+                self.parse_block()?
+            } else {
+                let value = self.parse_expression()?;
+                BlockStatement {
+                    statements: vec![Statement::Expression(value)],
+                }
             };
             arms.push(MatchArm {
                 pattern,
                 guard: None,
                 body,
             });
-            if self.match_token(&Token::Comma) {
-                // allow trailing comma
+            if self.check(&Token::Comma) {
+                self.advance();
             }
         }
         self.consume(Token::RightBrace, "Expected '}' after match arms")?;
@@ -262,6 +318,105 @@ impl Parser {
             expression: expr,
             arms,
         }))
+    }
+
+    /// Recursively parse a pattern for match arms, supporting qualified, tuple, and nested patterns.
+    fn parse_pattern(&mut self) -> Result<Pattern, CylError> {
+        // DEBUG: Entering parse_pattern
+        eprintln!("DEBUG: [parse_pattern] called at token: {:?}, index: {}", self.peek().token, self.current);
+        // Accept wildcard '_'
+        if self.check(&Token::Underscore) {
+            self.advance();
+            return Ok(Pattern::Wildcard);
+        }
+        // Parse qualified names: e.g., Ok, JsonValue.Object, etc.
+        let mut path = Vec::new();
+        loop {
+            match &self.peek().token {
+                Token::Identifier(name) => {
+                    path.push(name.clone());
+                    self.advance();
+                }
+                _ => {
+                    break;
+                }
+            }
+            if self.check(&Token::Dot) {
+                self.advance();
+            } else {
+                break;
+            }
+        }
+        if path.is_empty() {
+            return Err(CylError::ParseError {
+                message: "Expected pattern identifier".to_string(),
+                line: self.peek().line,
+                column: self.peek().column,
+            });
+        }
+        // If next is '(', parse tuple/enum/constructor pattern (possibly nested)
+        if self.check(&Token::LeftParen) {
+            self.advance();
+            let mut subpatterns = Vec::new();
+            if !self.check(&Token::RightParen) {
+                loop {
+                    let subpat = self.parse_pattern()?;
+                    subpatterns.push(subpat);
+                    if !self.match_token(&Token::Comma) {
+                        break;
+                    }
+                }
+            }
+            self.consume(Token::RightParen, "Expected ')' in pattern")?;
+            Ok(Pattern::TupleOrEnum(path.join("."), subpatterns))
+        } else if self.check(&Token::LeftBrace) {
+            // Struct pattern: Name { field1, field2, ... }
+            let name = path.join(".");
+            self.advance();
+            let mut fields = Vec::new();
+            let mut first = true;
+            while !self.check(&Token::RightBrace) && !self.is_at_end() {
+                if !first {
+                    // Only consume comma between fields, not after last field
+                    self.consume(Token::Comma, "Expected ',' between struct pattern fields")?;
+                }
+                first = false;
+                // Parse field: field_name [: pattern]
+                let field_name = match &self.peek().token {
+                    Token::Identifier(f) => {
+                        let f = f.clone();
+                        self.advance();
+                        f
+                    }
+                    _ => {
+                        return Err(CylError::ParseError {
+                            message: "Expected field name in struct pattern".to_string(),
+                            line: self.peek().line,
+                            column: self.peek().column,
+                        });
+                    }
+                };
+                let pat = if self.check(&Token::Colon) {
+                    self.advance();
+                    self.parse_pattern()?
+                } else {
+                    Pattern::Identifier(field_name.clone())
+                };
+                fields.push((field_name, pat));
+            }
+            self.consume(Token::RightBrace, "Expected '}' after struct pattern")?;
+            // DEBUG: After parsing struct pattern, print next token
+            eprintln!("DEBUG: [parse_pattern] after struct pattern, next token: {:?}, index: {}", self.peek().token, self.current);
+            Ok(Pattern::Struct {
+                name,
+                fields,
+            })
+        } else if path.len() == 1 {
+            Ok(Pattern::Identifier(path.remove(0)))
+        } else {
+            // Qualified enum/variant without tuple: e.g., JsonValue.Null
+            Ok(Pattern::TupleOrEnum(path.join("."), vec![]))
+        }
     }
     pub fn parse_try(&mut self) -> Result<Statement, CylError> {
         Err(CylError::ParseError {
@@ -271,10 +426,25 @@ impl Parser {
         })
     }
     pub fn parse_import(&mut self) -> Result<Statement, CylError> {
-        Err(CylError::ParseError {
-            message: "parse_import not yet implemented".to_string(),
-            line: 0,
-            column: 0,
-        })
+        self.consume(Token::Import, "Expected 'import'")?;
+        let module = match &self.peek().token {
+            Token::Identifier(name) => {
+                let name = name.clone();
+                self.advance();
+                name
+            }
+            _ => {
+                return Err(CylError::ParseError {
+                    message: "Expected module name after 'import'".to_string(),
+                    line: self.peek().line,
+                    column: self.peek().column,
+                });
+            }
+        };
+        self.consume(Token::Semicolon, "Expected ';' after import statement")?;
+        Ok(Statement::Import(ImportStatement {
+            module,
+            items: None,
+        }))
     }
 }

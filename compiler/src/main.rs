@@ -5,6 +5,7 @@ use std::path::PathBuf;
 mod ast;
 mod codegen;
 mod error;
+mod interpreter;
 mod lexer;
 mod parser;
 mod stdlib;
@@ -112,26 +113,68 @@ fn main() -> Result<()> {
     Ok(())
 }
 
+fn print_error_with_context(error: &crate::error::CylError, source: &str) {
+    match error {
+        crate::error::CylError::LexError {
+            message,
+            line,
+            column,
+        }
+        | crate::error::CylError::ParseError {
+            message,
+            line,
+            column,
+        } => {
+            eprintln!("[error] {message} at line {line}, column {column}");
+            if let Some(src_line) = source.lines().nth(line.saturating_sub(1)) {
+                eprintln!("   {src_line}");
+                let mut caret = String::new();
+                for _ in 1..*column {
+                    caret.push(' ');
+                }
+                caret.push('^');
+                eprintln!("   {caret}");
+            }
+        }
+        _ => {
+            eprintln!("[error] {error}");
+        }
+    }
+}
+
 fn compile_and_run(file: &PathBuf, opt_level: u8, debug: bool) -> Result<()> {
     println!("Compiling and running: {}", file.display());
 
     // Read source file
     let source = std::fs::read_to_string(file)?;
 
-    // Lexical analysis
+    // Lex and parse
     let mut lexer = Lexer::new(&source);
-    let tokens = lexer.tokenize()?;
-
-    // Parsing
+    let tokens = match lexer.tokenize() {
+        Ok(t) => t,
+        Err(e) => {
+            print_error_with_context(&e, &source);
+            std::process::exit(1);
+        }
+    };
     let mut parser = parser::helpers::Parser::new(tokens);
-    let ast = parser.parse()?;
+    let program = match parser.parse() {
+        Ok(p) => p,
+        Err(e) => {
+            print_error_with_context(&e, &source);
+            std::process::exit(1);
+        }
+    };
 
-    // Code generation
-    let mut codegen = CodeGenerator::new(opt_level, debug);
-    let executable = codegen.compile_to_executable(&ast)?;
-
-    // Execute
-    executable.run()?;
+    // Run the interpreter and execute main
+    let mut interpreter = interpreter::Interpreter::new();
+    match interpreter.run_main(&program) {
+        Ok(()) => {}
+        Err(e) => {
+            eprintln!("Runtime error: {e}");
+            std::process::exit(1);
+        }
+    }
 
     Ok(())
 }
@@ -172,13 +215,28 @@ fn check_syntax(file: &PathBuf) -> Result<()> {
     // Read source file
     let source = std::fs::read_to_string(file)?;
 
+    // Print tokens for debugging
+    print_tokens(&source);
+
     // Lexical analysis
     let mut lexer = Lexer::new(&source);
-    let tokens = lexer.tokenize()?;
+    let tokens = match lexer.tokenize() {
+        Ok(t) => t,
+        Err(e) => {
+            print_error_with_context(&e, &source);
+            std::process::exit(1);
+        }
+    };
 
     // Parsing (syntax check)
     let mut parser = parser::helpers::Parser::new(tokens);
-    let _ast = parser.parse()?;
+    let _ast = match parser.parse() {
+        Ok(a) => a,
+        Err(e) => {
+            print_error_with_context(&e, &source);
+            std::process::exit(1);
+        }
+    };
 
     println!("✓ Syntax is valid");
 
@@ -189,13 +247,28 @@ fn show_ast(file: &PathBuf, format: &str) -> Result<()> {
     // Read source file
     let source = std::fs::read_to_string(file)?;
 
+    // Print tokens for debugging
+    print_tokens(&source);
+
     // Lexical analysis
     let mut lexer = Lexer::new(&source);
-    let tokens = lexer.tokenize()?;
+    let tokens = match lexer.tokenize() {
+        Ok(t) => t,
+        Err(e) => {
+            print_error_with_context(&e, &source);
+            std::process::exit(1);
+        }
+    };
 
     // Parsing
     let mut parser = parser::helpers::Parser::new(tokens);
-    let ast = parser.parse()?;
+    let ast = match parser.parse() {
+        Ok(a) => a,
+        Err(e) => {
+            print_error_with_context(&e, &source);
+            std::process::exit(1);
+        }
+    };
 
     match format {
         "json" => {
@@ -213,12 +286,26 @@ fn show_ast(file: &PathBuf, format: &str) -> Result<()> {
     Ok(())
 }
 
+fn print_tokens(source: &str) {
+    let mut lexer = Lexer::new(source);
+    match lexer.tokenize() {
+        Ok(tokens) => {
+            for t in tokens {
+                println!("{:?} (line {}, col {})", t.token, t.line, t.column);
+            }
+        }
+        Err(e) => {
+            println!("Lexer error: {e}");
+        }
+    }
+}
+
 fn try_parse_file(source: &str) -> Result<crate::ast::Program> {
+    print_tokens(source); // Print tokens for debugging
+
     // Lexical analysis
     let mut lexer = Lexer::new(source);
     let tokens = lexer.tokenize()?;
-
-    // Parsing
     let mut parser = crate::parser::helpers::Parser::new(tokens);
     let ast = parser.parse()?;
 

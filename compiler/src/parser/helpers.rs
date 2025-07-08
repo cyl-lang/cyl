@@ -192,9 +192,36 @@ impl Parser {
             Token::Identifier(name) => {
                 let name = name.clone();
                 self.advance();
-                if self.check(&Token::LeftAngle) {
-                    let generics = self.parse_generics()?;
-                    Type::Generic(name, generics)
+                // Support generic types: Identifier < type, ... >
+                if self.check(&Token::Less) || self.check(&Token::LeftAngle) {
+                    // Accept either Less or LeftAngle for '<'
+                    self.advance();
+                    let mut generic_types = Vec::new();
+                    while !self.check(&Token::Greater)
+                        && !self.check(&Token::RightAngle)
+                        && !self.is_at_end()
+                    {
+                        let t = self.parse_type()?;
+                        // Convert type to string for AST compatibility
+                        generic_types.push(format!("{:?}", t));
+                        if self.check(&Token::Comma) {
+                            self.advance();
+                        } else if self.check(&Token::Greater) || self.check(&Token::RightAngle) {
+                            break;
+                        } else {
+                            break;
+                        }
+                    }
+                    if self.check(&Token::Greater) || self.check(&Token::RightAngle) {
+                        self.advance();
+                    } else {
+                        return Err(CylError::ParseError {
+                            message: "Expected '>' after generic type parameters".to_string(),
+                            line: self.peek().line,
+                            column: self.peek().column,
+                        });
+                    }
+                    Type::Generic(name, generic_types)
                 } else {
                     Type::Custom(name)
                 }

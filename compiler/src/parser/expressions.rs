@@ -9,13 +9,22 @@ impl Parser {
     // pub fn parse_expression(&mut self) -> Result<Expression, CylError> { ... }
 
     pub fn parse_expression(&mut self) -> Result<Expression, CylError> {
-        self.parse_assignment()
+        self.parse_expression_internal(false)
     }
 
-    fn parse_assignment(&mut self) -> Result<Expression, CylError> {
-        let expr = self.parse_logical_or()?;
+    pub fn parse_expression_stop_at_left_brace(&mut self) -> Result<Expression, CylError> {
+        self.parse_expression_internal(true)
+    }
+
+    fn parse_expression_internal(&mut self, stop_at_left_brace: bool) -> Result<Expression, CylError> {
+        let result = self.parse_assignment_internal(stop_at_left_brace);
+        result
+    }
+
+    fn parse_assignment_internal(&mut self, stop_at_left_brace: bool) -> Result<Expression, CylError> {
+        let expr = self.parse_logical_or_internal(stop_at_left_brace)?;
         if self.match_token(&Token::Assign) {
-            let value = self.parse_assignment()?;
+            let value = self.parse_assignment_internal(stop_at_left_brace)?;
             return Ok(Expression::Assignment {
                 target: Box::new(expr),
                 value: Box::new(value),
@@ -24,10 +33,10 @@ impl Parser {
         Ok(expr)
     }
 
-    fn parse_logical_or(&mut self) -> Result<Expression, CylError> {
-        let mut expr = self.parse_logical_and()?;
+    fn parse_logical_or_internal(&mut self, stop_at_left_brace: bool) -> Result<Expression, CylError> {
+        let mut expr = self.parse_logical_and_internal(stop_at_left_brace)?;
         while self.match_token(&Token::Or) {
-            let right = self.parse_logical_and()?;
+            let right = self.parse_logical_and_internal(stop_at_left_brace)?;
             expr = Expression::BinaryOp {
                 left: Box::new(expr),
                 operator: BinaryOperator::Or,
@@ -37,10 +46,10 @@ impl Parser {
         Ok(expr)
     }
 
-    fn parse_logical_and(&mut self) -> Result<Expression, CylError> {
-        let mut expr = self.parse_equality()?;
+    fn parse_logical_and_internal(&mut self, stop_at_left_brace: bool) -> Result<Expression, CylError> {
+        let mut expr = self.parse_equality_internal(stop_at_left_brace)?;
         while self.match_token(&Token::And) {
-            let right = self.parse_equality()?;
+            let right = self.parse_equality_internal(stop_at_left_brace)?;
             expr = Expression::BinaryOp {
                 left: Box::new(expr),
                 operator: BinaryOperator::And,
@@ -50,10 +59,10 @@ impl Parser {
         Ok(expr)
     }
 
-    fn parse_equality(&mut self) -> Result<Expression, CylError> {
-        let mut expr = self.parse_comparison()?;
+    fn parse_equality_internal(&mut self, stop_at_left_brace: bool) -> Result<Expression, CylError> {
+        let mut expr = self.parse_comparison_internal(stop_at_left_brace)?;
         while let Some(op) = self.match_binary_op(&[Token::Equal, Token::NotEqual]) {
-            let right = self.parse_comparison()?;
+            let right = self.parse_comparison_internal(stop_at_left_brace)?;
             expr = Expression::BinaryOp {
                 left: Box::new(expr),
                 operator: op,
@@ -63,15 +72,15 @@ impl Parser {
         Ok(expr)
     }
 
-    fn parse_comparison(&mut self) -> Result<Expression, CylError> {
-        let mut expr = self.parse_term()?;
+    fn parse_comparison_internal(&mut self, stop_at_left_brace: bool) -> Result<Expression, CylError> {
+        let mut expr = self.parse_term_internal(stop_at_left_brace)?;
         while let Some(op) = self.match_binary_op(&[
             Token::Less,
             Token::LessEqual,
             Token::Greater,
             Token::GreaterEqual,
         ]) {
-            let right = self.parse_term()?;
+            let right = self.parse_term_internal(stop_at_left_brace)?;
             expr = Expression::BinaryOp {
                 left: Box::new(expr),
                 operator: op,
@@ -81,10 +90,10 @@ impl Parser {
         Ok(expr)
     }
 
-    fn parse_term(&mut self) -> Result<Expression, CylError> {
-        let mut expr = self.parse_factor()?;
+    fn parse_term_internal(&mut self, stop_at_left_brace: bool) -> Result<Expression, CylError> {
+        let mut expr = self.parse_factor_internal(stop_at_left_brace)?;
         while let Some(op) = self.match_binary_op(&[Token::Plus, Token::Minus]) {
-            let right = self.parse_factor()?;
+            let right = self.parse_factor_internal(stop_at_left_brace)?;
             expr = Expression::BinaryOp {
                 left: Box::new(expr),
                 operator: op,
@@ -94,11 +103,10 @@ impl Parser {
         Ok(expr)
     }
 
-    fn parse_factor(&mut self) -> Result<Expression, CylError> {
-        let mut expr = self.parse_unary()?;
-        while let Some(op) = self.match_binary_op(&[Token::Multiply, Token::Divide, Token::Modulo])
-        {
-            let right = self.parse_unary()?;
+    fn parse_factor_internal(&mut self, stop_at_left_brace: bool) -> Result<Expression, CylError> {
+        let mut expr = self.parse_unary_internal(stop_at_left_brace)?;
+        while let Some(op) = self.match_binary_op(&[Token::Multiply, Token::Divide, Token::Modulo]) {
+            let right = self.parse_unary_internal(stop_at_left_brace)?;
             expr = Expression::BinaryOp {
                 left: Box::new(expr),
                 operator: op,
@@ -108,74 +116,33 @@ impl Parser {
         Ok(expr)
     }
 
-    fn parse_unary(&mut self) -> Result<Expression, CylError> {
-        if let Some(op) = self.match_unary_op(&[Token::Not, Token::Minus]) {
-            let expr = self.parse_unary()?;
-            return Ok(Expression::UnaryOp {
-                operator: op,
-                operand: Box::new(expr),
-            });
+    fn parse_unary_internal(&mut self, stop_at_left_brace: bool) -> Result<Expression, CylError> {
+        if self.match_token(&Token::Minus) {
+            let right = self.parse_unary_internal(stop_at_left_brace)?;
+            Ok(Expression::UnaryOp {
+                operator: UnaryOperator::Minus,
+                operand: Box::new(right),
+            })
+        } else if self.match_token(&Token::Not) {
+            let right = self.parse_unary_internal(stop_at_left_brace)?;
+            Ok(Expression::UnaryOp {
+                operator: UnaryOperator::Not,
+                operand: Box::new(right),
+            })
+        } else {
+            self.parse_primary_internal(stop_at_left_brace)
         }
-        if self.match_token(&Token::Await) {
-            let expr = self.parse_unary()?;
-            return Ok(Expression::Await(Box::new(expr)));
-        }
-        self.parse_call()
     }
 
-    fn parse_call(&mut self) -> Result<Expression, CylError> {
-        let mut expr = self.parse_primary()?;
-        loop {
-            if self.match_token(&Token::LeftParen) {
-                expr = self.finish_call(expr)?;
-            } else if self.match_token(&Token::Dot) {
-                if let Token::Identifier(name) = &self.peek().token {
-                    let property = name.clone();
-                    self.advance();
-                    expr = Expression::MemberAccess {
-                        object: Box::new(expr),
-                        property,
-                    };
-                } else {
-                    return Err(CylError::ParseError {
-                        message: "Expected property name after '.'".to_string(),
-                        line: self.peek().line,
-                        column: self.peek().column,
-                    });
-                }
-            } else if self.match_token(&Token::LeftBracket) {
-                let index = self.parse_expression()?;
-                self.consume(Token::RightBracket, "Expected ']' after index")?;
-                expr = Expression::IndexAccess {
-                    object: Box::new(expr),
-                    index: Box::new(index),
-                };
-            } else {
-                break;
-            }
-        }
-        Ok(expr)
-    }
-
-    fn finish_call(&mut self, callee: Expression) -> Result<Expression, CylError> {
-        let mut arguments = Vec::new();
-        if !self.check(&Token::RightParen) {
-            loop {
-                arguments.push(self.parse_expression()?);
-                if !self.match_token(&Token::Comma) {
-                    break;
-                }
-            }
-        }
-        self.consume(Token::RightParen, "Expected ')' after arguments")?;
-        Ok(Expression::Call {
-            callee: Box::new(callee),
-            arguments,
-        })
-    }
-
-    fn parse_primary(&mut self) -> Result<Expression, CylError> {
+    fn parse_primary_internal(&mut self, stop_at_left_brace: bool) -> Result<Expression, CylError> {
         match &self.peek().token {
+            Token::Match => {
+                return Err(CylError::ParseError {
+                    message: "'match' can only be used as a statement, not as an expression".to_string(),
+                    line: self.peek().line,
+                    column: self.peek().column,
+                });
+            }
             Token::IntLiteral(value) => {
                 let value = *value;
                 self.advance();
@@ -212,8 +179,41 @@ impl Parser {
             Token::Identifier(name) => {
                 let name = name.clone();
                 self.advance();
-                // If next token is Assign, treat as assignment expression
-                if self.check(&Token::Assign) {
+                if self.check(&Token::LeftBrace) && !stop_at_left_brace {
+                    return Err(CylError::ParseError {
+                        message: "BUG: struct literal branch in expression parser called for a pattern context. This is a parser bug. Match arm patterns must be parsed with parse_pattern, not parse_expression.".to_string(),
+                        line: self.peek().line,
+                        column: self.peek().column,
+                    });
+                } else if self.check(&Token::LeftBrace) && !stop_at_left_brace {
+                    self.advance();
+                    let mut fields = std::collections::HashMap::new();
+                    while !self.check(&Token::RightBrace) && !self.is_at_end() {
+                        if let Token::Identifier(field_name) = &self.peek().token {
+                            let field_name = field_name.clone();
+                            self.advance();
+                            self.consume(Token::Colon, "Expected ':' in struct literal")?;
+                            let value = self.parse_expression()?;
+                            fields.insert(field_name, value);
+                            if !self.match_token(&Token::Comma) {
+                                break;
+                            }
+                        } else {
+                            return Err(CylError::ParseError {
+                                message: "Expected field name in struct literal".to_string(),
+                                line: self.peek().line,
+                                column: self.peek().column,
+                            });
+                        }
+                    }
+                    self.consume(Token::RightBrace, "Expected '}' after struct literal")?;
+                    let mut obj = fields;
+                    obj.insert(
+                        "__struct_name__".to_string(),
+                        Expression::StringLiteral(name.clone()),
+                    );
+                    Ok(Expression::ObjectLiteral(obj))
+                } else if self.check(&Token::Assign) {
                     self.advance();
                     let value = self.parse_expression()?;
                     Ok(Expression::Assignment {
@@ -260,11 +260,13 @@ impl Parser {
                 self.consume(Token::RightBracket, "Expected ']' after array elements")?;
                 Ok(Expression::ArrayLiteral(elements))
             }
-            _ => Err(CylError::ParseError {
-                message: "Expected expression".to_string(),
-                line: self.peek().line,
-                column: self.peek().column,
-            }),
+            _ => {
+                Err(CylError::ParseError {
+                    message: "Expected expression".to_string(),
+                    line: self.peek().line,
+                    column: self.peek().column,
+                })
+            },
         }
     }
 }
