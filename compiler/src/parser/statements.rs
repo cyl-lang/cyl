@@ -280,7 +280,7 @@ impl Parser {
             Token::Identifier(_) | Token::Underscore | Token::RightBrace => {}
             other => {
                 return Err(CylError::ParseError {
-                    message: format!("BUG: Unexpected token after '{{' in match: {:?}", other),
+                    message: format!("BUG: Unexpected token after '{{' in match: {other:?}"),
                     line: self.peek().line,
                     column: self.peek().column,
                 });

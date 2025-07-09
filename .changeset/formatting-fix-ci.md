@@ -5,6 +5,7 @@
 Fix CI formatting check failures
 
 Applied `cargo fmt` to resolve formatting issues that were causing GitHub Actions CI failures:
+
 - Fixed comment alignment for `Future` variant in interpreter
 - Reformatted match expression in `parse_primary_internal` for better readability
 - Improved multiline formatting for `is_decl` assignment in statements parser

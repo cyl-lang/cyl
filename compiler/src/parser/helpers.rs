@@ -204,7 +204,7 @@ impl Parser {
                     {
                         let t = self.parse_type()?;
                         // Convert type to string for AST compatibility
-                        generic_types.push(format!("{:?}", t));
+                        generic_types.push(format!("{t:?}"));
                         if self.check(&Token::Comma) {
                             self.advance();
                         } else {
