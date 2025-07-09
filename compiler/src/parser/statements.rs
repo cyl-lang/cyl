@@ -16,8 +16,9 @@ impl Parser {
         match &self.peek().token {
             Token::Import => self.parse_import(),
             Token::Fn => {
-                self.advance();
+                self.advance(); // Advance past 'fn' so parse_function sees the name
                 let stmt = self.parse_function(false)?;
+                // Do NOT advance past RightBrace here; parse_block already consumes the function body
                 // Skip optional semicolon after function declaration (forgiveness)
                 if self.check(&Token::Semicolon) {
                     self.advance();
@@ -54,16 +55,7 @@ impl Parser {
             }
             Token::Let | Token::Const => {
                 let stmt = self.parse_declare()?;
-                // Require a semicolon after declaration, unless next is RightBrace (end of block)
-                if self.check(&Token::Semicolon) {
-                    self.advance();
-                } else if !self.check(&Token::RightBrace) {
-                    return Err(CylError::ParseError {
-                        message: "Expected ';' after declaration".to_string(),
-                        line: self.peek().line,
-                        column: self.peek().column,
-                    });
-                }
+
                 Ok(stmt)
             }
             Token::Return => self.parse_return(),
@@ -102,10 +94,16 @@ impl Parser {
                     }
                     Ok(stmt)
                 } else {
+                    // Accept member access (dot) as valid expression statement
                     let expr = self.parse_expression()?;
                     self.consume(Token::Semicolon, "Expected ';' after expression")?;
                     Ok(Statement::Expression(expr))
                 }
+            }
+            Token::LeftBrace => {
+                // Parse a block as a statement (do not require semicolon after)
+                let block = self.parse_block()?;
+                Ok(Statement::Block(block))
             }
             _ => {
                 let expr = self.parse_expression()?;
@@ -270,13 +268,13 @@ impl Parser {
         })
     }
     pub fn parse_match(&mut self) -> Result<Statement, CylError> {
-        eprintln!("DEBUG: entered parse_match, peek token: {:?}, current index: {}", self.peek().token, self.current);
+
         let expr = self.parse_expression_stop_at_left_brace()?;
         // DEBUG: After parsing match subject, print current token
-        eprintln!("DEBUG: after match subject, peek token: {:?}, current index: {}", self.peek().token, self.current);
+
         self.consume(Token::LeftBrace, "Expected '{' after match expression")?;
         // DEBUG: Print parser state after consuming '{'
-        eprintln!("DEBUG: after '{{' peek token: {:?}, current index: {}, tokens.len(): {}", self.peek().token, self.current, self.tokens.len());
+
         // HARD ERROR: If next token is not Identifier or Underscore, panic
         match &self.peek().token {
             Token::Identifier(_) | Token::Underscore | Token::RightBrace => {},
@@ -291,9 +289,9 @@ impl Parser {
         let mut arms = Vec::new();
         while !self.check(&Token::RightBrace) && !self.is_at_end() {
             // DEBUG: At start of match arms loop
-            eprintln!("DEBUG: [match arms loop] current token: {:?}, index: {}", self.peek().token, self.current);
+
             // DEBUG: Print the current token and position before parsing the pattern
-            eprintln!("DEBUG: parse_match about to parse pattern, token: {:?} at line {}, col {}", self.peek().token, self.peek().line, self.peek().column);
+
             let pattern = self.parse_pattern()?;
             self.consume(Token::FatArrow, "Expected '=>' after pattern")?;
             let body = if self.check(&Token::LeftBrace) {
@@ -323,7 +321,7 @@ impl Parser {
     /// Recursively parse a pattern for match arms, supporting qualified, tuple, and nested patterns.
     fn parse_pattern(&mut self) -> Result<Pattern, CylError> {
         // DEBUG: Entering parse_pattern
-        eprintln!("DEBUG: [parse_pattern] called at token: {:?}, index: {}", self.peek().token, self.current);
+
         // Accept wildcard '_'
         if self.check(&Token::Underscore) {
             self.advance();
@@ -406,7 +404,7 @@ impl Parser {
             }
             self.consume(Token::RightBrace, "Expected '}' after struct pattern")?;
             // DEBUG: After parsing struct pattern, print next token
-            eprintln!("DEBUG: [parse_pattern] after struct pattern, next token: {:?}, index: {}", self.peek().token, self.current);
+
             Ok(Pattern::Struct {
                 name,
                 fields,
@@ -426,6 +424,7 @@ impl Parser {
         })
     }
     pub fn parse_import(&mut self) -> Result<Statement, CylError> {
+
         self.consume(Token::Import, "Expected 'import'")?;
         let module = match &self.peek().token {
             Token::Identifier(name) => {
@@ -433,7 +432,28 @@ impl Parser {
                 self.advance();
                 name
             }
+            Token::StringType => {
+                self.advance();
+                "string".to_string()
+            }
+            Token::IntType => {
+                self.advance();
+                "int".to_string()
+            }
+            Token::FloatType => {
+                self.advance();
+                "float".to_string()
+            }
+            Token::BoolType => {
+                self.advance();
+                "bool".to_string()
+            }
+            Token::CharType => {
+                self.advance();
+                "char".to_string()
+            }
             _ => {
+
                 return Err(CylError::ParseError {
                     message: "Expected module name after 'import'".to_string(),
                     line: self.peek().line,
@@ -442,6 +462,7 @@ impl Parser {
             }
         };
         self.consume(Token::Semicolon, "Expected ';' after import statement")?;
+
         Ok(Statement::Import(ImportStatement {
             module,
             items: None,

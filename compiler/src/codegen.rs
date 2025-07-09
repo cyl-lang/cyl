@@ -315,6 +315,7 @@ impl CodeGenerator {
             UnaryOperator::Minus => "-",
             UnaryOperator::Plus => "+",
             UnaryOperator::BitwiseNot => "~",
+            UnaryOperator::Await => "await",
         }
     }
 }

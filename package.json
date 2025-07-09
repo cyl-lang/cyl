@@ -1,6 +1,6 @@
 {
     "name": "cyl",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "description": "Cyl programming language with Rust compiler backend and TypeScript design tools",
     "main": "design/src/index.ts",
     "type": "module",
@@ -15,14 +15,15 @@
         "test:design:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
         "test:design:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
         "test:compiler": "cd compiler && cargo test",
-        "test:compiler:cyl": "cd compiler && cargo run -- test",
+        "test:compiler:cyl": "cargo run --manifest-path compiler/Cargo.toml -- test",
         "grammar:validate": "ts-node --esm dist/src/tools/grammar-validator.ts",
         "ast:generate": "node dist/src/tools/ast-generator.js",
         "syntax:check": "ts-node --esm design/src/tools/syntax-checker.ts",
         "compiler:dev": "cd compiler && cargo run",
         "compiler:install": "cd compiler && cargo install --path .",
         "setup": "npm install && cd compiler && cargo build",
-        "version": "npx changeset version"
+        "version": "./scripts/update-version.sh",
+        "version:changeset-only": "npx changeset version"
     },
     "devDependencies": {
         "@babel/preset-env": "^7.28.0",

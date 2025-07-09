@@ -22,6 +22,7 @@ pub enum Statement {
     Try(TryStatement),
     Break,
     Continue,
+    Block(BlockStatement), // <-- Added to support block statements
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -223,6 +224,7 @@ pub enum UnaryOperator {
     Minus,
     Plus,
     BitwiseNot,
+    Await,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

@@ -307,13 +307,18 @@ fn try_parse_file(source: &str) -> Result<crate::ast::Program> {
     let mut lexer = Lexer::new(source);
     let tokens = lexer.tokenize()?;
     let mut parser = crate::parser::helpers::Parser::new(tokens);
-    let ast = parser.parse()?;
-
-    Ok(ast)
+    let ast = parser.parse();
+    match &ast {
+        Ok(prog) => eprintln!("[test debug] AST: {:#?}", prog),
+        Err(e) => eprintln!("[test debug] Parse error: {e}"),
+    }
+    ast.map_err(Into::into)
 }
 
 fn run_tests(pattern: Option<String>, verbose: bool, continue_on_failure: bool) -> Result<()> {
+    use std::env;
     println!("🧪 Running Cyl automated tests...\n");
+    println!("[debug] Current working directory: {}", env::current_dir()?.display());
 
     let tests_dir = PathBuf::from("tests");
     if !tests_dir.exists() {

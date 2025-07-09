@@ -129,9 +129,62 @@ impl Parser {
                 operator: UnaryOperator::Not,
                 operand: Box::new(right),
             })
+        } else if self.match_token(&Token::Await) {
+            let right = self.parse_unary_internal(stop_at_left_brace)?;
+            Ok(Expression::UnaryOp {
+                operator: UnaryOperator::Await,
+                operand: Box::new(right),
+            })
         } else {
-            self.parse_primary_internal(stop_at_left_brace)
+            let primary = self.parse_primary_internal(stop_at_left_brace)?;
+            self.parse_postfix_internal(primary, stop_at_left_brace)
         }
+    }
+
+    fn parse_postfix_internal(&mut self, mut expr: Expression, stop_at_left_brace: bool) -> Result<Expression, CylError> {
+        loop {
+            if self.match_token(&Token::Dot) {
+                // Member access: expr.identifier
+                let member = match &self.peek().token {
+                    Token::Identifier(name) => {
+                        let name = name.clone();
+                        self.advance();
+                        name
+                    }
+                    _ => {
+                        return Err(CylError::ParseError {
+                            message: "Expected identifier after '.'".to_string(),
+                            line: self.peek().line,
+                            column: self.peek().column,
+                        });
+                    }
+                };
+                expr = Expression::MemberAccess {
+                    object: Box::new(expr),
+                    property: member,
+                };
+            } else if self.check(&Token::LeftParen) {
+                // Function call: expr(...)
+                self.advance();
+                let mut args = Vec::new();
+                if !self.check(&Token::RightParen) {
+                    loop {
+                        args.push(self.parse_expression()?);
+                        if !self.match_token(&Token::Comma) {
+                            break;
+                        }
+                    }
+                }
+                self.consume(Token::RightParen, "Expected ')' after function call arguments")?;
+                expr = Expression::Call {
+                    callee: Box::new(expr),
+                    arguments: args,
+                };
+            } else {
+                break;
+            }
+        }
+        Ok(expr)
     }
 
     fn parse_primary_internal(&mut self, stop_at_left_brace: bool) -> Result<Expression, CylError> {
@@ -179,7 +232,9 @@ impl Parser {
             Token::Identifier(name) => {
                 let name = name.clone();
                 self.advance();
-                if self.check(&Token::LeftBrace) && !stop_at_left_brace {
+                if self.check(&Token::LeftBrace) && stop_at_left_brace {
+                    // When stop_at_left_brace is true, we're in a pattern context
+                    // and should not parse struct literals here
                     return Err(CylError::ParseError {
                         message: "BUG: struct literal branch in expression parser called for a pattern context. This is a parser bug. Match arm patterns must be parsed with parse_pattern, not parse_expression.".to_string(),
                         line: self.peek().line,

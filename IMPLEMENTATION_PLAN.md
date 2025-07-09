@@ -23,9 +23,9 @@ Cyl is a systems and web programming language with the following architecture:
 - [x] Create AST node definitions (Rust + TypeScript)
 - [x] Implement basic lexer with Logos
 - [x] Design grammar validation tools
-- [ ] Implement basic parser with Chumsky
-- [ ] Set up error handling framework
-- [ ] Create source location tracking
+- [x] Implement basic parser (hand-written recursive descent, not Chumsky)
+- [x] Set up error handling framework
+- [x] Create source location tracking
 
 ### 🔄 Design Tools (TypeScript)
 

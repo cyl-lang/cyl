@@ -42,12 +42,41 @@ impl Parser {
                 | crate::lexer::Token::Try
                 | crate::lexer::Token::Break
                 | crate::lexer::Token::Continue => {
-                    statements.push(self.parse_statement()?);
+                    let stmt = self.parse_statement()?;
+                    statements.push(stmt);
+                    // Debug: print the next token after parsing a statement
+
                     // After parsing a statement, skip any stray semicolons or right braces
                     while self.peek().token == crate::lexer::Token::Semicolon
                         || self.peek().token == crate::lexer::Token::RightBrace
                     {
                         self.advance();
+                    }
+                    // If the next token is not a valid top-level starter or EOF, break
+                    match &self.peek().token {
+                        crate::lexer::Token::Import
+                        | crate::lexer::Token::Fn
+                        | crate::lexer::Token::Async
+                        | crate::lexer::Token::Struct
+                        | crate::lexer::Token::Enum
+                        | crate::lexer::Token::Let
+                        | crate::lexer::Token::Const
+                        | crate::lexer::Token::Identifier(_)
+                        | crate::lexer::Token::Return
+                        | crate::lexer::Token::If
+                        | crate::lexer::Token::While
+                        | crate::lexer::Token::For
+                        | crate::lexer::Token::Match
+                        | crate::lexer::Token::Try
+                        | crate::lexer::Token::Break
+                        | crate::lexer::Token::Continue
+                        | crate::lexer::Token::Eof => {
+                            // continue
+                        }
+                        _ => {
+                            // Unexpected token at top level, break
+                            break;
+                        }
                     }
                 }
                 _ => {

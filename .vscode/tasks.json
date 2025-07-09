@@ -1,0 +1,36 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "cargo",
+      "command": "build",
+      "label": "build",
+      "group": "build",
+      "args": ["--package", "cylc"],
+      "options": {
+        "cwd": "${workspaceFolder}/compiler"
+      }
+    },
+    {
+      "type": "cargo",
+      "command": "build",
+      "label": "build-release",
+      "group": "build",
+      "args": ["--package", "cylc", "--release"],
+      "options": {
+        "cwd": "${workspaceFolder}/compiler"
+      }
+    },
+    {
+      "type": "shell",
+      "command": "cylc",
+      "label": "run-tests",
+      "group": "test",
+      "args": ["test"],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "build"
+    }
+  ]
+}

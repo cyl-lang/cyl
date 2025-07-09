@@ -251,6 +251,13 @@ impl Parser {
         self.consume(Token::LeftBrace, "Expected '{'")?;
         let mut statements = Vec::new();
         while !self.check(&Token::RightBrace) && !self.is_at_end() {
+            // Skip any stray semicolons between statements
+            while self.check(&Token::Semicolon) {
+                self.advance();
+            }
+            if self.check(&Token::RightBrace) || self.is_at_end() {
+                break;
+            }
             statements.push(self.parse_statement()?);
         }
         self.consume(Token::RightBrace, "Expected '}'")?;
