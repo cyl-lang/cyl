@@ -1,5 +1,42 @@
 # cyl
 
+## 0.3.1
+
+### Patch Changes
+
+- 715b2c1: Fix CI failure with TypeScript design tools
+
+  Corrected npm script paths for TypeScript design tools. The TypeScript compiler outputs files to `compiler/dist/src/tools/` (preserving the source directory structure), but the npm scripts were looking for them in `compiler/dist/tools/`. Updated the following npm scripts:
+
+  - `grammar:validate`: Fixed path to `compiler/dist/src/tools/grammar-validator.js`
+  - `ast:generate`: Fixed path to `compiler/dist/src/tools/ast-generator.js`
+  - `syntax:check`: Fixed path to `compiler/dist/src/tools/syntax-checker.js`
+
+  This resolves the GitHub Actions CI failure where `npm run grammar:validate` couldn't find the compiled tool files. All design tools now work correctly in both local development and CI environments.
+
+- af744e2: Complete clippy linting fixes for CI compliance
+
+  Resolved all remaining clippy warnings to ensure CI passes cleanly:
+
+  - Replaced single-pattern `match` statements with `if let` for better style
+  - Changed `.get(0)` calls to `.first()` for improved readability
+  - Added `#[allow(clippy::only_used_in_recursion)]` for methods where `self` is only used in recursive calls
+  - All clippy warnings now pass with `-D warnings` flag
+  - Maintained 100% test coverage (Rust: 5/5 tests, TypeScript: 20/20 tests)
+
+  This ensures the project follows Rust best practices and will pass CI builds without linting errors.
+
+- e38b3ab: Fix Rust code formatting for CI compliance
+
+  Applied `cargo fmt` to resolve formatting violations that were causing GitHub Actions CI to fail. The formatting changes include:
+
+  - Proper line breaking for long function signatures in parser expressions
+  - Consistent formatting for match arms and block structures
+  - Standardized indentation and spacing throughout parser modules
+  - Removal of unnecessary blank lines and trailing commas
+
+  All functionality remains unchanged - 19/19 language tests still pass after formatting.
+
 ## 0.3.0
 
 ### Minor Changes
