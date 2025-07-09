@@ -234,12 +234,8 @@ impl Parser {
                 self.advance();
                 if self.check(&Token::LeftBrace) && stop_at_left_brace {
                     // When stop_at_left_brace is true, we're in a pattern context
-                    // and should not parse struct literals here
-                    return Err(CylError::ParseError {
-                        message: "BUG: struct literal branch in expression parser called for a pattern context. This is a parser bug. Match arm patterns must be parsed with parse_pattern, not parse_expression.".to_string(),
-                        line: self.peek().line,
-                        column: self.peek().column,
-                    });
+                    // or similar where we need to stop at '{' - just return the identifier
+                    Ok(Expression::Identifier(name))
                 } else if self.check(&Token::LeftBrace) && !stop_at_left_brace {
                     self.advance();
                     let mut fields = std::collections::HashMap::new();
