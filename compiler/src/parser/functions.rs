@@ -29,8 +29,7 @@ impl Parser {
         };
         // Always check for generics after the name
         let type_parameters = if self.check(&Token::Less) {
-            let params = self.parse_generics()?;
-            params
+            self.parse_generics()?
         } else {
             Vec::new()
         };
@@ -145,8 +144,7 @@ impl Parser {
         };
         // Always check for generics after the name
         let type_parameters = if self.check(&Token::Less) {
-            let params = self.parse_generics()?;
-            params
+            self.parse_generics()?
         } else {
             Vec::new()
         };
@@ -206,8 +204,7 @@ impl Parser {
         };
         // Always check for generics after the name
         let type_parameters = if self.check(&Token::Less) {
-            let params = self.parse_generics()?;
-            params
+            self.parse_generics()?
         } else {
             Vec::new()
         };
@@ -261,14 +258,9 @@ impl Parser {
         }))
     }
 
+    #[allow(dead_code)]
     pub fn parse_function_async(&mut self) -> Result<Statement, CylError> {
-        let func = match self.parse_function(true)? {
-            Statement::Function(mut f) => {
-                // is_async already set
-                Statement::Function(f)
-            }
-            other => other,
-        };
+        let func = self.parse_function(true)?;
         Ok(func)
     }
 }

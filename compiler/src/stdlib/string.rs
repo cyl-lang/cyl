@@ -34,6 +34,12 @@ impl StringModule {
     }
 }
 
+impl Default for StringModule {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ModuleTrait for StringModule {
     fn name(&self) -> &str {
         "string"

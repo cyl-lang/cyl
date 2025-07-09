@@ -10,10 +10,12 @@ pub struct CodeGenerator {
     variables: HashMap<String, String>, // Simplified for now
 }
 
+#[allow(dead_code)]
 pub struct Executable {
     // Placeholder for executable representation
 }
 
+#[allow(dead_code)]
 impl Executable {
     pub fn run(&self) -> Result<(), CylError> {
         // TODO: Implement execution
@@ -57,6 +59,7 @@ impl CodeGenerator {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub fn compile_to_executable(&mut self, program: &Program) -> Result<Executable, CylError> {
         // TODO: Implement executable generation
         let _code = self.compile_program(program)?;

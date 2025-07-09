@@ -43,6 +43,12 @@ impl FsModule {
     }
 }
 
+impl Default for FsModule {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ModuleTrait for FsModule {
     fn name(&self) -> &str {
         "fs"

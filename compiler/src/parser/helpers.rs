@@ -89,6 +89,7 @@ impl Parser {
         None
     }
 
+    #[allow(dead_code)]
     pub fn match_unary_op(&mut self, tokens: &[Token]) -> Option<UnaryOperator> {
         for token in tokens {
             if self.check(token) {
@@ -206,8 +207,6 @@ impl Parser {
                         generic_types.push(format!("{:?}", t));
                         if self.check(&Token::Comma) {
                             self.advance();
-                        } else if self.check(&Token::Greater) || self.check(&Token::RightAngle) {
-                            break;
                         } else {
                             break;
                         }

@@ -34,6 +34,12 @@ impl OsModule {
     }
 }
 
+impl Default for OsModule {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ModuleTrait for OsModule {
     fn name(&self) -> &str {
         "os"

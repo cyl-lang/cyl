@@ -39,6 +39,12 @@ impl NetModule {
     }
 }
 
+impl Default for NetModule {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ModuleTrait for NetModule {
     fn name(&self) -> &str {
         "net"

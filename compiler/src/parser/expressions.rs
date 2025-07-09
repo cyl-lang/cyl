@@ -20,8 +20,7 @@ impl Parser {
         &mut self,
         stop_at_left_brace: bool,
     ) -> Result<Expression, CylError> {
-        let result = self.parse_assignment_internal(stop_at_left_brace);
-        result
+        self.parse_assignment_internal(stop_at_left_brace)
     }
 
     fn parse_assignment_internal(
@@ -163,7 +162,7 @@ impl Parser {
     fn parse_postfix_internal(
         &mut self,
         mut expr: Expression,
-        stop_at_left_brace: bool,
+        _stop_at_left_brace: bool,
     ) -> Result<Expression, CylError> {
         loop {
             if self.match_token(&Token::Dot) {
@@ -216,12 +215,12 @@ impl Parser {
     fn parse_primary_internal(&mut self, stop_at_left_brace: bool) -> Result<Expression, CylError> {
         match &self.peek().token {
             Token::Match => {
-                return Err(CylError::ParseError {
+                Err(CylError::ParseError {
                     message: "'match' can only be used as a statement, not as an expression"
                         .to_string(),
                     line: self.peek().line,
                     column: self.peek().column,
-                });
+                })
             }
             Token::IntLiteral(value) => {
                 let value = *value;

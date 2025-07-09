@@ -43,6 +43,12 @@ impl MathModule {
     }
 }
 
+impl Default for MathModule {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ModuleTrait for MathModule {
     fn name(&self) -> &str {
         "math"

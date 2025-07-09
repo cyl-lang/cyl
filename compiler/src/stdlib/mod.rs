@@ -12,12 +12,15 @@ pub struct StdLib {
 }
 
 pub trait ModuleTrait {
+    #[allow(dead_code)]
     fn name(&self) -> &str;
     fn functions(&self) -> &HashMap<String, Function>;
+    #[allow(dead_code)]
     fn types(&self) -> &HashMap<String, Type>;
 }
 
 #[derive(Clone)]
+#[allow(dead_code)]
 pub struct Function {
     pub name: String,
     pub signature: String,
@@ -26,6 +29,7 @@ pub struct Function {
 }
 
 #[derive(Clone)]
+#[allow(dead_code)]
 pub struct Type {
     pub name: String,
     pub description: String,
@@ -41,5 +45,11 @@ impl StdLib {
         modules.insert("string".to_string(), Box::new(string::StringModule::new()));
         // Add more modules as needed
         StdLib { modules }
+    }
+}
+
+impl Default for StdLib {
+    fn default() -> Self {
+        Self::new()
     }
 }

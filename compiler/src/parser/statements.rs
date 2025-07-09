@@ -78,7 +78,7 @@ impl Parser {
                 Ok(Statement::Continue)
             }
             Token::Identifier(_) => {
-                let is_decl = self.tokens.get(self.current + 1).map_or(false, |t| {
+                let is_decl = self.tokens.get(self.current + 1).is_some_and(|t| {
                     matches!(t.token, Token::Less | Token::Colon | Token::Assign)
                 });
                 if is_decl {
@@ -328,16 +328,9 @@ impl Parser {
         }
         // Parse qualified names: e.g., Ok, JsonValue.Object, etc.
         let mut path = Vec::new();
-        loop {
-            match &self.peek().token {
-                Token::Identifier(name) => {
-                    path.push(name.clone());
-                    self.advance();
-                }
-                _ => {
-                    break;
-                }
-            }
+        while let Token::Identifier(name) = &self.peek().token {
+            path.push(name.clone());
+            self.advance();
             if self.check(&Token::Dot) {
                 self.advance();
             } else {

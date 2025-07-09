@@ -11,6 +11,7 @@ pub enum Value {
     Struct(String, HashMap<String, Value>),
     Enum(String, Vec<Value>),       // Enum(variant, fields)
     Result(Box<Value>, Box<Value>), // Ok(val), Err(val)
+    #[allow(dead_code)]
     Future(Box<Value>),             // For async/await, treat as sync for now
     Void,
 }
@@ -20,6 +21,7 @@ pub struct Interpreter {
     stdlib: stdlib::StdLib,
 }
 
+#[allow(dead_code)]
 impl Interpreter {
     pub fn new() -> Self {
         Interpreter {
@@ -107,15 +109,12 @@ impl Interpreter {
         param: &str,
         found: &mut Vec<String>,
     ) {
-        match stmt {
-            Statement::If(ifstmt) => {
-                self.infer_type_from_expr(&ifstmt.condition, param, found);
-                self.collect_param_usages(&ifstmt.then_block, param, found);
-                if let Some(else_block) = &ifstmt.else_block {
-                    self.collect_param_usages_from_stmt(else_block, param, found);
-                }
+        if let Statement::If(ifstmt) = stmt {
+            self.infer_type_from_expr(&ifstmt.condition, param, found);
+            self.collect_param_usages(&ifstmt.then_block, param, found);
+            if let Some(else_block) = &ifstmt.else_block {
+                self.collect_param_usages_from_stmt(else_block, param, found);
             }
-            _ => {}
         }
     }
 
@@ -126,7 +125,7 @@ impl Interpreter {
             }
             Expression::BinaryOp {
                 left,
-                operator,
+                operator: _,
                 right,
             } => {
                 if let Expression::Identifier(name) = &**left {
@@ -309,7 +308,7 @@ impl Interpreter {
                     Value::Enum(ref variant, ref vals)
                         if property == "status" && variant == "Response" =>
                     {
-                        vals.get(0).cloned().unwrap_or(Value::Void)
+                        vals.first().cloned().unwrap_or(Value::Void)
                     }
                     Value::Enum(ref variant, ref vals)
                         if property == "body" && variant == "Response" =>
@@ -326,19 +325,19 @@ impl Interpreter {
                         let args: Vec<Value> =
                             arguments.iter().map(|a| self.eval_expression(a)).collect();
                         if let Some(module) = self.stdlib.modules.get(obj_name) {
-                            if let Some(func) = module.functions().get(property) {
+                            if let Some(_func) = module.functions().get(property) {
                                 // Here, you would call the actual implementation for the function.
                                 // For now, just mock a few common ones:
                                 match (obj_name.as_str(), property.as_str()) {
                                     ("os", "print") => {
-                                        if let Some(val) = args.get(0) {
+                                        if let Some(val) = args.first() {
                                             println!("{}", self.value_to_string(val));
                                         }
                                         return Value::Void;
                                     }
                                     ("os", "exit") => {
                                         std::process::exit(
-                                            args.get(0)
+                                            args.first()
                                                 .and_then(|v| match v {
                                                     Value::Int(i) => Some(*i as i32),
                                                     _ => None,
@@ -347,27 +346,27 @@ impl Interpreter {
                                         );
                                     }
                                     ("math", "sqrt") => {
-                                        if let Some(Value::Float(x)) = args.get(0) {
+                                        if let Some(Value::Float(x)) = args.first() {
                                             return Value::Float(x.sqrt());
                                         }
                                         return Value::Void;
                                     }
                                     ("math", "abs") => {
-                                        if let Some(Value::Float(x)) = args.get(0) {
+                                        if let Some(Value::Float(x)) = args.first() {
                                             return Value::Float(x.abs());
                                         }
                                         return Value::Void;
                                     }
                                     ("math", "pow") => {
                                         if let (Some(Value::Float(x)), Some(Value::Float(y))) =
-                                            (args.get(0), args.get(1))
+                                            (args.first(), args.get(1))
                                         {
                                             return Value::Float(x.powf(*y));
                                         }
                                         return Value::Void;
                                     }
                                     ("string", "len") => {
-                                        if let Some(Value::String(s)) = args.get(0) {
+                                        if let Some(Value::String(s)) = args.first() {
                                             return Value::Int(s.len() as i64);
                                         }
                                         return Value::Void;
@@ -376,7 +375,7 @@ impl Interpreter {
                                         if let (
                                             Some(Value::String(s)),
                                             Some(Value::String(substr)),
-                                        ) = (args.get(0), args.get(1))
+                                        ) = (args.first(), args.get(1))
                                         {
                                             return Value::Bool(s.contains(substr));
                                         }
@@ -391,7 +390,7 @@ impl Interpreter {
                         match (obj_name.as_str(), property.as_str()) {
                             ("net", "get") => {
                                 let url = args
-                                    .get(0)
+                                    .first()
                                     .and_then(|v| match v {
                                         Value::String(s) => Some(s.clone()),
                                         _ => None,
@@ -411,7 +410,7 @@ impl Interpreter {
                             }
                             ("json", "parse") => {
                                 let body = args
-                                    .get(0)
+                                    .first()
                                     .and_then(|v| match v {
                                         Value::String(s) => Some(s.clone()),
                                         _ => None,
@@ -556,14 +555,11 @@ impl Interpreter {
         stmt: &Statement,
         found: &mut Vec<(Value, usize)>,
     ) {
-        match stmt {
-            Statement::If(ifstmt) => {
-                self.collect_return_values(&ifstmt.then_block, found);
-                if let Some(else_block) = &ifstmt.else_block {
-                    self.collect_return_values_from_stmt(else_block, found);
-                }
+        if let Statement::If(ifstmt) = stmt {
+            self.collect_return_values(&ifstmt.then_block, found);
+            if let Some(else_block) = &ifstmt.else_block {
+                self.collect_return_values_from_stmt(else_block, found);
             }
-            _ => {}
         }
     }
 
@@ -614,18 +610,16 @@ impl Interpreter {
     }
 
     fn collect_param_names_from_stmt(&self, stmt: &Statement, found: &mut Vec<String>) {
-        match stmt {
-            Statement::If(ifstmt) => {
-                self.collect_param_names_from_expr(&ifstmt.condition, found);
-                self.collect_param_names(&ifstmt.then_block, found);
-                if let Some(else_block) = &ifstmt.else_block {
-                    self.collect_param_names_from_stmt(else_block, found);
-                }
+        if let Statement::If(ifstmt) = stmt {
+            self.collect_param_names_from_expr(&ifstmt.condition, found);
+            self.collect_param_names(&ifstmt.then_block, found);
+            if let Some(else_block) = &ifstmt.else_block {
+                self.collect_param_names_from_stmt(else_block, found);
             }
-            _ => {}
         }
     }
 
+    #[allow(clippy::only_used_in_recursion)]
     fn collect_param_names_from_expr(&self, expr: &Expression, found: &mut Vec<String>) {
         match expr {
             Expression::Identifier(name) => {
@@ -662,6 +656,7 @@ impl Interpreter {
         }
     }
 
+    #[allow(clippy::only_used_in_recursion)]
     fn value_to_string(&self, val: &Value) -> String {
         match val {
             Value::Int(i) => i.to_string(),

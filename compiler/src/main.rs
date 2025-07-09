@@ -142,7 +142,7 @@ fn print_error_with_context(error: &crate::error::CylError, source: &str) {
     }
 }
 
-fn compile_and_run(file: &PathBuf, opt_level: u8, debug: bool) -> Result<()> {
+fn compile_and_run(file: &PathBuf, _opt_level: u8, _debug: bool) -> Result<()> {
     println!("Compiling and running: {}", file.display());
 
     // Read source file
