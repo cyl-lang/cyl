@@ -12,7 +12,7 @@ pub enum Value {
     Enum(String, Vec<Value>),       // Enum(variant, fields)
     Result(Box<Value>, Box<Value>), // Ok(val), Err(val)
     #[allow(dead_code)]
-    Future(Box<Value>),             // For async/await, treat as sync for now
+    Future(Box<Value>), // For async/await, treat as sync for now
     Void,
 }
 

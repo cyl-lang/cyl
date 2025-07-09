@@ -78,9 +78,10 @@ impl Parser {
                 Ok(Statement::Continue)
             }
             Token::Identifier(_) => {
-                let is_decl = self.tokens.get(self.current + 1).is_some_and(|t| {
-                    matches!(t.token, Token::Less | Token::Colon | Token::Assign)
-                });
+                let is_decl = self
+                    .tokens
+                    .get(self.current + 1)
+                    .is_some_and(|t| matches!(t.token, Token::Less | Token::Colon | Token::Assign));
                 if is_decl {
                     let stmt = self.parse_declare()?;
                     if self.check(&Token::Semicolon) {
