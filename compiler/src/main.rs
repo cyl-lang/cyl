@@ -318,7 +318,10 @@ fn try_parse_file(source: &str) -> Result<crate::ast::Program> {
 fn run_tests(pattern: Option<String>, verbose: bool, continue_on_failure: bool) -> Result<()> {
     use std::env;
     println!("🧪 Running Cyl automated tests...\n");
-    println!("[debug] Current working directory: {}", env::current_dir()?.display());
+    println!(
+        "[debug] Current working directory: {}",
+        env::current_dir()?.display()
+    );
 
     let tests_dir = PathBuf::from("tests");
     if !tests_dir.exists() {

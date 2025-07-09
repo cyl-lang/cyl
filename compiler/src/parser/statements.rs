@@ -268,7 +268,6 @@ impl Parser {
         })
     }
     pub fn parse_match(&mut self) -> Result<Statement, CylError> {
-
         let expr = self.parse_expression_stop_at_left_brace()?;
         // DEBUG: After parsing match subject, print current token
 
@@ -277,7 +276,7 @@ impl Parser {
 
         // HARD ERROR: If next token is not Identifier or Underscore, panic
         match &self.peek().token {
-            Token::Identifier(_) | Token::Underscore | Token::RightBrace => {},
+            Token::Identifier(_) | Token::Underscore | Token::RightBrace => {}
             other => {
                 return Err(CylError::ParseError {
                     message: format!("BUG: Unexpected token after '{{' in match: {:?}", other),
@@ -405,10 +404,7 @@ impl Parser {
             self.consume(Token::RightBrace, "Expected '}' after struct pattern")?;
             // DEBUG: After parsing struct pattern, print next token
 
-            Ok(Pattern::Struct {
-                name,
-                fields,
-            })
+            Ok(Pattern::Struct { name, fields })
         } else if path.len() == 1 {
             Ok(Pattern::Identifier(path.remove(0)))
         } else {
@@ -424,7 +420,6 @@ impl Parser {
         })
     }
     pub fn parse_import(&mut self) -> Result<Statement, CylError> {
-
         self.consume(Token::Import, "Expected 'import'")?;
         let module = match &self.peek().token {
             Token::Identifier(name) => {
@@ -453,7 +448,6 @@ impl Parser {
                 "char".to_string()
             }
             _ => {
-
                 return Err(CylError::ParseError {
                     message: "Expected module name after 'import'".to_string(),
                     line: self.peek().line,

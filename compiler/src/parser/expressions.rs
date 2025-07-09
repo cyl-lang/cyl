@@ -16,12 +16,18 @@ impl Parser {
         self.parse_expression_internal(true)
     }
 
-    fn parse_expression_internal(&mut self, stop_at_left_brace: bool) -> Result<Expression, CylError> {
+    fn parse_expression_internal(
+        &mut self,
+        stop_at_left_brace: bool,
+    ) -> Result<Expression, CylError> {
         let result = self.parse_assignment_internal(stop_at_left_brace);
         result
     }
 
-    fn parse_assignment_internal(&mut self, stop_at_left_brace: bool) -> Result<Expression, CylError> {
+    fn parse_assignment_internal(
+        &mut self,
+        stop_at_left_brace: bool,
+    ) -> Result<Expression, CylError> {
         let expr = self.parse_logical_or_internal(stop_at_left_brace)?;
         if self.match_token(&Token::Assign) {
             let value = self.parse_assignment_internal(stop_at_left_brace)?;
@@ -33,7 +39,10 @@ impl Parser {
         Ok(expr)
     }
 
-    fn parse_logical_or_internal(&mut self, stop_at_left_brace: bool) -> Result<Expression, CylError> {
+    fn parse_logical_or_internal(
+        &mut self,
+        stop_at_left_brace: bool,
+    ) -> Result<Expression, CylError> {
         let mut expr = self.parse_logical_and_internal(stop_at_left_brace)?;
         while self.match_token(&Token::Or) {
             let right = self.parse_logical_and_internal(stop_at_left_brace)?;
@@ -46,7 +55,10 @@ impl Parser {
         Ok(expr)
     }
 
-    fn parse_logical_and_internal(&mut self, stop_at_left_brace: bool) -> Result<Expression, CylError> {
+    fn parse_logical_and_internal(
+        &mut self,
+        stop_at_left_brace: bool,
+    ) -> Result<Expression, CylError> {
         let mut expr = self.parse_equality_internal(stop_at_left_brace)?;
         while self.match_token(&Token::And) {
             let right = self.parse_equality_internal(stop_at_left_brace)?;
@@ -59,7 +71,10 @@ impl Parser {
         Ok(expr)
     }
 
-    fn parse_equality_internal(&mut self, stop_at_left_brace: bool) -> Result<Expression, CylError> {
+    fn parse_equality_internal(
+        &mut self,
+        stop_at_left_brace: bool,
+    ) -> Result<Expression, CylError> {
         let mut expr = self.parse_comparison_internal(stop_at_left_brace)?;
         while let Some(op) = self.match_binary_op(&[Token::Equal, Token::NotEqual]) {
             let right = self.parse_comparison_internal(stop_at_left_brace)?;
@@ -72,7 +87,10 @@ impl Parser {
         Ok(expr)
     }
 
-    fn parse_comparison_internal(&mut self, stop_at_left_brace: bool) -> Result<Expression, CylError> {
+    fn parse_comparison_internal(
+        &mut self,
+        stop_at_left_brace: bool,
+    ) -> Result<Expression, CylError> {
         let mut expr = self.parse_term_internal(stop_at_left_brace)?;
         while let Some(op) = self.match_binary_op(&[
             Token::Less,
@@ -105,7 +123,8 @@ impl Parser {
 
     fn parse_factor_internal(&mut self, stop_at_left_brace: bool) -> Result<Expression, CylError> {
         let mut expr = self.parse_unary_internal(stop_at_left_brace)?;
-        while let Some(op) = self.match_binary_op(&[Token::Multiply, Token::Divide, Token::Modulo]) {
+        while let Some(op) = self.match_binary_op(&[Token::Multiply, Token::Divide, Token::Modulo])
+        {
             let right = self.parse_unary_internal(stop_at_left_brace)?;
             expr = Expression::BinaryOp {
                 left: Box::new(expr),
@@ -141,7 +160,11 @@ impl Parser {
         }
     }
 
-    fn parse_postfix_internal(&mut self, mut expr: Expression, stop_at_left_brace: bool) -> Result<Expression, CylError> {
+    fn parse_postfix_internal(
+        &mut self,
+        mut expr: Expression,
+        stop_at_left_brace: bool,
+    ) -> Result<Expression, CylError> {
         loop {
             if self.match_token(&Token::Dot) {
                 // Member access: expr.identifier
@@ -175,7 +198,10 @@ impl Parser {
                         }
                     }
                 }
-                self.consume(Token::RightParen, "Expected ')' after function call arguments")?;
+                self.consume(
+                    Token::RightParen,
+                    "Expected ')' after function call arguments",
+                )?;
                 expr = Expression::Call {
                     callee: Box::new(expr),
                     arguments: args,
@@ -191,7 +217,8 @@ impl Parser {
         match &self.peek().token {
             Token::Match => {
                 return Err(CylError::ParseError {
-                    message: "'match' can only be used as a statement, not as an expression".to_string(),
+                    message: "'match' can only be used as a statement, not as an expression"
+                        .to_string(),
                     line: self.peek().line,
                     column: self.peek().column,
                 });
@@ -311,13 +338,11 @@ impl Parser {
                 self.consume(Token::RightBracket, "Expected ']' after array elements")?;
                 Ok(Expression::ArrayLiteral(elements))
             }
-            _ => {
-                Err(CylError::ParseError {
-                    message: "Expected expression".to_string(),
-                    line: self.peek().line,
-                    column: self.peek().column,
-                })
-            },
+            _ => Err(CylError::ParseError {
+                message: "Expected expression".to_string(),
+                line: self.peek().line,
+                column: self.peek().column,
+            }),
         }
     }
 }
