@@ -664,14 +664,14 @@ impl Interpreter {
             Value::String(s) => s.clone(),
             Value::Bool(b) => b.to_string(),
             Value::Struct(name, fields) => {
-                let mut s = format!("{} {{ ", name);
+                let mut s = format!("{name} {{ ");
                 for (k, v) in fields.iter() {
                     s.push_str(&format!("{}: {}, ", k, self.value_to_string(v)));
                 }
                 s.push('}');
                 s
             }
-            Value::Enum(variant, vals) => format!("{}({:?})", variant, vals),
+            Value::Enum(variant, vals) => format!("{variant}({vals:?})"),
             Value::Result(ok, err) => {
                 if let Value::Void = **err {
                     self.value_to_string(ok)

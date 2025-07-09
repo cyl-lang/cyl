@@ -309,7 +309,7 @@ fn try_parse_file(source: &str) -> Result<crate::ast::Program> {
     let mut parser = crate::parser::helpers::Parser::new(tokens);
     let ast = parser.parse();
     match &ast {
-        Ok(prog) => eprintln!("[test debug] AST: {:#?}", prog),
+        Ok(prog) => eprintln!("[test debug] AST: {prog:#?}"),
         Err(e) => eprintln!("[test debug] Parse error: {e}"),
     }
     ast.map_err(Into::into)
