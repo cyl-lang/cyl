@@ -1,5 +1,77 @@
 # cyl
 
+## 3.1.0
+
+### Minor Changes
+
+- Add automated integration test system for Cyl language
+
+  This changeset introduces a comprehensive integration test framework that automatically discovers, compiles, runs, and cleans up Cyl test files.
+
+  ## New Features
+
+  ### Integration Test Framework
+
+  - **Automatic test discovery**: Finds all `.cyl` files in `tests/fixtures/valid/` and `tests/fixtures/invalid/` directories
+  - **Build and execute**: Compiles each test file to a temporary executable and runs it
+  - **Automatic cleanup**: Uses temporary directories that are automatically cleaned up after tests
+  - **Success/failure validation**:
+    - Valid tests must compile and run successfully (exit code 0)
+    - Invalid tests must fail to compile (for negative testing)
+
+  ### Test Categories
+
+  - **Valid fixtures**: Tests in `tests/fixtures/valid/` that should compile and run successfully
+  - **Invalid fixtures**: Tests in `tests/fixtures/invalid/` that should fail compilation
+  - **Individual tests**: Specific tests for core examples (`hello_world.cyl`, `print_test.cyl`, etc.)
+
+  ### Test Infrastructure
+
+  - New integration test file: `compiler/tests/integration.rs`
+  - Comprehensive test utilities for compiling and running Cyl programs
+  - Proper error reporting with compilation and runtime details
+  - Support for both compilation-only tests and output validation tests
+
+  ## Test Results
+
+  ✅ **7 tests passing**:
+
+  - `test_hello_world`: Validates core hello world example
+  - `test_print_functionality`: Tests print and print_int functions
+  - `test_arithmetic`: Tests basic arithmetic operations
+  - `test_variables`: Tests variable declaration and assignment
+  - `test_simple_if`: Tests conditional statements
+  - `test_all_valid_fixtures`: Automatically discovers and runs all valid test files
+  - `test_all_invalid_fixtures`: Validates that invalid syntax properly fails compilation
+
+  ## CI/CD Compatibility
+
+  ✅ **All GitHub Actions checks pass**:
+
+  - `cargo clippy -- -D warnings`: No warnings or errors
+  - `cargo test`: All 12 tests pass (7 integration + 5 parser tests)
+  - `npm run test:design`: All 20 TypeScript tests pass
+  - Full test suite completes successfully with proper cleanup
+
+  ## Files Added/Modified
+
+  - `compiler/tests/integration.rs`: New integration test framework
+  - `tests/fixtures/valid/arithmetic_test.cyl`: Arithmetic operations test
+  - `tests/fixtures/valid/variables_test.cyl`: Variable declaration test
+  - `tests/fixtures/valid/simple_if_test.cyl`: Conditional statement test
+  - `Cargo.toml`: Added `tempfile` workspace dependency
+  - `compiler/Cargo.toml`: Added `tempfile` dev-dependency
+
+  ## Usage
+
+  Run integration tests with:
+
+  ```bash
+  cargo test --test integration
+  ```
+
+  This system provides a solid foundation for ensuring the Cyl language compiler works correctly across a wide range of test cases, with automatic discovery making it easy to add new tests in the future.
+
 ## 3.0.0
 
 ### Major Changes
