@@ -1,8 +1,8 @@
-// Test if we have print/output functionality
+// Test print functionality with strings and integers
 fn main() -> void {
     let message = "Hello, World!";
     let number = 42;
-    // Try to see if we can output anything
+    
     print(message);
     print_int(number);
 }

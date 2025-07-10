@@ -23,6 +23,11 @@ export class CylLanguageDesign {
             return loadGrammar();
         } catch (error) {
             console.warn(chalk.yellow(`Failed to load grammar from ${path}, using default grammar`));
+            if (error instanceof Error) {
+                console.error(chalk.red(`Error details: ${error.message}`));
+            } else {
+                console.error(chalk.red('Unknown error occurred while loading grammar.'));
+            }
             return getDefaultGrammar();
         }
     }

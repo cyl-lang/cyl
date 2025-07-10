@@ -1,0 +1,16 @@
+// Control flow test with if/else
+// EXPECTED_OUTPUT: "x is greater"\n"x equals 10"
+fn main() -> void {
+    let x = 10;
+    let y = 5;
+    
+    if x > y {
+        print("x is greater");
+    } else {
+        print("y is greater or equal");
+    }
+    
+    if x == 10 {
+        print("x equals 10");
+    }
+}

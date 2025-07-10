@@ -28,23 +28,6 @@ $ cylc build hello_world.cyl && ./hello_world
 
 **Paradigm:** Imperative, concurrent, safe systems language with modern syntax inspired by TypeScript/Python and safety from Rust/Go
 
-```cyl
-// main.cyl
-import net
-import fs
-
-fn main() -> void {
-    res = net.get("https://example.com");
-
-    if res.status == 200 {
-        fs.write("/tmp/response.txt", res.body)
-        print("Response saved.")
-    } else {
-        print("Failed to fetch data.")
-    }
-}
-```
-
 ---
 
 - [Usage](#usage)

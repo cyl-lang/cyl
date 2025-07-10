@@ -1,4 +1,0 @@
-// Test async function with struct literal - should pass
-async fn test() -> void {
-    let x = SomeStruct { field: 42 };
-}

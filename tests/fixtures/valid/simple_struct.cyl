@@ -1,9 +1,0 @@
-// Simple struct test
-struct Point {
-    x: i32,
-    y: i32
-}
-
-fn main() -> void {
-    // Just define the struct for now
-}

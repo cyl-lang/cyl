@@ -1,0 +1,12 @@
+// Simple arithmetic test
+fn main() -> void {
+    let a = 10;
+    let b = 5;
+    let sum = a + b;
+    let diff = a - b;
+    let prod = a * b;
+    
+    print_int(sum);   // Should output: 15
+    print_int(diff);  // Should output: 5
+    print_int(prod);  // Should output: 50
+}

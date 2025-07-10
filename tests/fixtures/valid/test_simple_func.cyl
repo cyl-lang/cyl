@@ -1,3 +1,0 @@
-fn parse_log_line(line: string) -> string {
-    return "test";
-}

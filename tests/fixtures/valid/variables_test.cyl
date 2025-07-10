@@ -1,0 +1,9 @@
+// Variable declaration and assignment test
+fn main() -> void {
+    let name = "Cyl";
+    let version = 3;
+    let is_compiled = true;
+    
+    print(name);
+    print_int(version);
+}

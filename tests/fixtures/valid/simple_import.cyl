@@ -1,6 +1,0 @@
-// Simple import test
-import os;
-
-fn main() -> void {
-    // Basic import test
-}

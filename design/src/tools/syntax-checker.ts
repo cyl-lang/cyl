@@ -70,7 +70,7 @@ export class SyntaxChecker {
         }
 
         // Check patterns
-        if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(value)) {
+        if (/^[a-zA-Z_]\w*$/.test(value)) {
             return 'identifier';
         }
 
@@ -183,44 +183,47 @@ export class SyntaxChecker {
         for (let i = 0; i < tokens.length; i++) {
             const token = tokens[i];
 
-            if (token.type === 'operator') {
-                const operator = this.grammar.operators?.find(op => op.symbol === token.value);
+            if (token.type !== 'operator') continue;
 
-                if (operator) {
-                    // Check binary operator context
-                    if (operator.type === 'binary') {
-                        const hasLeftOperand = i > 0 && this.canBeOperand(tokens[i - 1]);
-                        const hasRightOperand = i + 1 < tokens.length && this.canBeOperand(tokens[i + 1]);
+            const operator = this.grammar.operators?.find(op => op.symbol === token.value);
+            if (!operator) continue;
 
-                        if (!hasLeftOperand || !hasRightOperand) {
-                            issues.push({
-                                type: 'invalid_operator_usage',
-                                message: `Binary operator ${token.value} requires operands on both sides`,
-                                severity: 'error',
-                                line: token.line,
-                                column: token.column,
-                                length: token.length
-                            });
-                        }
-                    }
-
-                    // Check unary operator context
-                    if (operator.type === 'unary') {
-                        const hasOperand = i + 1 < tokens.length && this.canBeOperand(tokens[i + 1]);
-
-                        if (!hasOperand) {
-                            issues.push({
-                                type: 'invalid_operator_usage',
-                                message: `Unary operator ${token.value} requires an operand`,
-                                severity: 'error',
-                                line: token.line,
-                                column: token.column,
-                                length: token.length
-                            });
-                        }
-                    }
-                }
+            if (operator.type === 'binary') {
+                this.checkBinaryOperatorUsage(tokens, i, token, issues);
+            } else if (operator.type === 'unary') {
+                this.checkUnaryOperatorUsage(tokens, i, token, issues);
             }
+        }
+    }
+
+    private checkBinaryOperatorUsage(tokens: Token[], index: number, token: Token, issues: SyntaxIssue[]): void {
+        const hasLeftOperand = index > 0 && this.canBeOperand(tokens[index - 1]);
+        const hasRightOperand = index + 1 < tokens.length && this.canBeOperand(tokens[index + 1]);
+
+        if (!hasLeftOperand || !hasRightOperand) {
+            issues.push({
+                type: 'invalid_operator_usage',
+                message: `Binary operator ${token.value} requires operands on both sides`,
+                severity: 'error',
+                line: token.line,
+                column: token.column,
+                length: token.length
+            });
+        }
+    }
+
+    private checkUnaryOperatorUsage(tokens: Token[], index: number, token: Token, issues: SyntaxIssue[]): void {
+        const hasOperand = index + 1 < tokens.length && this.canBeOperand(tokens[index + 1]);
+
+        if (!hasOperand) {
+            issues.push({
+                type: 'invalid_operator_usage',
+                message: `Unary operator ${token.value} requires an operand`,
+                severity: 'error',
+                line: token.line,
+                column: token.column,
+                length: token.length
+            });
         }
     }
 
@@ -232,10 +235,7 @@ export class SyntaxChecker {
             if (this.isStatementStart(token)) {
                 expectingSemicolon = true;
                 lastStatementToken = token;
-            } else if (token.value === ';') {
-                expectingSemicolon = false;
-                lastStatementToken = null;
-            } else if (token.value === '{' || token.value === '}') {
+            } else if (token.value === ';' || token.value === '{' || token.value === '}') {
                 expectingSemicolon = false;
                 lastStatementToken = null;
             }

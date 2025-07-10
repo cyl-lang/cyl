@@ -1,48 +1,20 @@
-// Web request example
+// Advanced web request example (aspirational - for future implementation)
 import net;
-import json;
-import os;
+import fs;
 
-struct User {
-    id: int,
-    name: string,
-    email: string
-}
-
-async fn fetch_user(id: int) -> Result<User, string> {
-    let url = "https://jsonplaceholder.typicode.com/users/" + id;
+fn main() -> void {
+    // This is a design example showing the intended syntax
+    // Current implementation supports basic functions, variables, and control flow
     
-    let response = await net.get(url);
-    if response.status != 200 {
-        return Err("HTTP error: " + response.status);
-    }
+    // Future implementation would support:
+    // let response = net.get("https://api.example.com/data");
+    // 
+    // if response.status == 200 {
+    //     fs.write("/tmp/response.json", response.body);
+    //     print("Data saved successfully");
+    // } else {
+    //     print("Request failed");
+    // }
     
-    match json.parse(response.body) {
-        Ok(JsonValue.Object(data)) => {
-            let user = User {
-                id: id,
-                name: data.get("name").unwrap_or("Unknown"),
-                email: data.get("email").unwrap_or("No email")
-            };
-            return Ok(user);
-        },
-        Ok(_) => { return Err("Invalid JSON structure"); },
-        Err(error) => { return Err("JSON parse error: " + error); }
-    }
-}
-
-async fn main() -> void {
-    os.println("Fetching user data...");
-    
-    match await fetch_user(1) {
-        Ok(user) => {
-            os.println("User ID: " + user.id);
-            os.println("Name: " + user.name);
-            os.println("Email: " + user.email);
-        },
-        Err(error) => {
-            os.println("Error: " + error);
-            os.exit(1);
-        }
-    }
+    print("Web request functionality is planned for future releases");
 }
