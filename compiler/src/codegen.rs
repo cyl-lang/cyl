@@ -156,7 +156,7 @@ impl<'ctx> LLVMCodegen<'ctx> {
                                 // Don't care about the return value for statement-level calls
                             } else {
                                 return Err(CylError::CodeGenError {
-                                    message: format!("Unknown function: {}", function_name),
+                                    message: format!("Unknown function: {function_name}"),
                                 });
                             }
                         } else {
@@ -294,7 +294,7 @@ impl<'ctx> LLVMCodegen<'ctx> {
             }
             _ => {
                 return Err(CylError::CodeGenError {
-                    message: format!("Statement type not yet implemented: {:?}", statement),
+                    message: format!("Statement type not yet implemented: {statement:?}"),
                 });
             }
         }
@@ -341,7 +341,7 @@ impl<'ctx> LLVMCodegen<'ctx> {
                     Ok(loaded)
                 } else {
                     Err(CylError::CodeGenError {
-                        message: format!("Undefined variable: {}", name),
+                        message: format!("Undefined variable: {name}"),
                     })
                 }
             }
@@ -573,7 +573,7 @@ impl<'ctx> LLVMCodegen<'ctx> {
                         }
                     }
                     _ => Err(CylError::CodeGenError {
-                        message: format!("Binary operator not implemented: {:?}", operator),
+                        message: format!("Binary operator not implemented: {operator:?}"),
                     }),
                 }
             }
