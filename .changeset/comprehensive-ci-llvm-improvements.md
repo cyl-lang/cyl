@@ -15,9 +15,9 @@ Optimized CI workflows for cost efficiency and LLVM compilation
 
 ### New Development Tools
 
-- **Local Debug Script**: Added `debug-llvm-local.sh` for local LLVM testing
-- **Cross-platform Detection**: Supports macOS and Linux development environments
-- **Environment Verification**: Validates LLVM installation and library availability
+- **Local Debug Script**: `debug-llvm-local.sh` for local LLVM testing
+- **Cross-platform Support**: macOS and Linux development environments
+- **Environment Verification**: Validates LLVM installation locally
 
 ### Build Improvements
 

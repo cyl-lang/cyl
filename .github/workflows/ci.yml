@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [master, develop]
+    branches: [master, development]
   pull_request:
-    branches: [master, develop]
+    branches: [master, development]
 
 env:
   CARGO_TERM_COLOR: always
@@ -65,6 +65,11 @@ jobs:
       - name: Cargo check
         working-directory: compiler
         run: cargo check
+
+      # Build release binary for integration tests
+      - name: Build release binary
+        working-directory: compiler
+        run: cargo build --release
 
       # Main Rust workflow with optimizations
       - name: Rust tests and linting
