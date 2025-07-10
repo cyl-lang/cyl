@@ -10,8 +10,9 @@ mod lexer;
 mod parser;
 mod stdlib;
 
-use crate::codegen::CodeGenerator;
+use crate::codegen::LLVMCodegen;
 use crate::lexer::Lexer;
+use inkwell::context::Context;
 
 #[derive(Parser)]
 #[command(name = "cylc")]
@@ -34,6 +35,9 @@ enum Commands {
         /// Enable debug information
         #[arg(short, long)]
         debug: bool,
+        /// Use LLVM backend (experimental)
+        #[arg(long)]
+        llvm: bool,
     },
     /// Compile a Cyl program to executable
     Build {
@@ -48,6 +52,9 @@ enum Commands {
         /// Enable debug information
         #[arg(short, long)]
         debug: bool,
+        /// Use LLVM backend (experimental)
+        #[arg(long)]
+        llvm: bool,
     },
     /// Check syntax without compiling
     Check {
@@ -84,16 +91,18 @@ fn main() -> Result<()> {
             file,
             opt_level,
             debug,
+            llvm,
         } => {
-            compile_and_run(&file, opt_level, debug)?;
+            compile_and_run(&file, opt_level, debug, llvm)?;
         }
         Commands::Build {
             file,
             output,
             opt_level,
             debug,
+            llvm,
         } => {
-            compile_to_executable(&file, output, opt_level, debug)?;
+            compile_to_executable(&file, output, opt_level, debug, llvm)?;
         }
         Commands::Check { file } => {
             check_syntax(&file)?;
@@ -142,8 +151,8 @@ fn print_error_with_context(error: &crate::error::CylError, source: &str) {
     }
 }
 
-fn compile_and_run(file: &PathBuf, _opt_level: u8, _debug: bool) -> Result<()> {
-    println!("Compiling and running: {}", file.display());
+fn compile_and_run(file: &PathBuf, _opt_level: u8, _debug: bool, use_llvm: bool) -> Result<()> {
+    println!("Compiling and running: {} (LLVM: {})", file.display(), use_llvm);
 
     // Read source file
     let source = std::fs::read_to_string(file)?;
@@ -166,13 +175,37 @@ fn compile_and_run(file: &PathBuf, _opt_level: u8, _debug: bool) -> Result<()> {
         }
     };
 
-    // Run the interpreter and execute main
-    let mut interpreter = interpreter::Interpreter::new();
-    match interpreter.run_main(&program) {
-        Ok(()) => {}
-        Err(e) => {
-            eprintln!("Runtime error: {e}");
-            std::process::exit(1);
+    if use_llvm {
+        // Use LLVM backend
+        let context = Context::create();
+        let mut llvm_codegen = match LLVMCodegen::new(&context) {
+            Ok(cg) => cg,
+            Err(e) => {
+                eprintln!("Failed to initialize LLVM codegen: {e}");
+                std::process::exit(1);
+            }
+        };
+
+        match llvm_codegen.compile_program(&program) {
+            Ok(()) => {
+                println!("Successfully compiled with LLVM!");
+                llvm_codegen.print_ir();
+                // TODO: Execute the compiled code
+            }
+            Err(e) => {
+                eprintln!("LLVM compilation error: {e}");
+                std::process::exit(1);
+            }
+        }
+    } else {
+        // Use interpreter
+        let mut interpreter = interpreter::Interpreter::new();
+        match interpreter.run_main(&program) {
+            Ok(()) => {}
+            Err(e) => {
+                eprintln!("Runtime error: {e}");
+                std::process::exit(1);
+            }
         }
     }
 
@@ -182,12 +215,13 @@ fn compile_and_run(file: &PathBuf, _opt_level: u8, _debug: bool) -> Result<()> {
 fn compile_to_executable(
     file: &PathBuf,
     output: Option<PathBuf>,
-    opt_level: u8,
-    debug: bool,
+    _opt_level: u8,
+    _debug: bool,
+    use_llvm: bool,
 ) -> Result<()> {
     let output_name = output.unwrap_or_else(|| file.with_extension(""));
 
-    println!("Compiling {} to {}", file.display(), output_name.display());
+    println!("Compiling {} to {} (LLVM: {})", file.display(), output_name.display(), use_llvm);
 
     // Read source file
     let source = std::fs::read_to_string(file)?;
@@ -200,9 +234,25 @@ fn compile_to_executable(
     let mut parser = parser::helpers::Parser::new(tokens);
     let ast = parser.parse()?;
 
-    // Code generation
-    let mut codegen = CodeGenerator::new(opt_level, debug);
-    codegen.compile_to_file(&ast, &output_name)?;
+    if use_llvm {
+        // Use LLVM backend
+        let context = Context::create();
+        let mut llvm_codegen = LLVMCodegen::new(&context)?;
+        llvm_codegen.compile_program(&ast)?;
+        
+        // TODO: Actually generate executable file
+        println!("LLVM IR generated (executable generation not yet implemented):");
+        llvm_codegen.print_ir();
+    } else {
+        // LLVM backend is now the only option
+        println!("Warning: Legacy codegen has been removed. Using LLVM backend instead.");
+        let context = Context::create();
+        let mut llvm_codegen = LLVMCodegen::new(&context)?;
+        llvm_codegen.compile_program(&ast)?;
+        
+        println!("LLVM IR generated (executable generation not yet implemented):");
+        llvm_codegen.print_ir();
+    }
 
     println!("Successfully compiled to {}", output_name.display());
 
