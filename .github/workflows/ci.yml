@@ -38,8 +38,71 @@ jobs:
         if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
-          choco install llvm --version=15.0.7
-          echo "LLVM_SYS_150_PREFIX=C:\Program Files\LLVM" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          # Try to install LLVM 15 with fallback to latest available
+          Write-Host "Installing LLVM..."
+          try {
+            choco install llvm --version=15.0.7 --allow-downgrade --force
+          } catch {
+            Write-Host "LLVM 15.0.7 not available, trying without version pin..."
+            choco install llvm --force
+          }
+
+          # Find LLVM installation directory
+          $llvmPath = ""
+          $possiblePaths = @(
+            "C:\Program Files\LLVM",
+            "C:\Program Files (x86)\LLVM", 
+            "C:\tools\llvm",
+            "C:\ProgramData\chocolatey\lib\llvm\tools"
+          )
+
+          foreach ($path in $possiblePaths) {
+            if (Test-Path "$path\bin\llvm-config.exe") {
+              $llvmPath = $path
+              Write-Host "Found LLVM at: $llvmPath"
+              break
+            }
+          }
+
+          if ($llvmPath -eq "") {
+            Write-Host "Searching for LLVM installation..."
+            $llvmPath = Get-ChildItem -Path "C:\" -Recurse -Directory -Name "LLVM*" -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($llvmPath) {
+              $llvmPath = "C:\$llvmPath"
+            }
+          }
+
+          if ($llvmPath -ne "" -and (Test-Path "$llvmPath\bin\llvm-config.exe")) {
+            Write-Host "Setting LLVM environment variables for: $llvmPath"
+            echo "LLVM_SYS_150_PREFIX=$llvmPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+            echo "LIBCLANG_PATH=$llvmPath\bin" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+            echo "PATH=$llvmPath\bin;$env:PATH" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+            
+            # Verify installation
+            & "$llvmPath\bin\llvm-config.exe" --version
+          } else {
+            Write-Host "ERROR: Could not find LLVM installation!"
+            exit 1
+          }
+
+      - name: Debug LLVM setup (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          Write-Host "=== LLVM Environment Debug ==="
+          Write-Host "LLVM_SYS_150_PREFIX: $env:LLVM_SYS_150_PREFIX"
+          Write-Host "LIBCLANG_PATH: $env:LIBCLANG_PATH"
+          Write-Host "PATH: $env:PATH"
+
+          if ($env:LLVM_SYS_150_PREFIX) {
+            Write-Host "Contents of LLVM directory:"
+            Get-ChildItem "$env:LLVM_SYS_150_PREFIX" -Recurse -Name | Head -20
+            
+            Write-Host "LLVM bin directory contents:"
+            if (Test-Path "$env:LLVM_SYS_150_PREFIX\bin") {
+              Get-ChildItem "$env:LLVM_SYS_150_PREFIX\bin" -Name
+            }
+          }
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
