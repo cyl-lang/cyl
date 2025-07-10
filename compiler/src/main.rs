@@ -152,7 +152,11 @@ fn print_error_with_context(error: &crate::error::CylError, source: &str) {
 }
 
 fn compile_and_run(file: &PathBuf, _opt_level: u8, _debug: bool, use_llvm: bool) -> Result<()> {
-    println!("Compiling and running: {} (LLVM: {})", file.display(), use_llvm);
+    println!(
+        "Compiling and running: {} (LLVM: {})",
+        file.display(),
+        use_llvm
+    );
 
     // Read source file
     let source = std::fs::read_to_string(file)?;
@@ -221,7 +225,12 @@ fn compile_to_executable(
 ) -> Result<()> {
     let output_name = output.unwrap_or_else(|| file.with_extension(""));
 
-    println!("Compiling {} to {} (LLVM: {})", file.display(), output_name.display(), use_llvm);
+    println!(
+        "Compiling {} to {} (LLVM: {})",
+        file.display(),
+        output_name.display(),
+        use_llvm
+    );
 
     // Read source file
     let source = std::fs::read_to_string(file)?;
@@ -239,7 +248,7 @@ fn compile_to_executable(
         let context = Context::create();
         let mut llvm_codegen = LLVMCodegen::new(&context)?;
         llvm_codegen.compile_program(&ast)?;
-        
+
         // TODO: Actually generate executable file
         println!("LLVM IR generated (executable generation not yet implemented):");
         llvm_codegen.print_ir();
@@ -249,7 +258,7 @@ fn compile_to_executable(
         let context = Context::create();
         let mut llvm_codegen = LLVMCodegen::new(&context)?;
         llvm_codegen.compile_program(&ast)?;
-        
+
         println!("LLVM IR generated (executable generation not yet implemented):");
         llvm_codegen.print_ir();
     }
