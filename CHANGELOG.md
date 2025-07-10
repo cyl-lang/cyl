@@ -1,5 +1,41 @@
 # cyl
 
+## 1.0.1
+
+### Patch Changes
+
+- Fix GitHub Actions CI for LLVM backend
+
+  This patch resolves GitHub Actions CI failures related to the LLVM backend by implementing proper LLVM installation and configuration across multiple operating systems.
+
+  **CI Configuration Changes:**
+
+  - Added LLVM 15 installation for Ubuntu, macOS, and Windows in CI workflows
+  - Set appropriate `LLVM_SYS_150_PREFIX` environment variables for each OS
+  - Updated multi-OS test matrix to ensure cross-platform compatibility
+  - Fixed formatting checks by applying `cargo fmt` to all Rust code
+
+  **LLVM Version Update:**
+
+  - Switched from LLVM 17 to LLVM 15 for better CI compatibility
+  - Updated Inkwell dependency from `llvm17-0` to `llvm15-0` feature
+  - LLVM 15 is more widely available in CI environments
+
+  **OS-Specific Installation:**
+
+  - **Ubuntu**: Uses `llvm-15-dev` and `libpolly-15-dev` packages
+  - **macOS**: Uses Homebrew `llvm@15` formula
+  - **Windows**: Uses Chocolatey LLVM 15.0.7 package
+
+  **Benefits:**
+
+  - Resolves "could not find native static library `Polly`" errors
+  - Enables successful compilation of Inkwell crate in CI
+  - Supports cross-platform development and testing
+  - Maintains LLVM backend functionality across all target platforms
+
+  This ensures the LLVM-based native code generation works reliably in CI environments and supports the project's multi-platform goals.
+
 ## 1.0.0
 
 ### Major Changes
