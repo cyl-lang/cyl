@@ -884,7 +884,7 @@ impl<'ctx> LLVMCodegen<'ctx> {
                         }
                     } else {
                         Err(CylError::CodeGenError {
-                            message: format!("Unknown function: {}", function_name),
+                            message: format!("Unknown function: {function_name}"),
                         })
                     }
                 } else {
@@ -900,7 +900,7 @@ impl<'ctx> LLVMCodegen<'ctx> {
                         *var_ptr
                     } else {
                         return Err(CylError::CodeGenError {
-                            message: format!("Undefined variable in assignment: {}", var_name),
+                            message: format!("Undefined variable in assignment: {var_name}"),
                         });
                     };
 
@@ -941,7 +941,7 @@ impl<'ctx> LLVMCodegen<'ctx> {
                                 array_type,
                                 array_ptr,
                                 &[self.context.i32_type().const_zero(), index_val],
-                                &format!("arr_elem_{}", i),
+                                &format!("arr_elem_{i}"),
                             )
                             .unwrap()
                     };
@@ -1030,7 +1030,7 @@ impl<'ctx> LLVMCodegen<'ctx> {
                                         struct_type,
                                         struct_ptr,
                                         field_index as u32,
-                                        &format!("field_{}", field_name),
+                                        &format!("field_{field_name}"),
                                     )
                                     .unwrap();
 
@@ -1042,7 +1042,7 @@ impl<'ctx> LLVMCodegen<'ctx> {
                         Ok(struct_ptr.into())
                     } else {
                         Err(CylError::CodeGenError {
-                            message: format!("Unknown struct type: {}", struct_name),
+                            message: format!("Unknown struct type: {struct_name}"),
                         })
                     }
                 } else {
@@ -1092,7 +1092,7 @@ impl<'ctx> LLVMCodegen<'ctx> {
                                 *struct_type,
                                 struct_ptr,
                                 field_index as u32,
-                                &format!("field_{}", property),
+                                &format!("field_{property}"),
                             )
                             .unwrap();
 
@@ -1107,7 +1107,7 @@ impl<'ctx> LLVMCodegen<'ctx> {
                             let llvm_type = self.cyl_type_to_llvm(field_type)?;
                             let loaded_val = self
                                 .builder
-                                .build_load(llvm_type, field_ptr, &format!("load_{}", property))
+                                .build_load(llvm_type, field_ptr, &format!("load_{property}"))
                                 .unwrap();
                             return Ok(loaded_val);
                         }
@@ -1188,7 +1188,7 @@ impl<'ctx> LLVMCodegen<'ctx> {
                             Ok((*struct_type).into())
                         } else {
                             Err(CylError::CodeGenError {
-                                message: format!("Unknown type: {}", name),
+                                message: format!("Unknown type: {name}"),
                             })
                         }
                     }
@@ -1258,7 +1258,7 @@ impl<'ctx> LLVMCodegen<'ctx> {
             }
             _ => {
                 return Err(CylError::CodeGenError {
-                    message: format!("Invalid optimization level: {}", opt_level),
+                    message: format!("Invalid optimization level: {opt_level}"),
                 });
             }
         }
@@ -1281,7 +1281,7 @@ impl<'ctx> LLVMCodegen<'ctx> {
         // Get the default target triple for this machine
         let target_triple = TargetMachine::get_default_triple();
         let target = Target::from_triple(&target_triple).map_err(|e| CylError::CodeGenError {
-            message: format!("Failed to create target: {}", e),
+            message: format!("Failed to create target: {e}"),
         })?;
 
         // Create target machine
@@ -1310,7 +1310,7 @@ impl<'ctx> LLVMCodegen<'ctx> {
         target_machine
             .write_to_file(&self.module, FileType::Object, output_path)
             .map_err(|e| CylError::CodeGenError {
-                message: format!("Failed to write object file: {}", e),
+                message: format!("Failed to write object file: {e}"),
             })?;
 
         Ok(())
@@ -1331,7 +1331,7 @@ impl<'ctx> LLVMCodegen<'ctx> {
         // Clean up temporary object file
         if obj_path.exists() {
             std::fs::remove_file(&obj_path).map_err(|e| CylError::CodeGenError {
-                message: format!("Failed to remove temporary object file: {}", e),
+                message: format!("Failed to remove temporary object file: {e}"),
             })?;
         }
 
@@ -1375,13 +1375,13 @@ impl<'ctx> LLVMCodegen<'ctx> {
         };
 
         let output = cmd.output().map_err(|e| CylError::CodeGenError {
-            message: format!("Failed to run linker: {}", e),
+            message: format!("Failed to run linker: {e}"),
         })?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
             return Err(CylError::CodeGenError {
-                message: format!("Linker failed: {}", stderr),
+                message: format!("Linker failed: {stderr}"),
             });
         }
 
