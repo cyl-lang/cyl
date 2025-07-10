@@ -63,26 +63,47 @@ jobs:
       - name: Verify and setup LLVM
         run: |
           # Verify LLVM installation
+          echo "=== LLVM Version Info ==="
           llvm-config-15 --version
           llvm-config-15 --prefix
           llvm-config-15 --libdir
+          llvm-config-15 --includedir
 
           # Create symlinks for compatibility
           sudo ln -sf /usr/bin/llvm-config-15 /usr/bin/llvm-config
 
-          # Set environment variables for this job
-          echo "LLVM_SYS_150_PREFIX=$(llvm-config-15 --prefix)" >> $GITHUB_ENV
+          # Get LLVM paths
+          LLVM_PREFIX=$(llvm-config-15 --prefix)
+          LLVM_LIBDIR=$(llvm-config-15 --libdir)
+          LLVM_INCLUDEDIR=$(llvm-config-15 --includedir)
+
+          # Set comprehensive environment variables
+          echo "LLVM_SYS_150_PREFIX=${LLVM_PREFIX}" >> $GITHUB_ENV
           echo "LLVM_CONFIG_PATH=/usr/bin/llvm-config-15" >> $GITHUB_ENV
           echo "LLVM_CONFIG=/usr/bin/llvm-config-15" >> $GITHUB_ENV
+          echo "LLVM_SYS_150_FFI_WORKAROUND=1" >> $GITHUB_ENV
 
-          # Additional paths
-          LLVM_LIBDIR=$(llvm-config-15 --libdir)
-          echo "LD_LIBRARY_PATH=${LLVM_LIBDIR}:/usr/lib/x86_64-linux-gnu" >> $GITHUB_ENV
-          echo "PKG_CONFIG_PATH=${LLVM_LIBDIR}/pkgconfig" >> $GITHUB_ENV
+          # Additional library paths
+          echo "LD_LIBRARY_PATH=${LLVM_LIBDIR}:/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=${LLVM_LIBDIR}/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
+          echo "CPPFLAGS=-I${LLVM_INCLUDEDIR}" >> $GITHUB_ENV
+          echo "LDFLAGS=-L${LLVM_LIBDIR}" >> $GITHUB_ENV
 
           # Verify libraries exist
-          echo "Checking for LLVM libraries:"
-          find $(llvm-config-15 --libdir) -name "libLLVM*" | head -3
+          echo "=== LLVM Libraries Check ==="
+          find ${LLVM_LIBDIR} -name "libLLVM*" | head -5
+          ls -la ${LLVM_LIBDIR}/libLLVM* | head -3
+
+          # Check for specific LLVM components needed by inkwell
+          echo "=== LLVM Components Check ==="
+          llvm-config-15 --libs core analysis executionengine instcombine object runtimedyld scalaropts support target transformutils codegen mc mcparser option || true
+
+          # Save environment for debugging
+          echo "=== Saving LLVM Environment ==="
+          echo "LLVM_SYS_150_PREFIX=${LLVM_PREFIX}" > llvm_env.txt
+          echo "LLVM_CONFIG_PATH=/usr/bin/llvm-config-15" >> llvm_env.txt
+          echo "LLVM_LIBDIR=${LLVM_LIBDIR}" >> llvm_env.txt
+          echo "LLVM_INCLUDEDIR=${LLVM_INCLUDEDIR}" >> llvm_env.txt
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -104,20 +125,104 @@ jobs:
         run: |
           echo "=== Environment Variables ==="
           env | grep LLVM || echo "No LLVM env vars found"
+          echo ""
 
           echo "=== LLVM Config Test ==="
           llvm-config-15 --version
-          llvm-config-15 --libs core
+          llvm-config-15 --prefix
+          llvm-config-15 --libs core analysis executionengine
+          echo ""
 
           echo "=== Library Check ==="
           LLVM_LIBDIR=$(llvm-config-15 --libdir)
+          echo "LLVM_LIBDIR: $LLVM_LIBDIR"
           ls -la $LLVM_LIBDIR | grep LLVM | head -5
+          echo ""
+
+          echo "=== Cargo Version Info ==="
+          cargo --version
+          rustc --version
+          echo ""
+
+          echo "=== llvm-sys specific test ==="
+          # Test if llvm-sys can find LLVM
+          export LLVM_SYS_150_PREFIX=$(llvm-config-15 --prefix)
+          export LLVM_CONFIG_PATH=/usr/bin/llvm-config-15
+          echo "Testing llvm-sys environment..."
+
+          # Create a minimal test to verify llvm-sys can build
+          cat > /tmp/test_llvm_sys.rs << 'EOF'
+          extern crate llvm_sys;
+          fn main() {
+              println!("LLVM-sys test successful");
+          }
+          EOF
+
+          # Try to compile the test
+          rustc --extern llvm_sys=/tmp/test_llvm_sys.rs -o /tmp/test_llvm || echo "Direct llvm-sys test failed"
 
       - name: Test llvm-sys compilation
         working-directory: compiler
         run: |
-          # Test if we can compile just the llvm-sys dependency
-          cargo check --package llvm-sys || echo "llvm-sys check failed"
+          echo "=== Testing llvm-sys compilation ==="
+
+          # Ensure environment variables are set
+          export LLVM_SYS_150_PREFIX=$(llvm-config-15 --prefix)
+          export LLVM_CONFIG_PATH=/usr/bin/llvm-config-15
+          export LLVM_CONFIG=/usr/bin/llvm-config-15
+          export LLVM_SYS_150_FFI_WORKAROUND=1
+
+          # Show what cargo sees
+          echo "Cargo will use these settings:"
+          echo "LLVM_SYS_150_PREFIX: $LLVM_SYS_150_PREFIX"
+          echo "LLVM_CONFIG_PATH: $LLVM_CONFIG_PATH"
+
+          # Test if we can compile just the llvm-sys dependency with maximum verbosity
+          echo "Testing llvm-sys compilation..."
+          RUST_LOG=debug cargo check --package llvm-sys --verbose 2>&1 | tee llvm_sys_check.log || {
+            echo "llvm-sys check failed, showing detailed log:"
+            cat llvm_sys_check.log
+            exit 1
+          }
+
+          echo "llvm-sys compilation test passed!"
+
+      - name: Pre-build dependency check
+        working-directory: compiler
+        run: |
+          echo "=== Verifying all dependencies before main build ==="
+
+          # Test compilation of key dependencies
+          echo "Testing inkwell dependency..."
+          cargo check --package inkwell --verbose || {
+            echo "inkwell dependency check failed"
+            exit 1
+          }
+
+          echo "All critical dependencies verified!"
+
+      - name: Build release binary
+        working-directory: compiler
+        run: |
+          echo "=== Building release binary ==="
+
+          # Ensure environment variables are set
+          export LLVM_SYS_150_PREFIX=$(llvm-config-15 --prefix)
+          export LLVM_CONFIG_PATH=/usr/bin/llvm-config-15
+          export LLVM_CONFIG=/usr/bin/llvm-config-15
+          export LLVM_SYS_150_FFI_WORKAROUND=1
+
+          echo "Building with LLVM_SYS_150_PREFIX: $LLVM_SYS_150_PREFIX"
+
+          # Build release binary (required for integration tests)
+          cargo build --release --verbose || {
+            echo "Release build failed"
+            exit 1
+          }
+
+          echo "✅ Release binary built successfully!"
+          echo "Binary location: $(pwd)/target/release/cylc"
+          ls -la target/release/cylc
 
       - name: Run Rust linting
         working-directory: compiler
@@ -182,3 +287,88 @@ jobs:
 
           # Try again
           cd compiler && cargo clean && cargo check --verbose
+
+  test-windows:
+    name: Test (Windows)
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install LLVM 15 (Windows)
+        run: |
+          # Download and install LLVM 15 for Windows
+          $url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-15.0.7/LLVM-15.0.7-win64.exe"
+          $output = "$env:TEMP\LLVM-15.0.7-win64.exe"
+
+          Write-Host "Downloading LLVM 15..."
+          Invoke-WebRequest -Uri $url -OutFile $output
+
+          Write-Host "Installing LLVM 15..."
+          Start-Process -FilePath $output -ArgumentList "/S" -Wait
+
+          # Add LLVM to PATH
+          $llvmPath = "C:\Program Files\LLVM\bin"
+          echo "$llvmPath" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+          # Set environment variables
+          echo "LLVM_SYS_150_PREFIX=C:\Program Files\LLVM" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "LLVM_CONFIG_PATH=C:\Program Files\LLVM\bin\llvm-config.exe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Verify LLVM installation (Windows)
+        run: |
+          llvm-config --version
+          llvm-config --prefix
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target/
+            compiler/target/
+          key: ${{ runner.os }}-cargo-llvm15-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Build release binary (Windows)
+        working-directory: compiler
+        run: |
+          Write-Host "=== Building release binary ==="
+
+          # Build release binary (required for integration tests)
+          cargo build --release --verbose
+
+          Write-Host "✅ Release binary built successfully!"
+          Write-Host "Binary location: $(Get-Location)\target\release\cylc.exe"
+          if (Test-Path "target\release\cylc.exe") {
+            Get-Item "target\release\cylc.exe" | Format-List
+          } else {
+            Write-Host "❌ Binary not found!"
+            exit 1
+          }
+
+      - name: Run Rust linting
+        working-directory: compiler
+        run: cargo clippy -- -D warnings
+
+      - name: Run Rust tests
+        working-directory: compiler
+        run: cargo test
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Run TypeScript tests
+        run: npm run test:design
