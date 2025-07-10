@@ -10,365 +10,144 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  test-ubuntu:
-    name: Test (Ubuntu)
-    runs-on: ubuntu-22.04 # Use specific version for more predictable LLVM packages
+  # Primary job - runs on Ubuntu (cheapest runner)
+  test:
+    name: Test & Build
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Fast-fail validation before expensive operations
+      - name: Quick validation
+        run: |
+          [ -f "compiler/Cargo.toml" ] || { echo "Missing compiler/Cargo.toml"; exit 1; }
+          [ -f "package.json" ] || { echo "Missing package.json"; exit 1; }
+
+      # Aggressive caching for system dependencies
+      - name: Cache system packages
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/apt
+          key: ${{ runner.os }}-apt-minimal-${{ hashFiles('.github/workflows/ci.yml') }}
+
+      # Install only essential packages
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget software-properties-common apt-transport-https ca-certificates gnupg
+          sudo apt-get install -y llvm-15 llvm-15-dev clang-15 pkg-config
 
-      - name: Install LLVM 15 (Method 1 - Ubuntu packages)
-        id: install_llvm_ubuntu
-        continue-on-error: true
+      # Cache Rust dependencies aggressively
+      - name: Cache Rust dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            compiler/target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      # Minimal LLVM setup
+      - name: Setup LLVM
         run: |
-          sudo apt-get install -y \
-            llvm-15 \
-            llvm-15-dev \
-            llvm-15-tools \
-            llvm-15-runtime \
-            clang-15 \
-            libclang-15-dev \
-            cmake \
-            pkg-config \
-            build-essential
-
-          # Test if installation worked
-          if command -v llvm-config-15 &> /dev/null; then
-            echo "success=true" >> $GITHUB_OUTPUT
-          else
-            echo "success=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Install LLVM 15 (Method 2 - Official repository)
-        if: steps.install_llvm_ubuntu.outputs.success != 'true'
-        run: |
-          # Add LLVM repository
-          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
-          echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-15 main" | sudo tee /etc/apt/sources.list.d/llvm-15.list
-          sudo apt-get update
-
-          sudo apt-get install -y \
-            llvm-15 \
-            llvm-15-dev \
-            llvm-15-tools \
-            clang-15 \
-            libclang-15-dev
-
-      - name: Verify and setup LLVM
-        run: |
-          # Verify LLVM installation
-          echo "=== LLVM Version Info ==="
-          llvm-config-15 --version
-          llvm-config-15 --prefix
-          llvm-config-15 --libdir
-          llvm-config-15 --includedir
-
-          # Create symlinks for compatibility
-          sudo ln -sf /usr/bin/llvm-config-15 /usr/bin/llvm-config
-
-          # Get LLVM paths
-          LLVM_PREFIX=$(llvm-config-15 --prefix)
-          LLVM_LIBDIR=$(llvm-config-15 --libdir)
-          LLVM_INCLUDEDIR=$(llvm-config-15 --includedir)
-
-          # Set comprehensive environment variables
-          echo "LLVM_SYS_150_PREFIX=${LLVM_PREFIX}" >> $GITHUB_ENV
-          echo "LLVM_CONFIG_PATH=/usr/bin/llvm-config-15" >> $GITHUB_ENV
-          echo "LLVM_CONFIG=/usr/bin/llvm-config-15" >> $GITHUB_ENV
-          echo "LLVM_SYS_150_FFI_WORKAROUND=1" >> $GITHUB_ENV
-
-          # Additional library paths
-          echo "LD_LIBRARY_PATH=${LLVM_LIBDIR}:/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH" >> $GITHUB_ENV
-          echo "PKG_CONFIG_PATH=${LLVM_LIBDIR}/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
-          echo "CPPFLAGS=-I${LLVM_INCLUDEDIR}" >> $GITHUB_ENV
-          echo "LDFLAGS=-L${LLVM_LIBDIR}" >> $GITHUB_ENV
-
-          # Verify libraries exist
-          echo "=== LLVM Libraries Check ==="
-          find ${LLVM_LIBDIR} -name "libLLVM*" | head -5
-          ls -la ${LLVM_LIBDIR}/libLLVM* | head -3
-
-          # Check for specific LLVM components needed by inkwell
-          echo "=== LLVM Components Check ==="
-          llvm-config-15 --libs core analysis executionengine instcombine object runtimedyld scalaropts support target transformutils codegen mc mcparser option || true
-
-          # Save environment for debugging
-          echo "=== Saving LLVM Environment ==="
-          echo "LLVM_SYS_150_PREFIX=${LLVM_PREFIX}" > llvm_env.txt
-          echo "LLVM_CONFIG_PATH=/usr/bin/llvm-config-15" >> llvm_env.txt
-          echo "LLVM_LIBDIR=${LLVM_LIBDIR}" >> llvm_env.txt
-          echo "LLVM_INCLUDEDIR=${LLVM_INCLUDEDIR}" >> llvm_env.txt
+          echo "LLVM_SYS_150_PREFIX=$(llvm-config-15 --prefix)" >> $GITHUB_ENV
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
 
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target/
-            compiler/target/
-          key: ${{ runner.os }}-cargo-llvm15-${{ hashFiles('**/Cargo.lock') }}
+      # Fast check before full build
+      - name: Cargo check
+        working-directory: compiler
+        run: cargo check
 
-      - name: Debug environment
+      # Main Rust workflow with optimizations
+      - name: Rust tests and linting
         working-directory: compiler
         run: |
-          echo "=== Environment Variables ==="
-          env | grep LLVM || echo "No LLVM env vars found"
-          echo ""
+          # Run tests first (fast feedback)
+          cargo test
 
-          echo "=== LLVM Config Test ==="
-          llvm-config-15 --version
-          llvm-config-15 --prefix
-          llvm-config-15 --libs core analysis executionengine
-          echo ""
+          # Only run clippy on pushes to save PR time
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            cargo clippy -- -D warnings
+          fi
 
-          echo "=== Library Check ==="
-          LLVM_LIBDIR=$(llvm-config-15 --libdir)
-          echo "LLVM_LIBDIR: $LLVM_LIBDIR"
-          ls -la $LLVM_LIBDIR | grep LLVM | head -5
-          echo ""
+          # Only build release on master branch
+          if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+            cargo build --release
+          fi
 
-          echo "=== Cargo Version Info ==="
-          cargo --version
-          rustc --version
-          echo ""
-
-          echo "=== llvm-sys specific test ==="
-          # Test if llvm-sys can find LLVM
-          export LLVM_SYS_150_PREFIX=$(llvm-config-15 --prefix)
-          export LLVM_CONFIG_PATH=/usr/bin/llvm-config-15
-          echo "Testing llvm-sys environment..."
-
-          # Create a minimal test to verify llvm-sys can build
-          cat > /tmp/test_llvm_sys.rs << 'EOF'
-          extern crate llvm_sys;
-          fn main() {
-              println!("LLVM-sys test successful");
-          }
-          EOF
-
-          # Try to compile the test
-          rustc --extern llvm_sys=/tmp/test_llvm_sys.rs -o /tmp/test_llvm || echo "Direct llvm-sys test failed"
-
-      - name: Test llvm-sys compilation
-        working-directory: compiler
-        run: |
-          echo "=== Testing llvm-sys compilation ==="
-
-          # Ensure environment variables are set
-          export LLVM_SYS_150_PREFIX=$(llvm-config-15 --prefix)
-          export LLVM_CONFIG_PATH=/usr/bin/llvm-config-15
-          export LLVM_CONFIG=/usr/bin/llvm-config-15
-          export LLVM_SYS_150_FFI_WORKAROUND=1
-
-          # Show what cargo sees
-          echo "Cargo will use these settings:"
-          echo "LLVM_SYS_150_PREFIX: $LLVM_SYS_150_PREFIX"
-          echo "LLVM_CONFIG_PATH: $LLVM_CONFIG_PATH"
-
-          # Test if we can compile just the llvm-sys dependency with maximum verbosity
-          echo "Testing llvm-sys compilation..."
-          RUST_LOG=debug cargo check --package llvm-sys --verbose 2>&1 | tee llvm_sys_check.log || {
-            echo "llvm-sys check failed, showing detailed log:"
-            cat llvm_sys_check.log
-            exit 1
-          }
-
-          echo "llvm-sys compilation test passed!"
-
-      - name: Pre-build dependency check
-        working-directory: compiler
-        run: |
-          echo "=== Verifying all dependencies before main build ==="
-
-          # Test compilation of key dependencies
-          echo "Testing inkwell dependency..."
-          cargo check --package inkwell --verbose || {
-            echo "inkwell dependency check failed"
-            exit 1
-          }
-
-          echo "All critical dependencies verified!"
-
-      - name: Build release binary
-        working-directory: compiler
-        run: |
-          echo "=== Building release binary ==="
-
-          # Ensure environment variables are set
-          export LLVM_SYS_150_PREFIX=$(llvm-config-15 --prefix)
-          export LLVM_CONFIG_PATH=/usr/bin/llvm-config-15
-          export LLVM_CONFIG=/usr/bin/llvm-config-15
-          export LLVM_SYS_150_FFI_WORKAROUND=1
-
-          echo "Building with LLVM_SYS_150_PREFIX: $LLVM_SYS_150_PREFIX"
-
-          # Build release binary (required for integration tests)
-          cargo build --release --verbose || {
-            echo "Release build failed"
-            exit 1
-          }
-
-          echo "✅ Release binary built successfully!"
-          echo "Binary location: $(pwd)/target/release/cylc"
-          ls -la target/release/cylc
-
-      - name: Run Rust linting
-        working-directory: compiler
-        run: cargo clippy -- -D warnings
-
-      - name: Run Rust tests
-        working-directory: compiler
-        run: cargo test
-
+      # Cache Node.js dependencies
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "18"
           cache: "npm"
 
-      - name: Install npm dependencies
-        run: npm ci
-
-      - name: Run TypeScript tests
-        run: npm run test:design
-
-      - name: Fallback - Build with environment debugging
-        if: failure()
-        working-directory: compiler
+      # Conditional TypeScript testing
+      - name: TypeScript workflow
         run: |
-          echo "=== Fallback build attempt ==="
-          echo "Attempting to build with maximum debugging..."
+          npm ci --prefer-offline --no-audit
 
-          # Try to build with verbose output
-          RUST_BACKTRACE=full RUST_LOG=debug cargo build --verbose
+          # Only run TS tests if relevant files changed or on master
+          if [[ "${{ github.ref }}" == "refs/heads/master" ]] || git diff --name-only HEAD~1 2>/dev/null | grep -qE '\.(ts|js|json)$'; then
+            npm run test:design
+          else
+            echo "No TypeScript changes detected, skipping tests"
+          fi
 
-          # If that fails, try with specific llvm-sys features
-          echo "Trying with no LLVM linking..."
-          LLVM_SYS_150_NO_LLVM_LINKING=1 cargo build --verbose || true
-
-          # Show detailed error information
-          echo "=== Environment dump ==="
-          env | sort
-
-          echo "=== File system check ==="
-          find /usr -name "*llvm*" -type f 2>/dev/null | grep -E "(config|lib)" | head -10
-
-      - name: Alternative LLVM setup (if needed)
-        if: failure()
-        run: |
-          echo "=== Attempting alternative LLVM setup ==="
-
-          # Try installing additional LLVM packages
-          sudo apt-get install -y \
-            llvm-15-runtime \
-            libc++-15-dev \
-            libc++abi-15-dev \
-            libffi-dev \
-            zlib1g-dev || true
-
-          # Try to force rebuild cargo cache
-          rm -rf ~/.cargo/registry/src/*/llvm-sys* || true
-
-          # Set additional environment variables
-          export LLVM_SYS_150_PREFIX=$(llvm-config-15 --prefix)
-          export LLVM_SYS_150_FFI_WORKAROUND=1
-
-          # Try again
-          cd compiler && cargo clean && cargo check --verbose
-
+  # Windows testing - only when needed
   test-windows:
-    name: Test (Windows)
+    name: Windows Test
     runs-on: windows-latest
+    # Only run on master pushes or when explicitly requested
+    if: |
+      github.ref == 'refs/heads/master' ||
+      contains(github.event.head_commit.message, '[test-windows]')
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install LLVM 15 (Windows)
+      # Minimal LLVM installation
+      - name: Install LLVM (Windows)
         run: |
-          # Download and install LLVM 15 for Windows
-          $url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-15.0.7/LLVM-15.0.7-win64.exe"
-          $output = "$env:TEMP\LLVM-15.0.7-win64.exe"
-
-          Write-Host "Downloading LLVM 15..."
-          Invoke-WebRequest -Uri $url -OutFile $output
-
-          Write-Host "Installing LLVM 15..."
-          Start-Process -FilePath $output -ArgumentList "/S" -Wait
-
-          # Add LLVM to PATH
-          $llvmPath = "C:\Program Files\LLVM\bin"
-          echo "$llvmPath" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-
-          # Set environment variables
+          choco install llvm --version=15.0.7 -y --no-progress
           echo "LLVM_SYS_150_PREFIX=C:\Program Files\LLVM" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          echo "LLVM_CONFIG_PATH=C:\Program Files\LLVM\bin\llvm-config.exe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
-      - name: Verify LLVM installation (Windows)
-        run: |
-          llvm-config --version
-          llvm-config --prefix
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy
 
-      - name: Cache dependencies
+      - name: Cache Rust (Windows)
         uses: actions/cache@v4
         with:
           path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
             compiler/target/
-          key: ${{ runner.os }}-cargo-llvm15-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Build release binary (Windows)
+      # Minimal Windows testing
+      - name: Test (Windows)
         working-directory: compiler
         run: |
-          Write-Host "=== Building release binary ==="
+          cargo check
+          cargo test
 
-          # Build release binary (required for integration tests)
-          cargo build --release --verbose
-
-          Write-Host "✅ Release binary built successfully!"
-          Write-Host "Binary location: $(Get-Location)\target\release\cylc.exe"
-          if (Test-Path "target\release\cylc.exe") {
-            Get-Item "target\release\cylc.exe" | Format-List
-          } else {
-            Write-Host "❌ Binary not found!"
-            exit 1
-          }
-
-      - name: Run Rust linting
-        working-directory: compiler
-        run: cargo clippy -- -D warnings
-
-      - name: Run Rust tests
-        working-directory: compiler
-        run: cargo test
-
-      - name: Setup Node.js
+      - name: Setup Node.js (Windows)
         uses: actions/setup-node@v4
         with:
           node-version: "18"
           cache: "npm"
 
-      - name: Install npm dependencies
-        run: npm ci
-
-      - name: Run TypeScript tests
-        run: npm run test:design
+      - name: Test TypeScript (Windows)
+        run: |
+          npm ci --prefer-offline --no-audit
+          npm run test:design

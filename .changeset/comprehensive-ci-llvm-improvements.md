@@ -2,7 +2,7 @@
 "cyl": patch
 ---
 
-Comprehensive CI improvements for LLVM compilation
+Optimized CI workflows for cost efficiency and LLVM compilation
 
 ## 🚀 CI/CD Enhancements
 
