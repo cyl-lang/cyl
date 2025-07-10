@@ -219,7 +219,7 @@ fn compile_and_run(file: &PathBuf, _opt_level: u8, _debug: bool, use_llvm: bool)
 fn compile_to_executable(
     file: &PathBuf,
     output: Option<PathBuf>,
-    _opt_level: u8,
+    opt_level: u8,
     _debug: bool,
     use_llvm: bool,
 ) -> Result<()> {
@@ -249,9 +249,12 @@ fn compile_to_executable(
         let mut llvm_codegen = LLVMCodegen::new(&context)?;
         llvm_codegen.compile_program(&ast)?;
 
-        // TODO: Actually generate executable file
-        println!("LLVM IR generated (executable generation not yet implemented):");
-        llvm_codegen.print_ir();
+        // Generate executable
+        llvm_codegen.compile_to_executable(&output_name, opt_level)?;
+        println!(
+            "Successfully generated executable: {}",
+            output_name.display()
+        );
     } else {
         // LLVM backend is now the only option
         println!("Warning: Legacy codegen has been removed. Using LLVM backend instead.");
@@ -259,11 +262,13 @@ fn compile_to_executable(
         let mut llvm_codegen = LLVMCodegen::new(&context)?;
         llvm_codegen.compile_program(&ast)?;
 
-        println!("LLVM IR generated (executable generation not yet implemented):");
-        llvm_codegen.print_ir();
+        // Generate executable
+        llvm_codegen.compile_to_executable(&output_name, opt_level)?;
+        println!(
+            "Successfully generated executable: {}",
+            output_name.display()
+        );
     }
-
-    println!("Successfully compiled to {}", output_name.display());
 
     Ok(())
 }

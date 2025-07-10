@@ -1,0 +1,14 @@
+// Array test program
+fn main() -> void {
+    // Create an array literal
+    let numbers = [1, 2, 3, 4, 5];
+    
+    // Access array elements
+    let first = numbers[0];
+    let third = numbers[2];
+    let last = numbers[4];
+    
+    // Do some operations with array elements
+    let sum = first + third;
+    let product = third * last;
+}

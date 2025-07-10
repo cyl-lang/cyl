@@ -1,6 +1,0 @@
-fn main() {
-    let x = 42
-    let y = 5;
-    return x + y;
-}
-// Missing semicolon after 42 should trigger a parse error

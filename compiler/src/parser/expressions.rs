@@ -205,6 +205,15 @@ impl Parser {
                     callee: Box::new(expr),
                     arguments: args,
                 };
+            } else if self.check(&Token::LeftBracket) {
+                // Array indexing: expr[index]
+                self.advance();
+                let index = self.parse_expression()?;
+                self.consume(Token::RightBracket, "Expected ']' after array index")?;
+                expr = Expression::IndexAccess {
+                    object: Box::new(expr),
+                    index: Box::new(index),
+                };
             } else {
                 break;
             }

@@ -262,11 +262,38 @@ impl Parser {
         })
     }
     pub fn parse_for(&mut self) -> Result<Statement, CylError> {
-        Err(CylError::ParseError {
-            message: "parse_for not yet implemented".to_string(),
-            line: 0,
-            column: 0,
-        })
+        self.consume(Token::For, "Expected 'for'")?;
+
+        // Parse the loop variable identifier
+        let variable = match &self.peek().token {
+            Token::Identifier(name) => {
+                let name = name.clone();
+                self.advance();
+                name
+            }
+            _ => {
+                return Err(CylError::ParseError {
+                    message: "Expected identifier after 'for'".to_string(),
+                    line: self.peek().line,
+                    column: self.peek().column,
+                })
+            }
+        };
+
+        // Parse the 'in' keyword
+        self.consume(Token::In, "Expected 'in' after loop variable")?;
+
+        // Parse the iterable expression
+        let iterable = self.parse_expression()?;
+
+        // Parse the loop body
+        let body = self.parse_block()?;
+
+        Ok(Statement::For(ForStatement {
+            variable,
+            iterable,
+            body,
+        }))
     }
     pub fn parse_match(&mut self) -> Result<Statement, CylError> {
         let expr = self.parse_expression_stop_at_left_brace()?;

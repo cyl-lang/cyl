@@ -1,0 +1,12 @@
+// Struct field access test program
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+fn main() -> void {
+    let p = Point { x: 10, y: 20 };
+    let px = p.x;
+    let py = p.y;
+    let sum = px + py;
+}

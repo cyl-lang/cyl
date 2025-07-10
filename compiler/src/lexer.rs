@@ -23,6 +23,8 @@ pub enum Token {
     Match,
     #[token("for")]
     For,
+    #[token("in")]
+    In,
     #[token("while")]
     While,
     #[token("break")]

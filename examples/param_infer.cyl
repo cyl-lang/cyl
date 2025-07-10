@@ -1,9 +1,0 @@
-fn add(a, b) {
-    return a + b;
-}
-
-fn main() {
-    let result = add(2, 3);
-    os.println(result);
-}
-// 'a' and 'b' have no type annotation; should be inferred as int
