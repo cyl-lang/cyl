@@ -1,6 +1,6 @@
 {
     "name": "cyl",
-    "version": "0.3.1",
+    "version": "1.0.0",
     "description": "Cyl programming language with Rust compiler backend and TypeScript design tools",
     "main": "design/src/index.ts",
     "type": "module",
