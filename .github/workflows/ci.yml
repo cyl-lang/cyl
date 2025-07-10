@@ -8,95 +8,86 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  # Global LLVM environment variables
-  LLVM_SYS_150_PREFIX: /usr/lib/llvm-15
-  LLVM_CONFIG_PATH: /usr/bin/llvm-config-15
 
 jobs:
-  # Single Ubuntu job for cost efficiency
-  test:
-    name: Test (Ubuntu Only)
-    runs-on: ubuntu-latest
+  test-ubuntu:
+    name: Test (Ubuntu)
+    runs-on: ubuntu-22.04 # Use specific version for more predictable LLVM packages
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install LLVM
+      - name: Install system dependencies
         run: |
-          # Update package list and install LLVM dependencies
-          sudo apt-get update -y
+          sudo apt-get update
+          sudo apt-get install -y wget software-properties-common apt-transport-https ca-certificates gnupg
 
-          # Install LLVM 15 with all necessary components
+      - name: Install LLVM 15 (Method 1 - Ubuntu packages)
+        id: install_llvm_ubuntu
+        continue-on-error: true
+        run: |
           sudo apt-get install -y \
             llvm-15 \
             llvm-15-dev \
             llvm-15-tools \
             llvm-15-runtime \
-            libpolly-15-dev \
             clang-15 \
             libclang-15-dev \
-            libc++-15-dev \
-            libc++abi-15-dev \
             cmake \
             pkg-config \
-            build-essential \
-            zlib1g-dev \
-            libzstd-dev \
-            libffi-dev \
-            libxml2-dev \
-            libedit-dev
+            build-essential
 
-          # Verify critical files exist
-          echo "Checking LLVM installation..."
-          test -f /usr/bin/llvm-config-15 || (echo "llvm-config-15 not found" && exit 1)
-          test -d /usr/lib/llvm-15/lib || (echo "LLVM lib directory not found" && exit 1)
-          test -f /usr/lib/llvm-15/lib/libLLVM-15.so.1 || (echo "LLVM shared library not found" && exit 1)
+          # Test if installation worked
+          if command -v llvm-config-15 &> /dev/null; then
+            echo "success=true" >> $GITHUB_OUTPUT
+          else
+            echo "success=false" >> $GITHUB_OUTPUT
+          fi
 
-          # Check for static libraries that llvm-sys might need
-          echo "Checking for static libraries..."
-          find /usr/lib/llvm-15/lib -name "*.a" | head -5 || true
-
-      - name: Setup LLVM environment
+      - name: Install LLVM 15 (Method 2 - Official repository)
+        if: steps.install_llvm_ubuntu.outputs.success != 'true'
         run: |
-          # Set environment variables for LLVM
-          echo "LLVM_SYS_150_PREFIX=/usr/lib/llvm-15" >> $GITHUB_ENV
-          echo "LLVM_CONFIG_PATH=/usr/bin/llvm-config-15" >> $GITHUB_ENV
-          echo "CC=clang-15" >> $GITHUB_ENV
-          echo "CXX=clang++-15" >> $GITHUB_ENV
+          # Add LLVM repository
+          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
+          echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-15 main" | sudo tee /etc/apt/sources.list.d/llvm-15.list
+          sudo apt-get update
 
-          # Additional environment variables that llvm-sys build script looks for
+          sudo apt-get install -y \
+            llvm-15 \
+            llvm-15-dev \
+            llvm-15-tools \
+            clang-15 \
+            libclang-15-dev
+
+      - name: Verify and setup LLVM
+        run: |
+          # Verify LLVM installation
+          llvm-config-15 --version
+          llvm-config-15 --prefix
+          llvm-config-15 --libdir
+
+          # Create symlinks for compatibility
+          sudo ln -sf /usr/bin/llvm-config-15 /usr/bin/llvm-config
+
+          # Set environment variables for this job
+          echo "LLVM_SYS_150_PREFIX=$(llvm-config-15 --prefix)" >> $GITHUB_ENV
+          echo "LLVM_CONFIG_PATH=/usr/bin/llvm-config-15" >> $GITHUB_ENV
           echo "LLVM_CONFIG=/usr/bin/llvm-config-15" >> $GITHUB_ENV
 
-          # Library path for linking
-          echo "LD_LIBRARY_PATH=/usr/lib/llvm-15/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
-          echo "PKG_CONFIG_PATH=/usr/lib/llvm-15/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
+          # Additional paths
+          LLVM_LIBDIR=$(llvm-config-15 --libdir)
+          echo "LD_LIBRARY_PATH=${LLVM_LIBDIR}:/usr/lib/x86_64-linux-gnu" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=${LLVM_LIBDIR}/pkgconfig" >> $GITHUB_ENV
 
-          # Critical: Add library directory to system paths
-          echo "LIBRARY_PATH=/usr/lib/llvm-15/lib:$LIBRARY_PATH" >> $GITHUB_ENV
-          echo "CPATH=/usr/lib/llvm-15/include:$CPATH" >> $GITHUB_ENV
-
-          # Set specific linker flags that llvm-sys needs
-          echo "RUSTFLAGS=-L native=/usr/lib/llvm-15/lib -C link-arg=-Wl,-rpath,/usr/lib/llvm-15/lib" >> $GITHUB_ENV
-
-          # Verify LLVM installation
-          echo "Verifying LLVM installation..."
-          /usr/bin/llvm-config-15 --version
-          /usr/bin/llvm-config-15 --libdir
-          /usr/bin/llvm-config-15 --includedir
-          echo "Available LLVM libraries:"
-          ls -la /usr/lib/llvm-15/lib/ | grep -E "\\.so|\\.a" | head -10
-
-          # Create symbolic links for common library names
-          sudo ln -sf /usr/bin/llvm-config-15 /usr/bin/llvm-config || true
+          # Verify libraries exist
+          echo "Checking for LLVM libraries:"
+          find $(llvm-config-15 --libdir) -name "libLLVM*" | head -3
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
-        env:
-          LLVM_SYS_150_PREFIX: /usr/lib/llvm-15
-          LLVM_CONFIG_PATH: /usr/bin/llvm-config-15
 
       - name: Cache dependencies
         uses: actions/cache@v4
@@ -107,48 +98,34 @@ jobs:
             target/
             compiler/target/
           key: ${{ runner.os }}-cargo-llvm15-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-llvm15-
-            ${{ runner.os }}-cargo-
 
-      - name: Check Rust linting
+      - name: Debug environment
         working-directory: compiler
-        env:
-          RUST_BACKTRACE: 1
         run: |
-          echo "=== Environment Debug ==="
-          echo "LLVM environment variables:"
-          env | grep LLVM || true
-          echo "Checking for llvm-config:"
-          which llvm-config-15 || true
-          llvm-config-15 --version || true
-          llvm-config-15 --libs || true
+          echo "=== Environment Variables ==="
+          env | grep LLVM || echo "No LLVM env vars found"
+
+          echo "=== LLVM Config Test ==="
+          llvm-config-15 --version
+          llvm-config-15 --libs core
 
           echo "=== Library Check ==="
-          echo "LLVM library directory contents:"
-          ls -la /usr/lib/llvm-15/lib/ | head -10
+          LLVM_LIBDIR=$(llvm-config-15 --libdir)
+          ls -la $LLVM_LIBDIR | grep LLVM | head -5
 
-          echo "=== PKG Config Check ==="
-          pkg-config --exists llvm-15 && echo "llvm-15 pkg-config found" || echo "llvm-15 pkg-config not found"
+      - name: Test llvm-sys compilation
+        working-directory: compiler
+        run: |
+          # Test if we can compile just the llvm-sys dependency
+          cargo check --package llvm-sys || echo "llvm-sys check failed"
 
-          echo "=== Running Clippy ==="
-          cargo clippy -- -D warnings
+      - name: Run Rust linting
+        working-directory: compiler
+        run: cargo clippy -- -D warnings
 
       - name: Run Rust tests
         working-directory: compiler
-        env:
-          RUST_BACKTRACE: 1
-          # Additional environment variables for build
-          LLVM_SYS_150_PREFIX: /usr/lib/llvm-15
-          LLVM_CONFIG_PATH: /usr/bin/llvm-config-15
-          LLVM_CONFIG: /usr/bin/llvm-config-15
-          LD_LIBRARY_PATH: /usr/lib/llvm-15/lib
-          PKG_CONFIG_PATH: /usr/lib/llvm-15/lib/pkgconfig
-        run: |
-          echo "=== Pre-test Environment Check ==="
-          env | grep -E "(LLVM|RUST)" || true
-          echo "=== Running Tests ==="
-          cargo test --verbose
+        run: cargo test
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -161,3 +138,47 @@ jobs:
 
       - name: Run TypeScript tests
         run: npm run test:design
+
+      - name: Fallback - Build with environment debugging
+        if: failure()
+        working-directory: compiler
+        run: |
+          echo "=== Fallback build attempt ==="
+          echo "Attempting to build with maximum debugging..."
+
+          # Try to build with verbose output
+          RUST_BACKTRACE=full RUST_LOG=debug cargo build --verbose
+
+          # If that fails, try with specific llvm-sys features
+          echo "Trying with no LLVM linking..."
+          LLVM_SYS_150_NO_LLVM_LINKING=1 cargo build --verbose || true
+
+          # Show detailed error information
+          echo "=== Environment dump ==="
+          env | sort
+
+          echo "=== File system check ==="
+          find /usr -name "*llvm*" -type f 2>/dev/null | grep -E "(config|lib)" | head -10
+
+      - name: Alternative LLVM setup (if needed)
+        if: failure()
+        run: |
+          echo "=== Attempting alternative LLVM setup ==="
+
+          # Try installing additional LLVM packages
+          sudo apt-get install -y \
+            llvm-15-runtime \
+            libc++-15-dev \
+            libc++abi-15-dev \
+            libffi-dev \
+            zlib1g-dev || true
+
+          # Try to force rebuild cargo cache
+          rm -rf ~/.cargo/registry/src/*/llvm-sys* || true
+
+          # Set additional environment variables
+          export LLVM_SYS_150_PREFIX=$(llvm-config-15 --prefix)
+          export LLVM_SYS_150_FFI_WORKAROUND=1
+
+          # Try again
+          cd compiler && cargo clean && cargo check --verbose
