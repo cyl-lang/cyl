@@ -10,7 +10,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  # Primary job - runs on Ubuntu (cheapest runner)
+  # Ubuntu-only job for cost efficiency and reliability
   test:
     name: Test & Build
     runs-on: ubuntu-22.04
@@ -19,71 +19,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Fast-fail validation before expensive operations
-      - name: Quick validation
+      # Simple and reliable LLVM 15 setup
+      - name: Install LLVM 15
         run: |
-          [ -f "compiler/Cargo.toml" ] || { echo "Missing compiler/Cargo.toml"; exit 1; }
-          [ -f "package.json" ] || { echo "Missing package.json"; exit 1; }
-
-      # Aggressive caching for system dependencies
-      - name: Cache system packages
-        uses: actions/cache@v4
-        with:
-          path: /var/cache/apt
-          key: ${{ runner.os }}-apt-minimal-${{ hashFiles('.github/workflows/ci.yml') }}
-
-      # Install only essential packages
-      - name: Install system dependencies
-        run: |
+          wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+          echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-15 main" | sudo tee /etc/apt/sources.list.d/llvm.list
           sudo apt-get update
-          sudo apt-get install -y pkg-config      # Comprehensive LLVM 15 installation and setup
-      - name: Install and configure LLVM 15
-        run: |
-          # Update package list
-          sudo apt-get update
-
-          # Install LLVM 15 packages with full toolchain
-          sudo apt-get install -y \
-            llvm-15 \
-            llvm-15-dev \
-            llvm-15-tools \
-            llvm-15-runtime \
-            clang-15 \
-            libclang-15-dev \
-            libclang-common-15-dev \
-            build-essential \
-            cmake
-
-          # Create symlinks for llvm-sys compatibility
-          sudo ln -sf /usr/bin/llvm-config-15 /usr/bin/llvm-config
-          sudo ln -sf /usr/bin/clang-15 /usr/bin/clang
-
-          # Set up environment variables for llvm-sys with multiple fallback paths
+          sudo apt-get install -y llvm-15-dev libclang-15-dev clang-15
+          export LLVM_SYS_150_PREFIX=/usr/lib/llvm-15
           echo "LLVM_SYS_150_PREFIX=/usr/lib/llvm-15" >> $GITHUB_ENV
-          echo "LLVM_CONFIG_PATH=/usr/bin/llvm-config-15" >> $GITHUB_ENV
-          echo "LIBCLANG_PATH=/usr/lib/llvm-15/lib" >> $GITHUB_ENV
-          echo "CLANG_PATH=/usr/bin/clang-15" >> $GITHUB_ENV
-          echo "LD_LIBRARY_PATH=/usr/lib/llvm-15/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
-          echo "PKG_CONFIG_PATH=/usr/lib/llvm-15/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
 
-          # Verify installation extensively
-          echo "=== LLVM Version ==="
-          /usr/bin/llvm-config-15 --version
-          echo "=== LLVM Prefix ==="
-          /usr/bin/llvm-config-15 --prefix
-          echo "=== LLVM Lib Dir ==="
-          /usr/bin/llvm-config-15 --libdir
-          echo "=== LLVM Include Dir ==="
-          /usr/bin/llvm-config-15 --includedir
-          echo "=== LLVM Directory Structure ==="
-          ls -la /usr/lib/llvm-15/
-          echo "=== LLVM Lib Contents ==="
-          ls -la /usr/lib/llvm-15/lib/ | head -20
-          echo "=== Environment Check ==="
-          env | grep -i llvm
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
 
-      # Cache Rust dependencies aggressively
-      - name: Cache Rust dependencies
+      - name: Cache Rust dependencies  
         uses: actions/cache@v4
         with:
           path: |
@@ -92,95 +43,25 @@ jobs:
             ~/.cargo/git/db/
             compiler/target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
 
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy
-
-      # Fast check before full build
-      - name: Cargo check
+      # Build and test
+      - name: Build and test Rust
         working-directory: compiler
         env:
           LLVM_SYS_150_PREFIX: /usr/lib/llvm-15
-          LLVM_CONFIG_PATH: /usr/bin/llvm-config-15
-          LIBCLANG_PATH: /usr/lib/llvm-15/lib
-          CLANG_PATH: /usr/bin/clang-15
-          LD_LIBRARY_PATH: /usr/lib/llvm-15/lib
-          PKG_CONFIG_PATH: /usr/lib/llvm-15/lib/pkgconfig
         run: |
-          echo "Debug: Checking LLVM environment before cargo check"
-          env | grep -i llvm || true
-          cargo check
-
-      # Build release binary for integration tests
-      - name: Build release binary
-        working-directory: compiler
-        env:
-          LLVM_SYS_150_PREFIX: /usr/lib/llvm-15
-          LLVM_CONFIG_PATH: /usr/bin/llvm-config-15
-          LIBCLANG_PATH: /usr/lib/llvm-15/lib
-          CLANG_PATH: /usr/bin/clang-15
-          LD_LIBRARY_PATH: /usr/lib/llvm-15/lib
-          PKG_CONFIG_PATH: /usr/lib/llvm-15/lib/pkgconfig
-        run: |
-          echo "Debug: Checking LLVM environment before cargo build"
-          env | grep -i llvm || true
           cargo build --release
-
-      # Main Rust workflow with optimizations
-      - name: Rust tests and linting
-        working-directory: compiler
-        env:
-          LLVM_SYS_150_PREFIX: /usr/lib/llvm-15
-          LLVM_CONFIG_PATH: /usr/bin/llvm-config-15
-          LIBCLANG_PATH: /usr/lib/llvm-15/lib
-          CLANG_PATH: /usr/bin/clang-15
-          LD_LIBRARY_PATH: /usr/lib/llvm-15/lib
-          PKG_CONFIG_PATH: /usr/lib/llvm-15/lib/pkgconfig
-        run: |
-          echo "Debug: Checking LLVM environment before cargo test"
-          env | grep -i llvm || true
-
-          # Run tests first (fast feedback)
           cargo test
+          cargo clippy -- -D warnings
 
-          # Only run clippy on pushes to save PR time
-          if [[ "${{ github.event_name }}" == "push" ]]; then
-            cargo clippy -- -D warnings
-          fi
-
-          # Only build release on master branch
-          if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
-            cargo build --release
-          fi
-
-      # Cache Node.js dependencies
-      - name: Setup Node.js
+      # TypeScript tests
+      - name: Setup Node.js and test
         uses: actions/setup-node@v4
         with:
           node-version: "18"
           cache: "npm"
 
-      # Conditional TypeScript testing
-      - name: TypeScript workflow
+      - name: TypeScript tests
         run: |
-          npm ci --prefer-offline --no-audit
-
-          # Only run TS tests if relevant files changed or on master
-          if [[ "${{ github.ref }}" == "refs/heads/master" ]] || git diff --name-only HEAD~1 2>/dev/null | grep -qE '\.(ts|js|json)$'; then
-            npm run test:design
-          else
-            echo "No TypeScript changes detected, skipping tests"
-          fi
-
-  # Commented out Windows testing to minimize costs
-  # Windows job has been disabled to reduce CI expenses
-  # To enable: uncomment and add [test-windows] to commit message
-  # test-windows:
-  #   name: Windows Test
-  #   runs-on: windows-latest
-  #   if: contains(github.event.head_commit.message, '[test-windows]')
-  #   steps: [...]
+          npm ci
+          npm test
