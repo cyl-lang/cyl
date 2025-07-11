@@ -113,7 +113,7 @@ jobs:
   # Windows job has been disabled to reduce CI expenses
   # To enable: uncomment and add [test-windows] to commit message
   # test-windows:
-  #   name: Windows Test  
+  #   name: Windows Test
   #   runs-on: windows-latest
   #   if: contains(github.event.head_commit.message, '[test-windows]')
   #   steps: [...]
