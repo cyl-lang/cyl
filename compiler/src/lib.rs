@@ -1,4 +1,5 @@
 pub mod ast;
+#[cfg(feature = "llvm")]
 pub mod codegen;
 pub mod error;
 pub mod lexer;

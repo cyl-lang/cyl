@@ -3,6 +3,7 @@ pub use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
 mod ast;
+#[cfg(feature = "llvm")]
 mod codegen;
 mod error;
 mod interpreter;
@@ -10,8 +11,10 @@ mod lexer;
 mod parser;
 mod stdlib;
 
+#[cfg(feature = "llvm")]
 use crate::codegen::LLVMCodegen;
 use crate::lexer::Lexer;
+#[cfg(feature = "llvm")]
 use inkwell::context::Context;
 
 #[derive(Parser)]
@@ -180,26 +183,34 @@ fn compile_and_run(file: &PathBuf, _opt_level: u8, _debug: bool, use_llvm: bool)
     };
 
     if use_llvm {
-        // Use LLVM backend
-        let context = Context::create();
-        let mut llvm_codegen = match LLVMCodegen::new(&context) {
-            Ok(cg) => cg,
-            Err(e) => {
-                eprintln!("Failed to initialize LLVM codegen: {e}");
-                std::process::exit(1);
-            }
-        };
+        #[cfg(feature = "llvm")]
+        {
+            // Use LLVM backend
+            let context = Context::create();
+            let mut llvm_codegen = match LLVMCodegen::new(&context) {
+                Ok(cg) => cg,
+                Err(e) => {
+                    eprintln!("Failed to initialize LLVM codegen: {e}");
+                    std::process::exit(1);
+                }
+            };
 
-        match llvm_codegen.compile_program(&program) {
-            Ok(()) => {
-                println!("Successfully compiled with LLVM!");
-                llvm_codegen.print_ir();
-                // TODO: Execute the compiled code
+            match llvm_codegen.compile_program(&program) {
+                Ok(()) => {
+                    println!("Successfully compiled with LLVM!");
+                    llvm_codegen.print_ir();
+                    // TODO: Execute the compiled code
             }
             Err(e) => {
                 eprintln!("LLVM compilation error: {e}");
                 std::process::exit(1);
             }
+        }
+        }
+        #[cfg(not(feature = "llvm"))]
+        {
+            eprintln!("LLVM support not compiled in. Please rebuild with --features llvm");
+            std::process::exit(1);
         }
     } else {
         // Use interpreter
@@ -244,30 +255,46 @@ fn compile_to_executable(
     let ast = parser.parse()?;
 
     if use_llvm {
-        // Use LLVM backend
-        let context = Context::create();
-        let mut llvm_codegen = LLVMCodegen::new(&context)?;
-        llvm_codegen.compile_program(&ast)?;
+        #[cfg(feature = "llvm")]
+        {
+            // Use LLVM backend
+            let context = Context::create();
+            let mut llvm_codegen = LLVMCodegen::new(&context)?;
+            llvm_codegen.compile_program(&ast)?;
 
-        // Generate executable
-        llvm_codegen.compile_to_executable(&output_name, opt_level)?;
-        println!(
-            "Successfully generated executable: {}",
-            output_name.display()
-        );
+            // Generate executable
+            llvm_codegen.compile_to_executable(&output_name, opt_level)?;
+            println!(
+                "Successfully generated executable: {}",
+                output_name.display()
+            );
+        }
+        #[cfg(not(feature = "llvm"))]
+        {
+            eprintln!("LLVM support not compiled in. Please rebuild with --features llvm");
+            std::process::exit(1);
+        }
     } else {
-        // LLVM backend is now the only option
-        println!("Warning: Legacy codegen has been removed. Using LLVM backend instead.");
-        let context = Context::create();
-        let mut llvm_codegen = LLVMCodegen::new(&context)?;
-        llvm_codegen.compile_program(&ast)?;
+        #[cfg(feature = "llvm")]
+        {
+            // LLVM backend is now the only option
+            println!("Warning: Legacy codegen has been removed. Using LLVM backend instead.");
+            let context = Context::create();
+            let mut llvm_codegen = LLVMCodegen::new(&context)?;
+            llvm_codegen.compile_program(&ast)?;
 
-        // Generate executable
-        llvm_codegen.compile_to_executable(&output_name, opt_level)?;
-        println!(
-            "Successfully generated executable: {}",
-            output_name.display()
-        );
+            // Generate executable
+            llvm_codegen.compile_to_executable(&output_name, opt_level)?;
+            println!(
+                "Successfully generated executable: {}",
+                output_name.display()
+            );
+        }
+        #[cfg(not(feature = "llvm"))]
+        {
+            eprintln!("Error: Cannot compile without LLVM support. Please rebuild with --features llvm");
+            std::process::exit(1);
+        }
     }
 
     Ok(())

@@ -17,7 +17,6 @@ $ cylc build hello_world.cyl && ./hello_world
 ```
 
 [![CI](https://github.com/clxrityy/cyl/actions/workflows/ci.yml/badge.svg)](https://github.com/clxrityy/cyl/actions/workflows/ci.yml)
-[![Cross-Platform Tests](https://github.com/clxrityy/cyl/actions/workflows/cross-platform.yml/badge.svg)](https://github.com/clxrityy/cyl/actions/workflows/cross-platform.yml)
 [![codecov](https://codecov.io/gh/clxrityy/cyl/branch/main/graph/badge.svg)](https://codecov.io/gh/clxrityy/cyl)
 
 - [Implementation Plan](IMPLEMENTATION_PLAN.md)
@@ -49,6 +48,9 @@ $ cylc build hello_world.cyl && ./hello_world
 git clone https://github.com/clxrityy/cyl.git
 cd cyl
 make install
+
+# For development without LLVM dependencies:
+cd compiler && cargo build --no-default-features
 ```
 
 ### Commands
@@ -71,6 +73,22 @@ cylc ast examples/hello_world.cyl
 cylc test
 ```
 
+### Build Options
+
+Cyl supports flexible compilation with optional LLVM:
+
+```bash
+# Full build with LLVM (requires LLVM 14+ installed)
+cargo build
+
+# Development build without LLVM (faster, fewer dependencies)
+cargo build --no-default-features
+
+# Testing both modes
+cargo test --no-default-features  # Test without LLVM
+cargo test                         # Test with LLVM
+```
+
 ### Current Implementation Status
 
 **🎉 PRODUCTION READY - Runtime Output Functional!**
@@ -87,8 +105,9 @@ cylc test
 
 **Advanced Features - ✅ Complete:**
 
-- [x] **LLVM Code Generation** - Full LLVM IR generation with proper type handling
-- [x] **Cross-Platform Compilation** - Works on macOS, Linux, Windows
+- [x] **LLVM Code Generation** - Full LLVM IR generation with proper type handling (feature-flagged)
+- [x] **Flexible Build System** - Supports builds with and without LLVM dependencies
+- [x] **Cross-Platform Development** - Works on macOS, Linux, Windows with conditional compilation
 - [x] **Multi-Level Optimization** - Support for -O0 through -O3 optimization levels
 - [x] **Standard Library Bindings** - C standard library integration for I/O operations
 
@@ -99,7 +118,8 @@ cylc test
 - [x] AST generation and validation
 - [x] Automated test system (Rust + TypeScript)
 - [x] CLI with multiple commands (run, build, check, ast, test)
-- [x] Cross-platform CI/CD with GitHub Actions
+- [x] **Feature-flagged LLVM compilation** with graceful fallback
+- [x] **Simplified, reliable CI pipeline** focused on Ubuntu with optional LLVM testing
 - [x] Security auditing and dependency management
 
 **Currently Working Examples:**
@@ -117,12 +137,17 @@ cylc test
 make setup          # Set up development environment
 make test           # Run all tests
 make install        # Install cylc globally
+
+# Development builds:
+cd compiler && cargo build --no-default-features  # Without LLVM
+cd compiler && cargo build                         # With LLVM (if available)
 ```
 
 ### Continuous Integration
 
 - ✅ **Automated testing** on push/PR to main branches
-- ✅ **Cross-platform testing** on Ubuntu, Windows, macOS
+- ✅ **Ubuntu-focused reliable CI** with progressive testing (no-LLVM first, then optional LLVM)
+- ✅ **Feature-flagged compilation** supporting both LLVM and non-LLVM builds
 - ✅ **Security auditing** for Rust and npm dependencies
 - ✅ **Code coverage** reporting with Codecov
 - ✅ **Automated releases** on version tags
