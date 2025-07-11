@@ -26,6 +26,10 @@ Optimized CI workflows for cost efficiency and LLVM compilation
 - Added explicit llvm-sys and inkwell compilation verification
 - Enhanced error handling with multiple fallback strategies
 - Comprehensive logging for CI debugging
+- **Critical PIE Fix**: Resolved Linux linker errors by configuring Position Independent Code
+  - Changed LLVM target from `RelocMode::Default` to `RelocMode::PIC`
+  - Added `-pie` linker flag for Linux to generate Position Independent Executables
+  - Fixes "relocation R_X86_64_32 against `.rodata.str1.1` can not be used when making a PIE object" errors
 
 ### Key Technical Changes
 
@@ -34,5 +38,6 @@ Optimized CI workflows for cost efficiency and LLVM compilation
 - **Cross-platform Support**: Both Ubuntu Linux and Windows CI jobs
 - **Dependency Verification**: Pre-compilation checks for critical LLVM dependencies
 - **Windows LLVM Management**: Force downgrade from newer LLVM versions to required v15.0.7
+- **Linux PIE Compatibility**: Position Independent Code/Executable configuration for modern security standards
 
 This resolves the `LLVM_SYS_NOT_FOUND` errors that were preventing successful CI builds and provides a robust, multi-platform compilation environment for the Cyl programming language.

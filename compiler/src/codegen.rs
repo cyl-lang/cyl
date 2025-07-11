@@ -1299,7 +1299,7 @@ impl<'ctx> LLVMCodegen<'ctx> {
                 "generic",
                 "",
                 optimization_level,
-                RelocMode::Default,
+                RelocMode::PIC, // Use Position Independent Code for PIE compatibility
                 CodeModel::Default,
             )
             .ok_or_else(|| CylError::CodeGenError {
@@ -1353,9 +1353,12 @@ impl<'ctx> LLVMCodegen<'ctx> {
 
         #[cfg(target_os = "linux")]
         let mut cmd = {
-            // Use cc for easier linking on Linux
+            // Use cc with PIE flags for Linux to ensure compatibility with modern security settings
             let mut c = Command::new("cc");
-            c.arg("-o").arg(output_path).arg(obj_path);
+            c.arg("-pie")  // Create Position Independent Executable
+                .arg("-o")
+                .arg(output_path)
+                .arg(obj_path);
             c
         };
 
