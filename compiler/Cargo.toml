@@ -27,7 +27,7 @@ chumsky = "0.9"
 logos = "0.13"
 
 # Code generation
-inkwell = {version = "0.4", features = ["llvm15-0"]}
+inkwell = {version = "0.4", features = ["llvm14-0"]}
 
 # File handling
 path-absolutize = "3.1"

@@ -514,7 +514,7 @@ impl<'ctx> LLVMCodegen<'ctx> {
                 self.builder.position_at_end(loop_bb);
                 let current_val = self
                     .builder
-                    .build_load(loop_var_type, loop_var_ptr, "loopvar")
+                    .build_load(loop_var_ptr, "loopvar")
                     .unwrap();
 
                 // Compile the iterable expression (e.g., the number 5 in "for i in 5")
@@ -545,7 +545,7 @@ impl<'ctx> LLVMCodegen<'ctx> {
                 // Increment loop variable: i = i + 1
                 let current_val = self
                     .builder
-                    .build_load(loop_var_type, loop_var_ptr, "loopvar")
+                    .build_load(loop_var_ptr, "loopvar")
                     .unwrap();
                 let one = loop_var_type.const_int(1, false);
                 let next_val = self
@@ -613,8 +613,8 @@ impl<'ctx> LLVMCodegen<'ctx> {
                         Ok((*variable).into())
                     } else {
                         // For other types, load the value
-                        let llvm_type = self.cyl_type_to_llvm(var_type)?;
-                        let loaded = self.builder.build_load(llvm_type, *variable, name).unwrap();
+                        let _llvm_type = self.cyl_type_to_llvm(var_type)?;
+                        let loaded = self.builder.build_load(*variable, name).unwrap();
                         Ok(loaded)
                     }
                 } else {
@@ -937,7 +937,6 @@ impl<'ctx> LLVMCodegen<'ctx> {
                     let element_ptr = unsafe {
                         self.builder
                             .build_gep(
-                                array_type,
                                 array_ptr,
                                 &[self.context.i32_type().const_zero(), index_val],
                                 &format!("arr_elem_{i}"),
@@ -981,7 +980,6 @@ impl<'ctx> LLVMCodegen<'ctx> {
                 let element_ptr = unsafe {
                     self.builder
                         .build_gep(
-                            self.context.i32_type(), // Changed from i64 to i32
                             array_ptr,
                             &[self.context.i32_type().const_zero(), index_i32],
                             "arr_access",
@@ -993,7 +991,6 @@ impl<'ctx> LLVMCodegen<'ctx> {
                 let loaded_val = self
                     .builder
                     .build_load(
-                        self.context.i32_type(), // Changed from i64 to i32
                         element_ptr,
                         "arr_val",
                     )
@@ -1026,7 +1023,6 @@ impl<'ctx> LLVMCodegen<'ctx> {
                                 let field_ptr = self
                                     .builder
                                     .build_struct_gep(
-                                        struct_type,
                                         struct_ptr,
                                         field_index as u32,
                                         &format!("field_{field_name}"),
@@ -1080,7 +1076,7 @@ impl<'ctx> LLVMCodegen<'ctx> {
 
                 // Find the field index - iterate through all struct types to find matching field
                 let struct_types_clone = self.struct_types.clone();
-                for (struct_type, field_info) in struct_types_clone.values() {
+                for (_struct_type, field_info) in struct_types_clone.values() {
                     if let Some(field_index) =
                         field_info.iter().position(|(name, _)| name == property)
                     {
@@ -1088,7 +1084,6 @@ impl<'ctx> LLVMCodegen<'ctx> {
                         let field_ptr = self
                             .builder
                             .build_struct_gep(
-                                *struct_type,
                                 struct_ptr,
                                 field_index as u32,
                                 &format!("field_{property}"),
@@ -1103,10 +1098,10 @@ impl<'ctx> LLVMCodegen<'ctx> {
                             return Ok(field_ptr.into());
                         } else {
                             // For primitive fields, load the value
-                            let llvm_type = self.cyl_type_to_llvm(field_type)?;
+                            let _llvm_type = self.cyl_type_to_llvm(field_type)?;
                             let loaded_val = self
                                 .builder
-                                .build_load(llvm_type, field_ptr, &format!("load_{property}"))
+                                .build_load(field_ptr, &format!("load_{property}"))
                                 .unwrap();
                             return Ok(loaded_val);
                         }

@@ -19,22 +19,32 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Simple and reliable LLVM 15 setup
-      - name: Install LLVM 15
+      # Robust LLVM 14 installation (more stable than 15)
+      - name: Install LLVM 14
         run: |
-          wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-          echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-15 main" | sudo tee /etc/apt/sources.list.d/llvm.list
+          # Use Ubuntu's default LLVM 14 packages
           sudo apt-get update
-          sudo apt-get install -y llvm-15-dev libclang-15-dev clang-15
-          export LLVM_SYS_150_PREFIX=/usr/lib/llvm-15
-          echo "LLVM_SYS_150_PREFIX=/usr/lib/llvm-15" >> $GITHUB_ENV
+          sudo apt-get install -y \
+            llvm-14 \
+            llvm-14-dev \
+            clang-14 \
+            libclang-14-dev
+
+          # Set environment variables for llvm-sys
+          echo "LLVM_SYS_140_PREFIX=/usr/lib/llvm-14" >> $GITHUB_ENV
+
+          # Verify installation
+          echo "LLVM Config: $(/usr/bin/llvm-config-14 --version)"
+          echo "LLVM Prefix: $(/usr/bin/llvm-config-14 --prefix)"
+          echo "LLVM Libs: $(/usr/bin/llvm-config-14 --libdir)"
+          ls -la /usr/lib/llvm-14/lib/ | grep -E "libLLVM|libclang" | head -5
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
 
-      - name: Cache Rust dependencies  
+      - name: Cache Rust dependencies
         uses: actions/cache@v4
         with:
           path: |
@@ -48,10 +58,17 @@ jobs:
       - name: Build and test Rust
         working-directory: compiler
         env:
-          LLVM_SYS_150_PREFIX: /usr/lib/llvm-15
+          LLVM_SYS_140_PREFIX: /usr/lib/llvm-14
         run: |
+          echo "Environment check:"
+          env | grep -i llvm
+          echo "LLVM Config test:"
+          /usr/bin/llvm-config-14 --version
+          echo "Starting cargo build..."
           cargo build --release
+          echo "Starting tests..."
           cargo test
+          echo "Starting clippy..."
           cargo clippy -- -D warnings
 
       # TypeScript tests
