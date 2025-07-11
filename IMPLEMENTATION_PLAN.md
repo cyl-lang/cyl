@@ -4,25 +4,53 @@
 
 Cyl is a systems programming language with the following architecture:
 
-- **Rust Backend**: Compiler, lexer, parser, code generation (LLVM-based)
+- **Multi-Backend Compilation**: Cranelift (default), LLVM (optional), Interpreter (immediate execution)
+- **Rust Implementation**: Complete compiler, lexer, parser, and multi-backend code generation
 - **TypeScript Design Tools**: Grammar validation, AST generation, syntax checking
-- **Native Compilation**: Direct to machine code via LLVM
+- **Flexible Compilation**: Pure Rust pipeline to optimized native code
 
-## Current Status: Production-Ready Compiled Language ✅
+## Current Status: Production-Ready Multi-Backend Language ✅
 
-### Major Milestone: Runtime Output and Print Functionality Complete!
+### Major Milestone: Multi-Backend Architecture Complete!
 
-The Cyl programming language has achieved another major milestone with **working runtime output functionality**. Cyl programs can now generate meaningful output and interact with users through print functions.
+The Cyl programming language has achieved a significant architectural milestone with the **complete multi-backend compilation system**. Cyl now provides three distinct compilation paths optimized for different workflows and use cases.
 
-**🎯 Complete Runtime Pipeline:**
+**🎯 Complete Multi-Backend Pipeline:**
 
-- ✅ **Source → AST → LLVM IR → Executable → Runtime Output**
-- ✅ **Builtin function system** with `print()` and `print_int()` support
-- ✅ **C standard library integration** (printf, puts) for reliable output
-- ✅ **String and integer printing** with proper formatting
-- ✅ **Cross-platform runtime support** (macOS, Linux, Windows)
+- ✅ **Source → AST → [Cranelift|LLVM|Interpreter] → [Object|Executable|Direct Output]**
+- ✅ **Cranelift Backend** - Pure Rust code generation for fast development cycles
+- ✅ **LLVM Backend** - High-performance optimized compilation for production
+- ✅ **Interpreter Backend** - Immediate execution for testing and educational use
+- ✅ **Unified CLI Interface** - Consistent commands with backend selection
+- ✅ **Cross-platform compatibility** (macOS, Linux, Windows)
 - ✅ **Feature-flagged LLVM support** with graceful fallback for builds without LLVM
-- ✅ **Simplified CI architecture** focused on reliability over cross-platform complexity
+- ✅ **Zero external dependencies** for basic compilation (Cranelift-only builds)
+
+### Multi-Backend System Architecture
+
+**🏗️ Cranelift Backend (Default):**
+
+- Pure Rust implementation using Cranelift codegen
+- Fast compilation suitable for development workflows
+- Object file generation with native function compilation
+- No external dependencies required
+- Ideal for CI/CD pipelines and rapid iteration
+
+**🚀 LLVM Backend (Optional):**
+
+- Industry-standard optimization pipeline
+- Maximum runtime performance for production builds
+- Comprehensive optimization passes (-O0 to -O3)
+- Mature debugging information generation
+- Best for performance-critical applications
+
+**💻 Interpreter Backend:**
+
+- Direct AST execution without compilation
+- Immediate program output for rapid prototyping
+- Full language feature support including control flow
+- Comprehensive error reporting and diagnostics
+- Perfect for education, testing, and development
 
 ### Successfully Implemented & Production Ready
 

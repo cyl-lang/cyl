@@ -4,6 +4,60 @@
 
 The Cyl standard library provides essential functionality for systems programming, web development, and general-purpose computing. It is designed to be safe, efficient, and easy to use while maintaining the language's core principles of memory safety and zero-cost abstractions.
 
+The standard library is implemented consistently across all compilation backends (Cranelift, LLVM, and Interpreter) to ensure uniform behavior regardless of the chosen execution method.
+
+## Global Functions
+
+Cyl provides several global functions that are available without explicit imports for common operations.
+
+### I/O Functions
+
+#### `print(value: any) -> void`
+
+Prints a value to standard output without a trailing newline. Supports all primitive types including strings, integers, floats, and booleans.
+
+```cyl
+print("Hello");
+print(" ");
+print("World");
+// Output: Hello World
+
+let x = 42;
+print(x);
+// Output: 42
+
+let flag = true;
+print(flag);
+// Output: true
+```
+
+#### `println(value: any) -> void`
+
+Prints a value to standard output with a trailing newline.
+
+```cyl
+println("Hello, World!");
+println("Second line");
+// Output:
+// Hello, World!
+// Second line
+
+let number = 123;
+println(number);
+// Output:
+// 123
+```
+
+#### `print_int(value: int) -> void`
+
+Specialized function for printing integer values. Optimized for integer output across all backends.
+
+```cyl
+let count = 10;
+print_int(count);
+// Output: 10
+```
+
 ## Core Modules
 
 ### `os` - Operating System Interface
@@ -15,29 +69,6 @@ import os;
 ```
 
 #### Functions
-
-##### `print(message: string) -> void`
-
-Prints a message to standard output without a trailing newline.
-
-```cyl
-os.print("Hello");
-os.print(" ");
-os.print("World");
-// Output: Hello World
-```
-
-##### `println(message: string) -> void`
-
-Prints a message to standard output with a trailing newline.
-
-```cyl
-os.println("Hello, World!");
-os.println("Second line");
-// Output:
-// Hello, World!
-// Second line
-```
 
 ##### `exit(code: int) -> void`
 

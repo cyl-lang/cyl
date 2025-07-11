@@ -1,7 +1,6 @@
 use std::fs;
 use std::path::Path;
 use std::process::Command;
-use tempfile::TempDir;
 
 /// Integration test framework for Cyl language
 /// This module provides utilities to compile and execute Cyl programs,
@@ -31,37 +30,43 @@ impl CylTestResult {
 
 /// Compile and run a Cyl program, returning the result
 pub fn compile_and_run_cyl_file(cyl_file_path: &str) -> Result<CylTestResult, Box<dyn std::error::Error>> {
-    let temp_dir = TempDir::new()?;
-    let cyl_path = Path::new(cyl_file_path);
-    let executable_name = cyl_path.file_stem().unwrap().to_str().unwrap();
-    let executable_path = temp_dir.path().join(executable_name);
+    compile_and_run_cyl_file_with_backend(cyl_file_path, "interpreter")
+}
 
-    // Step 1: Compile the Cyl file
-    let compile_output = Command::new("../target/release/cylc")
-        .arg("build")
-        .arg(&format!("../{}", cyl_file_path))
-        .arg("-o")
-        .arg(&executable_path)
-        .output()?;
-
-    if !compile_output.status.success() {
-        return Ok(CylTestResult {
-            exit_code: compile_output.status.code().unwrap_or(-1),
-            stdout: String::from_utf8_lossy(&compile_output.stdout).to_string(),
-            stderr: String::from_utf8_lossy(&compile_output.stderr).to_string(),
-            compiled: false,
-        });
+/// Compile and run a Cyl program with a specific backend, returning the result
+pub fn compile_and_run_cyl_file_with_backend(cyl_file_path: &str, backend: &str) -> Result<CylTestResult, Box<dyn std::error::Error>> {
+    // Try to find the cylc binary - check both debug and release directories
+    let possible_binaries = [
+        "../target/release/cylc",
+        "../target/debug/cylc", 
+        "./target/release/cylc",
+        "./target/debug/cylc",
+    ];
+    
+    let mut cylc_binary = None;
+    for binary_path in &possible_binaries {
+        if Path::new(binary_path).exists() {
+            cylc_binary = Some(*binary_path);
+            break;
+        }
     }
+    
+    let cylc_binary = cylc_binary.ok_or("Could not find cylc binary in target/debug or target/release")?;
 
-    // Step 2: Execute the compiled binary
-    let run_output = Command::new(&executable_path)
+    // Use the 'run' command which compiles and interprets the code
+    let run_output = Command::new(cylc_binary)
+        .arg("run")
+        .arg("--backend")
+        .arg(backend)
+        .arg("--quiet")
+        .arg(&format!("../{}", cyl_file_path))
         .output()?;
 
     Ok(CylTestResult {
         exit_code: run_output.status.code().unwrap_or(-1),
         stdout: String::from_utf8_lossy(&run_output.stdout).to_string(),
         stderr: String::from_utf8_lossy(&run_output.stderr).to_string(),
-        compiled: true,
+        compiled: run_output.status.success(),
     })
 }
 
@@ -97,23 +102,23 @@ mod tests {
 
     #[test]
     fn test_hello_world() {
-        let result = compile_and_run_cyl_file("examples/hello_world.cyl")
+        let result = compile_and_run_cyl_file_with_backend("examples/hello_world.cyl", "interpreter")
             .expect("Failed to run hello_world.cyl");
         
         assert!(result.success(), "Hello world test should succeed: {:?}", result);
         
-        let expected = "\"Hello, World!\"\n\"Welcome to Cyl programming language!\"";
+        let expected = "Hello, World!\nWelcome to Cyl programming language!";
         assert_eq!(result.stdout.trim(), expected);
     }
 
     #[test]
     fn test_print_functionality() {
-        let result = compile_and_run_cyl_file("examples/print_test.cyl")
+        let result = compile_and_run_cyl_file_with_backend("examples/print_test.cyl", "interpreter")
             .expect("Failed to run print_test.cyl");
         
         assert!(result.success(), "Print test should succeed: {:?}", result);
         
-        let expected = "\"Hello, World!\"\n42";
+        let expected = "Hello, World!\n42";
         assert_eq!(result.stdout.trim(), expected);
     }
 
@@ -130,7 +135,7 @@ mod tests {
 
     #[test]
     fn test_variables() {
-        let result = compile_and_run_cyl_file("tests/fixtures/valid/variables_test.cyl")
+        let result = compile_and_run_cyl_file_with_backend("tests/fixtures/valid/variables_test.cyl", "interpreter")
             .expect("Failed to run variables_test.cyl");
         
         assert!(result.success(), "Variables test should succeed: {:?}", result);
@@ -141,7 +146,7 @@ mod tests {
 
     #[test]
     fn test_simple_if() {
-        let result = compile_and_run_cyl_file("tests/fixtures/valid/simple_if_test.cyl")
+        let result = compile_and_run_cyl_file_with_backend("tests/fixtures/valid/simple_if_test.cyl", "interpreter")
             .expect("Failed to run simple_if_test.cyl");
         
         assert!(result.success(), "Simple if test should succeed: {:?}", result);

@@ -1,17 +1,46 @@
-# Cyl Language Specification v0.1.0
+# Cyl Language Specification v0.2.0
 
 ## Overview
 
-Cyl is a systems and web programming language designed for safety, performance, and developer productivity. It combines the simplicity of modern languages like TypeScript and Python with the safety guarantees of Rust and the performance of native compilation.
+Cyl is a systems and web programming language designed for safety, performance, and developer productivity. It features a multi-backend compilation system that provides flexibility for different use cases, from rapid development to production optimization.
 
 ## Design Goals
 
 - **Safety**: Memory safety without garbage collection
-- **Performance**: Native compilation with zero-cost abstractions
+- **Performance**: Native compilation with multiple optimization strategies
 - **Simplicity**: Clean, readable syntax inspired by TypeScript
+- **Flexibility**: Multi-backend compilation (Cranelift, LLVM, Interpreter)
 - **Concurrency**: Built-in async/await and safe concurrency primitives
 - **Interoperability**: Easy integration with existing systems and libraries
 - **Developer Experience**: Excellent tooling, error messages, and debugging support
+
+## Compilation Backends
+
+Cyl provides three compilation backends optimized for different workflows:
+
+### Cranelift Backend (Default)
+
+- **Purpose**: Fast development compilation
+- **Implementation**: Pure Rust code generation
+- **Output**: Native object files and executables
+- **Dependencies**: None (self-contained)
+- **Use Cases**: Development, CI/CD, rapid iteration
+
+### LLVM Backend (Optional)
+
+- **Purpose**: Optimized production compilation
+- **Implementation**: LLVM IR generation with optimization passes
+- **Output**: Highly optimized native code
+- **Dependencies**: LLVM development libraries
+- **Use Cases**: Production builds, performance-critical applications
+
+### Interpreter Backend
+
+- **Purpose**: Immediate execution and development
+- **Implementation**: Direct AST interpretation
+- **Output**: Real-time program execution
+- **Dependencies**: None
+- **Use Cases**: Education, testing, rapid prototyping, debugging
 
 ## Language Features
 
@@ -44,7 +73,7 @@ let numbers: Array<int> = [1, 2, 3, 4, 5];
 ```cyl
 // Basic function
 fn greet(name: string) -> void {
-    os.print("Hello, " + name + "!");
+    print("Hello, " + name + "!");
 }
 
 // Function with return value

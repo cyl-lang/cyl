@@ -5,6 +5,8 @@ use std::path::PathBuf;
 mod ast;
 #[cfg(feature = "llvm")]
 mod codegen;
+#[cfg(feature = "cranelift")]
+mod cranelift_codegen;
 mod error;
 mod interpreter;
 mod lexer;
@@ -13,6 +15,9 @@ mod stdlib;
 
 #[cfg(feature = "llvm")]
 use crate::codegen::LLVMCodegen;
+#[cfg(feature = "cranelift")]
+use crate::cranelift_codegen::CraneliftCodegen;
+use crate::interpreter::Interpreter;
 use crate::lexer::Lexer;
 #[cfg(feature = "llvm")]
 use inkwell::context::Context;
@@ -38,9 +43,12 @@ enum Commands {
         /// Enable debug information
         #[arg(short, long)]
         debug: bool,
-        /// Use LLVM backend (experimental)
-        #[arg(long)]
-        llvm: bool,
+        /// Backend to use: interpreter, cranelift, llvm
+        #[arg(long, default_value = "cranelift")]
+        backend: String,
+        /// Suppress output messages
+        #[arg(short, long)]
+        quiet: bool,
     },
     /// Compile a Cyl program to executable
     Build {
@@ -55,9 +63,9 @@ enum Commands {
         /// Enable debug information
         #[arg(short, long)]
         debug: bool,
-        /// Use LLVM backend (experimental)
-        #[arg(long)]
-        llvm: bool,
+        /// Backend to use: cranelift, llvm, interpreter
+        #[arg(long, default_value = "cranelift")]
+        backend: String,
     },
     /// Check syntax without compiling
     Check {
@@ -94,18 +102,19 @@ fn main() -> Result<()> {
             file,
             opt_level,
             debug,
-            llvm,
+            backend,
+            quiet,
         } => {
-            compile_and_run(&file, opt_level, debug, llvm)?;
+            compile_and_run(&file, opt_level, debug, &backend, quiet)?;
         }
         Commands::Build {
             file,
             output,
             opt_level,
             debug,
-            llvm,
+            backend,
         } => {
-            compile_to_executable(&file, output, opt_level, debug, llvm)?;
+            compile_to_executable(&file, output, opt_level, debug, &backend)?;
         }
         Commands::Check { file } => {
             check_syntax(&file)?;
@@ -154,12 +163,14 @@ fn print_error_with_context(error: &crate::error::CylError, source: &str) {
     }
 }
 
-fn compile_and_run(file: &PathBuf, _opt_level: u8, _debug: bool, use_llvm: bool) -> Result<()> {
-    println!(
-        "Compiling and running: {} (LLVM: {})",
-        file.display(),
-        use_llvm
-    );
+fn compile_and_run(file: &PathBuf, _opt_level: u8, _debug: bool, backend: &str, quiet: bool) -> Result<()> {
+    if !quiet {
+        println!(
+            "Compiling and running: {} (Backend: {})",
+            file.display(),
+            backend
+        );
+    }
 
     // Read source file
     let source = std::fs::read_to_string(file)?;
@@ -182,45 +193,86 @@ fn compile_and_run(file: &PathBuf, _opt_level: u8, _debug: bool, use_llvm: bool)
         }
     };
 
-    if use_llvm {
-        #[cfg(feature = "llvm")]
-        {
-            // Use LLVM backend
-            let context = Context::create();
-            let mut llvm_codegen = match LLVMCodegen::new(&context) {
-                Ok(cg) => cg,
-                Err(e) => {
-                    eprintln!("Failed to initialize LLVM codegen: {e}");
-                    std::process::exit(1);
-                }
-            };
+    match backend {
+        "llvm" => {
+            #[cfg(feature = "llvm")]
+            {
+                // Use LLVM backend
+                let context = Context::create();
+                let mut llvm_codegen = match LLVMCodegen::new(&context) {
+                    Ok(cg) => cg,
+                    Err(e) => {
+                        eprintln!("Failed to initialize LLVM codegen: {e}");
+                        std::process::exit(1);
+                    }
+                };
 
-            match llvm_codegen.compile_program(&program) {
-                Ok(()) => {
-                    println!("Successfully compiled with LLVM!");
-                    llvm_codegen.print_ir();
-                    // TODO: Execute the compiled code
+                match llvm_codegen.compile_program(&program) {
+                    Ok(()) => {
+                        println!("Successfully compiled with LLVM!");
+                        llvm_codegen.print_ir();
+                        
+                        // For now, also run with interpreter to get output
+                        let mut interpreter = Interpreter::new();
+                        interpreter.run(&program);
+                    }
+                    Err(e) => {
+                        eprintln!("LLVM compilation error: {e}");
+                        std::process::exit(1);
+                    }
+                }
             }
-            Err(e) => {
-                eprintln!("LLVM compilation error: {e}");
+            #[cfg(not(feature = "llvm"))]
+            {
+                eprintln!("LLVM support not compiled in. Please rebuild with --features llvm");
                 std::process::exit(1);
             }
         }
-        }
-        #[cfg(not(feature = "llvm"))]
-        {
-            eprintln!("LLVM support not compiled in. Please rebuild with --features llvm");
-            std::process::exit(1);
-        }
-    } else {
-        // Use interpreter
-        let mut interpreter = interpreter::Interpreter::new();
-        match interpreter.run_main(&program) {
-            Ok(()) => {}
-            Err(e) => {
-                eprintln!("Runtime error: {e}");
+        "cranelift" => {
+            #[cfg(feature = "cranelift")]
+            {
+                // Use Cranelift backend for compilation, then interpreter for execution
+                let mut cranelift_codegen = match CraneliftCodegen::new() {
+                    Ok(cg) => cg,
+                    Err(e) => {
+                        eprintln!("Failed to initialize Cranelift codegen: {e}");
+                        std::process::exit(1);
+                    }
+                };
+
+                match cranelift_codegen.compile_program(&program) {
+                    Ok(()) => {
+                        println!("Successfully compiled with Cranelift!");
+                        cranelift_codegen.print_ir();
+                        
+                        // Always run with interpreter to get output
+                        let mut interpreter = Interpreter::new();
+                        interpreter.run(&program);
+                    }
+                    Err(e) => {
+                        // If Cranelift compilation fails due to unimplemented features,
+                        // fall back to interpreter-only mode
+                        if e.to_string().contains("not implemented") || e.to_string().contains("String literals") {
+                            eprintln!("Cranelift compilation failed due to unimplemented features, falling back to interpreter...");
+                            let mut interpreter = Interpreter::new();
+                            interpreter.run(&program);
+                        } else {
+                            eprintln!("Cranelift compilation error: {e}");
+                            std::process::exit(1);
+                        }
+                    }
+                }
+            }
+            #[cfg(not(feature = "cranelift"))]
+            {
+                eprintln!("Cranelift support not compiled in. Please rebuild with --features cranelift");
                 std::process::exit(1);
             }
+        }
+        "interpreter" | _ => {
+            // Use interpreter (fallback for any unrecognized backend)
+            let mut interpreter = Interpreter::new();
+            interpreter.run(&program);
         }
     }
 
@@ -230,17 +282,17 @@ fn compile_and_run(file: &PathBuf, _opt_level: u8, _debug: bool, use_llvm: bool)
 fn compile_to_executable(
     file: &PathBuf,
     output: Option<PathBuf>,
-    opt_level: u8,
+    _opt_level: u8,
     _debug: bool,
-    use_llvm: bool,
+    backend: &str,
 ) -> Result<()> {
     let output_name = output.unwrap_or_else(|| file.with_extension(""));
 
     println!(
-        "Compiling {} to {} (LLVM: {})",
+        "Compiling {} to {} (Backend: {})",
         file.display(),
         output_name.display(),
-        use_llvm
+        backend
     );
 
     // Read source file
@@ -254,46 +306,48 @@ fn compile_to_executable(
     let mut parser = parser::helpers::Parser::new(tokens);
     let ast = parser.parse()?;
 
-    if use_llvm {
-        #[cfg(feature = "llvm")]
-        {
-            // Use LLVM backend
-            let context = Context::create();
-            let mut llvm_codegen = LLVMCodegen::new(&context)?;
-            llvm_codegen.compile_program(&ast)?;
+    match backend {
+        "llvm" => {
+            #[cfg(feature = "llvm")]
+            {
+                // Use LLVM backend
+                let context = Context::create();
+                let mut llvm_codegen = LLVMCodegen::new(&context)?;
+                llvm_codegen.compile_program(&ast)?;
 
-            // Generate executable
-            llvm_codegen.compile_to_executable(&output_name, opt_level)?;
-            println!(
-                "Successfully generated executable: {}",
-                output_name.display()
-            );
+                // Generate executable
+                llvm_codegen.compile_to_executable(&output_name, opt_level)?;
+                println!(
+                    "Successfully generated executable: {}",
+                    output_name.display()
+                );
+            }
+            #[cfg(not(feature = "llvm"))]
+            {
+                eprintln!("LLVM support not compiled in. Please rebuild with --features llvm");
+                std::process::exit(1);
+            }
         }
-        #[cfg(not(feature = "llvm"))]
-        {
-            eprintln!("LLVM support not compiled in. Please rebuild with --features llvm");
-            std::process::exit(1);
-        }
-    } else {
-        #[cfg(feature = "llvm")]
-        {
-            // LLVM backend is now the only option
-            println!("Warning: Legacy codegen has been removed. Using LLVM backend instead.");
-            let context = Context::create();
-            let mut llvm_codegen = LLVMCodegen::new(&context)?;
-            llvm_codegen.compile_program(&ast)?;
+        "cranelift" | _ => {
+            #[cfg(feature = "cranelift")]
+            {
+                // Use Cranelift backend
+                let mut cranelift_codegen = CraneliftCodegen::new()?;
+                cranelift_codegen.compile_program(&ast)?;
 
-            // Generate executable
-            llvm_codegen.compile_to_executable(&output_name, opt_level)?;
-            println!(
-                "Successfully generated executable: {}",
-                output_name.display()
-            );
-        }
-        #[cfg(not(feature = "llvm"))]
-        {
-            eprintln!("Error: Cannot compile without LLVM support. Please rebuild with --features llvm");
-            std::process::exit(1);
+                // Generate object file (for now)
+                let obj_name = output_name.with_extension("o");
+                cranelift_codegen.write_object_file(obj_name.to_str().unwrap())?;
+                println!(
+                    "Successfully generated object file: {} (linking to executable not yet implemented)",
+                    obj_name.display()
+                );
+            }
+            #[cfg(not(feature = "cranelift"))]
+            {
+                eprintln!("Cranelift support not compiled in. Please rebuild with --features cranelift");
+                std::process::exit(1);
+            }
         }
     }
 

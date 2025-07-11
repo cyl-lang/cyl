@@ -31,6 +31,9 @@ impl Interpreter {
     }
 
     pub fn run(&mut self, program: &Program) {
+        // Store function definitions
+        let mut functions = HashMap::new();
+        
         for stmt in &program.statements {
             if let Statement::Function(func) = stmt {
                 if let Err(e) = self.infer_parameter_types(func) {
@@ -39,10 +42,17 @@ impl Interpreter {
                 if let Err(e) = self.check_function_return_type(func) {
                     eprintln!("[error] {e}");
                 }
+                functions.insert(func.name.clone(), func);
+            } else {
+                if let Err(e) = self.eval_statement_with_diagnostics(stmt) {
+                    eprintln!("[error] {e}");
+                }
             }
-            if let Err(e) = self.eval_statement_with_diagnostics(stmt) {
-                eprintln!("[error] {e}");
-            }
+        }
+        
+        // If there's a main function, execute it
+        if let Some(main_func) = functions.get("main") {
+            self.eval_block(&main_func.body).ok();
         }
     }
 
@@ -216,7 +226,7 @@ impl Interpreter {
                     }
                     return Ok(());
                 }
-                Statement::Declare(_) | Statement::Expression(_) | Statement::Match(_) => {
+                Statement::Declare(_) | Statement::Expression(_) | Statement::Match(_) | Statement::If(_) => {
                     self.eval_statement(stmt);
                 }
                 _ => {}
@@ -255,6 +265,24 @@ impl Interpreter {
                 self.eval_expression(expr);
                 Ok(())
             }
+            Statement::If(if_stmt) => {
+                let condition = self.eval_expression(&if_stmt.condition);
+                let is_true = match condition {
+                    Value::Bool(b) => b,
+                    Value::Int(i) => i != 0,
+                    Value::Float(f) => f != 0.0,
+                    Value::String(s) => !s.is_empty(),
+                    Value::Void => false,
+                    _ => true,
+                };
+                
+                if is_true {
+                    self.eval_block(&if_stmt.then_block)?;
+                } else if let Some(else_block) = &if_stmt.else_block {
+                    self.eval_statement_with_diagnostics(else_block)?;
+                }
+                Ok(())
+            }
             Statement::Match(m) => {
                 let val = self.eval_expression(&m.expression);
                 for arm in &m.arms {
@@ -277,6 +305,23 @@ impl Interpreter {
             }
             Statement::Expression(expr) => {
                 self.eval_expression(expr);
+            }
+            Statement::If(if_stmt) => {
+                let condition = self.eval_expression(&if_stmt.condition);
+                let is_true = match condition {
+                    Value::Bool(b) => b,
+                    Value::Int(i) => i != 0,
+                    Value::Float(f) => f != 0.0,
+                    Value::String(s) => !s.is_empty(),
+                    Value::Void => false,
+                    _ => true,
+                };
+                
+                if is_true {
+                    self.eval_block(&if_stmt.then_block).ok();
+                } else if let Some(else_block) = &if_stmt.else_block {
+                    self.eval_statement(else_block);
+                }
             }
             Statement::Match(m) => {
                 let val = self.eval_expression(&m.expression);
@@ -319,6 +364,37 @@ impl Interpreter {
                 }
             }
             Expression::Call { callee, arguments } => {
+                // Handle direct function calls like print(), println(), etc.
+                if let Expression::Identifier(func_name) = &**callee {
+                    let args: Vec<Value> = arguments.iter().map(|a| self.eval_expression(a)).collect();
+                    
+                    match func_name.as_str() {
+                        "print" => {
+                            if let Some(val) = args.first() {
+                                println!("{}", self.value_to_string(val));
+                            }
+                            return Value::Void;
+                        }
+                        "println" => {
+                            if let Some(val) = args.first() {
+                                println!("{}", self.value_to_string(val));
+                            } else {
+                                println!();
+                            }
+                            return Value::Void;
+                        }
+                        "print_int" => {
+                            if let Some(val) = args.first() {
+                                println!("{}", self.value_to_string(val));
+                            }
+                            return Value::Void;
+                        }
+                        _ => {
+                            // Fall through to existing logic for user-defined functions
+                        }
+                    }
+                }
+                
                 // Dispatch to stdlib modules
                 if let Expression::MemberAccess { object, property } = &**callee {
                     if let Expression::Identifier(obj_name) = &**object {
@@ -480,6 +556,35 @@ impl Interpreter {
                         (Value::Int(a), Value::Int(b)) => Value::Int(a + b),
                         (Value::Float(a), Value::Float(b)) => Value::Float(a + b),
                         _ => Value::Void,
+                    },
+                    BinaryOperator::Subtract => match (l, r) {
+                        (Value::Int(a), Value::Int(b)) => Value::Int(a - b),
+                        (Value::Float(a), Value::Float(b)) => Value::Float(a - b),
+                        _ => Value::Void,
+                    },
+                    BinaryOperator::Multiply => match (l, r) {
+                        (Value::Int(a), Value::Int(b)) => Value::Int(a * b),
+                        (Value::Float(a), Value::Float(b)) => Value::Float(a * b),
+                        _ => Value::Void,
+                    },
+                    BinaryOperator::Divide => match (l, r) {
+                        (Value::Int(a), Value::Int(b)) if b != 0 => Value::Int(a / b),
+                        (Value::Float(a), Value::Float(b)) if b != 0.0 => Value::Float(a / b),
+                        _ => Value::Void,
+                    },
+                    BinaryOperator::Equal => match (l, r) {
+                        (Value::Int(a), Value::Int(b)) => Value::Bool(a == b),
+                        (Value::Float(a), Value::Float(b)) => Value::Bool((a - b).abs() < f64::EPSILON),
+                        (Value::String(a), Value::String(b)) => Value::Bool(a == b),
+                        (Value::Bool(a), Value::Bool(b)) => Value::Bool(a == b),
+                        _ => Value::Bool(false),
+                    },
+                    BinaryOperator::NotEqual => match (l, r) {
+                        (Value::Int(a), Value::Int(b)) => Value::Bool(a != b),
+                        (Value::Float(a), Value::Float(b)) => Value::Bool((a - b).abs() >= f64::EPSILON),
+                        (Value::String(a), Value::String(b)) => Value::Bool(a != b),
+                        (Value::Bool(a), Value::Bool(b)) => Value::Bool(a != b),
+                        _ => Value::Bool(true),
                     },
                     _ => Value::Void,
                 }
@@ -661,7 +766,14 @@ impl Interpreter {
         match val {
             Value::Int(i) => i.to_string(),
             Value::Float(f) => f.to_string(),
-            Value::String(s) => s.clone(),
+            Value::String(s) => {
+                // Remove surrounding quotes if they exist
+                if s.starts_with('"') && s.ends_with('"') && s.len() > 1 {
+                    s[1..s.len()-1].to_string()
+                } else {
+                    s.clone()
+                }
+            },
             Value::Bool(b) => b.to_string(),
             Value::Struct(name, fields) => {
                 let mut s = format!("{name} {{ ");

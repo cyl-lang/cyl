@@ -11,9 +11,9 @@ fn main() -> void {
 **Runtime Output:**
 
 ```
-$ cylc build hello_world.cyl && ./hello_world
-"Hello, World!"
-"Welcome to Cyl programming language!"
+$ cylc run hello_world.cyl
+Hello, World!
+Welcome to Cyl programming language!
 ```
 
 [![CI](https://github.com/clxrityy/cyl/actions/workflows/ci.yml/badge.svg)](https://github.com/clxrityy/cyl/actions/workflows/ci.yml)
@@ -21,22 +21,25 @@ $ cylc build hello_world.cyl && ./hello_world
 
 - [Implementation Plan](IMPLEMENTATION_PLAN.md)
 - [Language Specification](LANGUAGE_SPEC.md)
+- [Standard Library](STDLIB.md)
 - [Tests](tests/README.md)
 
-**Purpose:** Systems & web programming with simple syntax, native compilation, safe concurrency, OS & network integration
+**Purpose:** Systems & web programming with simple syntax, multi-backend compilation, safe concurrency, OS & network integration
 
 **Paradigm:** Imperative, concurrent, safe systems language with modern syntax inspired by TypeScript/Python and safety from Rust/Go
+
+**Architecture:** Multi-backend compilation system supporting Cranelift (fast development), LLVM (optimized production), and interpreter (immediate execution)
 
 ---
 
 - [Usage](#usage)
   - [Installation](#installation)
   - [Commands](#commands)
-- [Current Implementation Status](#current-implementation-status)
+  - [Backend Selection](#backend-selection)
+- [Multi-Backend Architecture](#multi-backend-architecture)
 - [Development & CI/CD](#development--cicd)
   - [Local Development](#local-development)
   - [Continuous Integration](#continuous-integration)
-- [Key Syntax Features](#key-syntax-features)
 
 ---
 
@@ -56,7 +59,7 @@ cd compiler && cargo build --no-default-features
 ### Commands
 
 ```bash
-# Compile and run a Cyl program
+# Compile and run a Cyl program (default: Cranelift backend)
 cylc run examples/hello_world.cyl
 
 # Build a Cyl program to executable
@@ -72,6 +75,60 @@ cylc ast examples/hello_world.cyl
 # Run automated tests
 cylc test
 ```
+
+### Backend Selection
+
+Cyl supports multiple compilation backends for different use cases:
+
+```bash
+# Fast development compilation (default)
+cylc run --backend cranelift examples/hello_world.cyl
+
+# Optimized production compilation (requires LLVM)
+cylc run --backend llvm examples/hello_world.cyl
+
+# Immediate execution for testing/development
+cylc run --backend interpreter examples/hello_world.cyl
+
+# Quiet mode for clean output (useful in CI/scripts)
+cylc run --backend interpreter --quiet examples/hello_world.cyl
+```
+
+## Multi-Backend Architecture
+
+Cyl features a flexible multi-backend compilation system designed to optimize for different workflows:
+
+### 🏗️ **Cranelift Backend** (Default)
+
+- **Use Case**: Fast development cycles, CI/CD pipelines
+- **Advantages**: Pure Rust implementation, fast compilation, no external dependencies
+- **Output**: Native object files and executables
+- **Best For**: Development, testing, and deployment where compile speed matters
+
+### 🚀 **LLVM Backend** (Optional)
+
+- **Use Case**: Production builds requiring maximum optimization
+- **Advantages**: Industry-standard optimizations, mature toolchain
+- **Output**: Highly optimized native code
+- **Best For**: Production releases and performance-critical applications
+
+### 💻 **Interpreter Backend**
+
+- **Use Case**: Educational, rapid prototyping, integration testing
+- **Advantages**: Immediate execution, no compilation step, full language support
+- **Output**: Direct program execution with real-time output
+- **Best For**: Learning, debugging, and scenarios requiring immediate feedback
+
+### Backend Feature Matrix
+
+| Feature              | Cranelift    | LLVM             | Interpreter  |
+| -------------------- | ------------ | ---------------- | ------------ |
+| Compilation Speed    | ⚡ Fast      | 🐌 Slow          | ⚡⚡ Instant |
+| Runtime Performance  | 🚀 Good      | 🚀🚀 Excellent   | 🐌 Moderate  |
+| Dependencies         | ✅ None      | ❌ LLVM Required | ✅ None      |
+| Development Workflow | ✅ Excellent | ❌ Slow          | ✅ Excellent |
+| Production Ready     | ✅ Yes       | ✅ Yes           | ❌ No        |
+| Debugging Support    | ✅ Good      | ✅ Excellent     | ✅ Excellent |
 
 ### Build Options
 
@@ -89,45 +146,7 @@ cargo test --no-default-features  # Test without LLVM
 cargo test                         # Test with LLVM
 ```
 
-### Current Implementation Status
-
-**🎉 PRODUCTION READY - Runtime Output Functional!**
-
-**Core Language Features - ✅ Complete:**
-
-- [x] **Native Executable Generation** - Direct compilation to optimized machine code (~16KB executables)
-- [x] **Runtime I/O System** - Working `print()` and `print_int()` functions with C standard library integration
-- [x] **Type System** - Complete with i32 integers, floats, booleans, strings, arrays, and custom structs
-- [x] **Control Flow** - if/else, while loops, for loops with range iteration
-- [x] **Data Structures** - Arrays, structs with field access, nested structs
-- [x] **Function System** - Parameters, return types, recursion, builtin functions
-- [x] **Memory Management** - Stack allocation, proper variable scoping
-
-**Advanced Features - ✅ Complete:**
-
-- [x] **LLVM Code Generation** - Full LLVM IR generation with proper type handling (feature-flagged)
-- [x] **Flexible Build System** - Supports builds with and without LLVM dependencies
-- [x] **Cross-Platform Development** - Works on macOS, Linux, Windows with conditional compilation
-- [x] **Multi-Level Optimization** - Support for -O0 through -O3 optimization levels
-- [x] **Standard Library Bindings** - C standard library integration for I/O operations
-
-**Development Infrastructure - ✅ Complete:**
-
-- [x] Lexer with comprehensive token recognition
-- [x] Recursive descent parser with error recovery
-- [x] AST generation and validation
-- [x] Automated test system (Rust + TypeScript)
-- [x] CLI with multiple commands (run, build, check, ast, test)
-- [x] **Feature-flagged LLVM compilation** with graceful fallback
-- [x] **Simplified, reliable CI pipeline** focused on Ubuntu with optional LLVM testing
-- [x] Security auditing and dependency management
-
-**Currently Working Examples:**
-
-- `examples/hello_world.cyl` - Basic print functionality
-- `examples/print_test.cyl` - String and integer output
-- `examples/struct_test.cyl` - Struct creation and field access
-- `examples/array_test.cyl` - Array creation and indexing
+---
 
 ## Development & CI/CD
 
@@ -154,40 +173,3 @@ cd compiler && cargo build                         # With LLVM (if available)
 - ✅ **Weekly dependency updates** via automated PRs
 
 See [CI/CD Documentation](.github/workflows/README.md) for details.
-
----
-
-## Key Syntax Features
-
-| Syntax     | Type                     |
-| ---------- | ------------------------ |
-| `fn`       | FunctionDeclaration      |
-| `if`       | IfStatement              |
-| `else`     | ElseStatement            |
-| `import`   | ImportStatement          |
-| `=`        | AssignmentExpression     |
-| `.`        | MemberExpression         |
-| `->`       | ReturnType               |
-| `;`        | StatementTerminator      |
-| `"`        | StringLiteral            |
-| `()`       | CallExpression           |
-| `[]`       | ArrayLiteral             |
-| `{}`       | BlockStatement           |
-| `,`        | ParameterSeparator       |
-| `:`        | KeyValueSeparator        |
-| `void`     | VoidType                 |
-| `declare`  | DeclareStatement         |
-| `<>`       | TypeParameter            |
-| `return`   | ReturnStatement          |
-| `struct`   | StructDeclaration        |
-| `enum`     | EnumDeclaration          |
-| `match`    | MatchStatement           |
-| `for`      | ForStatement             |
-| `while`    | WhileStatement           |
-| `break`    | BreakStatement           |
-| `continue` | ContinueStatement        |
-| `try`      | TryStatement             |
-| `catch`    | CatchStatement           |
-| `throw`    | ThrowStatement           |
-| `async`    | AsyncFunctionDeclaration |
-| `await`    | AwaitExpression          |

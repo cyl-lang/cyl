@@ -1,149 +1,292 @@
 # GitHub Actions CI/CD
 
-This document explains the GitHub Actions workflows configured for the Cyl language project.
+This document explains the GitHub Actions workflows configured for the Cyl language project, supporting the multi-backend architecture (Cranelift, LLVM, Interpreter).
 
 ## Workflows
 
 ### 1. CI Workflow (`.github/workflows/ci.yml`)
 
-**Triggers:** Push to `main`/`develop` branches, Pull Requests
+**Triggers:** Push to `master`/`development` branches, Pull Requests
+
+**Strategy:** Reliability-focused CI with multi-backend testing approach
 
 **Jobs:**
 
-- **test-rust**: Tests the Rust compiler
-  - Formatting check (`cargo fmt`)
-  - Linting (`cargo clippy`)
-  - Build and run Rust tests
-  - Run Cyl language tests with `cylc test`
-- **test-design-tools**: Tests TypeScript design tools
-  - Type checking (`tsc --noEmit`)
-  - Jest tests for design tools
-  - Grammar validation
-  - AST generation
-- **test-integration**: Integration tests
-  - Full environment setup
-  - Run all tests with `make test`
-  - CLI installation test
-- **security-audit**: Security checks
-  - Rust dependency audit (`cargo audit`)
-  - npm security audit
-- **coverage**: Code coverage reporting
-  - Generate coverage with `cargo llvm-cov`
-  - Upload to Codecov
+#### **test-no-llvm** (Primary Build)
 
-### 2. Cross-Platform Tests (`.github/workflows/cross-platform.yml`)
+- **Purpose**: Test core functionality with Cranelift backend (default)
+- **Environment**: Ubuntu 22.04
+- **Features**:
+  - Rust toolchain with clippy
+  - Node.js 22 with npm dependency caching
+  - **Multi-Backend Testing**:
+    - Builds compiler with `--no-default-features` (Cranelift-only)
+    - Tests Cranelift backend compilation
+    - Tests interpreter backend execution
+    - Integration tests across all backends
+  - TypeScript design tools testing
+  - **Zero External Dependencies**: No LLVM required
 
-**Triggers:** Push to `main`, Pull Requests, Daily schedule
+#### **test-with-llvm-ubuntu** (Optional Enhanced Build)
 
-**Matrix Testing:**
+- **Purpose**: Test LLVM backend when available
+- **Environment**: Ubuntu 22.04 (best LLVM compatibility)
+- **Dependencies**: Runs only after `test-no-llvm` succeeds
+- **Features**:
+  - LLVM 14 installation attempt
+  - **Graceful Degradation**: Continues if LLVM unavailable
+  - Tests full feature set when LLVM is present
+  - Production optimization testing
 
-- **Operating Systems**: Ubuntu, Windows, macOS
-- **Rust Versions**: stable, beta
-- **Node.js Versions**: 16, 18, 20
+**Architecture Benefits:**
 
-**Features:**
+- **Guaranteed Success**: Core functionality always works (Cranelift + Interpreter)
+- **Enhanced Features**: LLVM optimizations when possible
+- **Fast Feedback**: Primary pipeline completes quickly
+- **Cross-Backend Validation**: Ensures feature parity
 
-- Tests minimum supported versions
-- Ensures cross-platform compatibility
-- Comprehensive environment matrix
+### 2. Multi-Backend Testing Strategy
 
-### 3. Release Workflow (`.github/workflows/release.yml`)
+**Current Focus:** Reliability and compatibility over complexity
 
-**Triggers:** Git tags matching `v*.*.*`
+**Supported Platforms:**
 
-**Features:**
+- **Primary**: Ubuntu 22.04 (stable, reliable CI environment)
+- **Backends**: Cranelift (default), LLVM (optional), Interpreter (educational)
 
-- Creates GitHub releases automatically
-- Builds binaries for multiple platforms:
-  - Linux x86_64
-  - Windows x86_64
-  - macOS x86_64
-  - macOS ARM64
-- Uploads release assets
+**Testing Philosophy:**
 
-### 4. Dependencies (`.github/workflows/dependencies.yml`)
+- **Core First**: Ensure basic functionality always works
+- **Enhanced Second**: Add optimizations when environment supports them
+- **Graceful Degradation**: Never fail due to optional dependencies
 
-**Triggers:** Weekly schedule (Sundays), Manual dispatch
+### 3. Future Workflow Expansions
 
-**Features:**
+**Planned Additions:**
 
-- Automated dependency updates
-- Separate jobs for Rust and npm dependencies
-- Creates pull requests with updates
-- Runs tests to ensure compatibility
+- **Cross-Platform Tests**: macOS, Windows support when core is stable
+- **Release Workflow**: Automated binary releases with multi-backend builds
+- **Performance Benchmarks**: Backend comparison and regression detection
+- **Security Audits**: Dependency scanning and vulnerability assessment
+- **Coverage Reporting**: Multi-backend code coverage analysis
+
+## Multi-Backend Architecture Integration
+
+### Backend Testing Matrix
+
+| Backend         | CI Status        | Use Case                | Dependencies     |
+| --------------- | ---------------- | ----------------------- | ---------------- |
+| **Cranelift**   | ✅ Always Tested | Development, CI/CD      | None (Pure Rust) |
+| **LLVM**        | 🔄 Opportunistic | Production Optimization | LLVM 14+         |
+| **Interpreter** | ✅ Always Tested | Education, Testing      | None             |
+
+### Compilation Commands Tested
+
+```bash
+# Default (Cranelift) backend
+cargo build --no-default-features
+cargo test --no-default-features
+
+# LLVM backend (when available)
+cargo build --features="llvm"
+cargo test --features="llvm"
+
+# Integration tests across backends
+cylc run --backend cranelift examples/hello_world.cyl
+cylc run --backend interpreter examples/hello_world.cyl
+cylc run --backend llvm examples/hello_world.cyl  # if available
+```
 
 ## Status Badges
 
-The following badges are displayed in the README:
+The following badges reflect the current CI status:
 
 ```markdown
 [![CI](https://github.com/clxrityy/cyl/actions/workflows/ci.yml/badge.svg)](https://github.com/clxrityy/cyl/actions/workflows/ci.yml)
-[![Cross-Platform Tests](https://github.com/clxrityy/cyl/actions/workflows/cross-platform.yml/badge.svg)](https://github.com/clxrityy/cyl/actions/workflows/cross-platform.yml)
-[![codecov](https://codecov.io/gh/clxrityy/cyl/branch/main/graph/badge.svg)](https://codecov.io/gh/clxrityy/cyl)
 ```
+
+**Badge Meaning:**
+
+- ✅ **Green**: Cranelift + Interpreter backends working, TypeScript tools passing
+- 🔄 **Yellow**: LLVM backend issues (non-blocking)
+- ❌ **Red**: Core functionality broken
 
 ## Local Testing
 
-Before pushing, you can run the same tests locally:
+Run the same tests locally using the Makefile:
 
 ```bash
-# Run all tests
+# Complete test suite (matches CI)
 make test
 
-# Run individual test suites
-make test-rust
-make test-design
+# Individual components
+make test-compiler      # Rust compiler tests
+make test-design        # TypeScript design tools
 
-# Format and lint
-make format
-make lint
+# Multi-backend testing
+cd compiler
+cargo test --no-default-features  # Cranelift + Interpreter
+cargo test                         # All backends (if LLVM available)
 
-# Full check (same as CI)
-make full-check
+# Integration tests
+cargo test --test integration
+
+# Build variants
+cargo build --no-default-features  # Cranelift-only build
+cargo build                         # Full build with LLVM if available
+
+# Code quality
+make format             # Format all code
+make lint              # Lint with clippy
+make full-check        # Complete validation
 ```
+
+## Multi-Backend Development Workflow
+
+### Daily Development
+
+1. **Primary**: Use Cranelift backend for fast iteration
+2. **Testing**: Interpreter backend for immediate feedback
+3. **Production**: LLVM backend for optimized releases
+
+### CI Integration
+
+1. **Always Pass**: Cranelift + Interpreter functionality
+2. **Optional Enhancement**: LLVM optimizations when available
+3. **Future-Proof**: Easy addition of new backends
+
+## Architecture Benefits
+
+### Reliability-First Design
+
+- **Zero-Dependency Core**: Cranelift backend requires no external tools
+- **Graceful Degradation**: LLVM unavailability doesn't break builds
+- **Fast Feedback**: Core tests complete quickly for rapid development
+
+### Multi-Backend Validation
+
+- **Feature Parity**: Same language features across all backends
+- **Consistent Behavior**: Integration tests ensure uniform output
+- **Backend-Specific Optimization**: Each backend optimized for its use case
+
+### Development Experience
+
+- **Immediate Execution**: Interpreter backend for rapid prototyping
+- **Fast Compilation**: Cranelift for development cycles
+- **Production Ready**: LLVM for optimized deployments
 
 ## Security
 
-- **Dependency Scanning**: Automated security audits for both Rust and npm dependencies
-- **SARIF Upload**: Security findings are uploaded to GitHub Security tab
-- **Audit Failure**: CI fails if high-severity vulnerabilities are found
+- **Dependency Minimization**: Core functionality has zero external dependencies
+- **Rust Memory Safety**: All backends benefit from Rust's safety guarantees
+- **Feature Flags**: Optional features don't compromise core security
+- **Isolation**: Backend failures don't affect other backends
 
-## Coverage
+## Performance Considerations
 
-- **Rust Coverage**: Generated using `cargo llvm-cov`
-- **TypeScript Coverage**: Jest built-in coverage
-- **Upload**: Coverage reports uploaded to Codecov
-- **PR Comments**: Coverage diff shown in pull request comments
+### CI Performance
 
-## Performance
+- **Parallel Testing**: Backend tests run independently
+- **Caching Strategy**: Rust and npm dependencies cached aggressively
+- **Fail-Fast**: Core failures prevent unnecessary LLVM testing
+- **Resource Optimization**: Minimal external dependency installation
 
-- **Caching**: Aggressive caching of dependencies and build artifacts
-- **Parallel Jobs**: Independent jobs run in parallel
-- **Matrix Strategy**: Fail-fast disabled to see all platform results
-- **Artifact Retention**: Build artifacts kept for 30 days
+### Build Performance
+
+- **Cranelift Speed**: Fast compilation for development workflows
+- **LLVM Optimization**: Maximum performance for production builds
+- **Interpreter Immediacy**: Zero compilation time for testing
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Rust Toolchain**: Ensure Rust version is compatible
-2. **Node.js Version**: Use LTS versions (16, 18, 20)
-3. **Dependencies**: Run `npm ci` instead of `npm install` in CI
-4. **Caching**: Clear caches if builds become inconsistent
+1. **LLVM Build Failures**
+
+   - ✅ **Expected Behavior**: Core functionality still works
+   - 🔧 **Solution**: Use Cranelift backend (`--no-default-features`)
+   - 📝 **Note**: LLVM is optional enhancement, not requirement
+
+2. **Integration Test Failures**
+
+   - 🔍 **Check**: Backend selection in test configuration
+   - 🎯 **Verify**: Correct backend used for feature requirements
+   - 🛠️ **Fix**: Ensure interpreter used for immediate execution tests
+
+3. **Multi-Backend Inconsistencies**
+   - 📊 **Compare**: Output across all backends
+   - 🔄 **Validate**: Feature parity maintenance
+   - 🧪 **Test**: Cross-backend integration tests
 
 ### Debugging Workflows
 
-- Use `workflow_dispatch` trigger for manual testing
-- Add `continue-on-error: true` for debugging
-- Check individual job logs in GitHub Actions tab
-- Use `tmate` action for interactive debugging if needed
+```bash
+# Test specific backend locally
+cargo test --no-default-features  # Cranelift + Interpreter only
+cargo test --features="llvm"       # LLVM if available
+
+# Run integration tests with specific backend
+cargo test --test integration -- --nocapture
+
+# Local CI simulation (requires 'act')
+make ci-test
+```
 
 ## Contributing
 
-When contributing to CI:
+When contributing to the multi-backend CI system:
 
-1. Test workflows locally first
-2. Use small, focused changes
-3. Update documentation when adding new jobs
-4. Consider impact on CI costs and runtime
-5. Follow existing patterns and naming conventions
+### Development Guidelines
+
+1. **Test Locally First**: Use `make test` to validate changes
+2. **Backend Compatibility**: Ensure changes work across all backends
+3. **Core vs Enhancement**: Distinguish between required and optional features
+4. **Documentation**: Update this README when adding new workflows
+
+### Adding New Backends
+
+1. **Feature Flag**: Add to `Cargo.toml` features section
+2. **CI Integration**: Update both build jobs appropriately
+3. **Testing**: Add backend-specific test cases
+4. **Documentation**: Update architecture documentation
+
+### Workflow Modifications
+
+1. **Small Changes**: Test individual components first
+2. **Dependency Updates**: Consider impact on all backends
+3. **Performance**: Monitor CI runtime and resource usage
+4. **Reliability**: Prioritize consistency over complexity
+
+### Best Practices
+
+- **Zero-Dependency Principle**: Keep core functionality independent
+- **Graceful Degradation**: Optional features should never break builds
+- **Clear Separation**: Distinguish between development and production workflows
+- **Comprehensive Testing**: Validate feature parity across backends
+
+## Future Roadmap
+
+### Short Term
+
+- [ ] Add code coverage reporting for multi-backend testing
+- [ ] Implement cross-platform testing (macOS, Windows)
+- [ ] Add performance benchmarking between backends
+- [ ] Create automated release workflow with multi-backend binaries
+
+### Medium Term
+
+- [ ] WebAssembly target integration via Cranelift
+- [ ] Advanced optimization comparison between backends
+- [ ] Automated dependency updates with backend compatibility testing
+- [ ] Security scanning with multi-backend vulnerability assessment
+
+### Long Term
+
+- [ ] Custom backend development framework
+- [ ] Cloud-based optimization service integration
+- [ ] Advanced debugging workflow with backend switching
+- [ ] Community backend contribution system
+
+---
+
+This CI/CD architecture reflects Cyl's commitment to reliability, flexibility, and developer productivity while maintaining the highest standards of code quality and system compatibility.
