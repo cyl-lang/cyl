@@ -5,7 +5,7 @@ edition = "2021"
 license = "MIT"
 name = "cylc"
 rust-version = "1.75.0"
-version = "3.1.0"
+version = "3.2.0"
 
 [[bin]]
 name = "cylc"
@@ -27,7 +27,8 @@ chumsky = "0.9"
 logos = "0.13"
 
 # Code generation
-inkwell = {version = "0.4", features = ["llvm14-0"]}
+# Code generation
+inkwell = {version = "0.4", features = ["llvm14-0"], optional = true}
 
 # File handling
 path-absolutize = "3.1"
@@ -35,6 +36,10 @@ walkdir = "2.4"
 
 # Standard library integration
 libc = "0.2"
+
+[features]
+default = ["llvm"]
+llvm = ["inkwell"]
 
 [dev-dependencies]
 criterion = "0.5"
