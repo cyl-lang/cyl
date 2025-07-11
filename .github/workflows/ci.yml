@@ -28,16 +28,23 @@ jobs:
             llvm-14 \
             llvm-14-dev \
             clang-14 \
-            libclang-14-dev
+            libclang-14-dev \
+            libclang-common-14-dev
 
           # Set environment variables for llvm-sys
           echo "LLVM_SYS_140_PREFIX=/usr/lib/llvm-14" >> $GITHUB_ENV
+          echo "LLVM_CONFIG_PATH=/usr/bin/llvm-config-14" >> $GITHUB_ENV
+          echo "LIBCLANG_PATH=/usr/lib/llvm-14/lib" >> $GITHUB_ENV
 
           # Verify installation
           echo "LLVM Config: $(/usr/bin/llvm-config-14 --version)"
           echo "LLVM Prefix: $(/usr/bin/llvm-config-14 --prefix)"
           echo "LLVM Libs: $(/usr/bin/llvm-config-14 --libdir)"
+          echo "LibClang Path: /usr/lib/llvm-14/lib"
           ls -la /usr/lib/llvm-14/lib/ | grep -E "libLLVM|libclang" | head -5
+
+          # Create symlinks if needed for better detection
+          sudo ln -sf /usr/bin/llvm-config-14 /usr/local/bin/llvm-config || true
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -59,11 +66,15 @@ jobs:
         working-directory: compiler
         env:
           LLVM_SYS_140_PREFIX: /usr/lib/llvm-14
+          LLVM_CONFIG_PATH: /usr/bin/llvm-config-14
+          LIBCLANG_PATH: /usr/lib/llvm-14/lib
         run: |
           echo "Environment check:"
           env | grep -i llvm
           echo "LLVM Config test:"
           /usr/bin/llvm-config-14 --version
+          echo "LibClang verification:"
+          ls -la /usr/lib/llvm-14/lib/libclang* | head -3
           echo "Starting cargo build..."
           cargo build --release
           echo "Starting tests..."

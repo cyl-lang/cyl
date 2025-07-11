@@ -65,6 +65,37 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ matrix.target }}-cargo-
 
+      # Install LLVM 14 for all release platforms
+      - name: Install LLVM 14 (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            llvm-14 \
+            llvm-14-dev \
+            clang-14 \
+            libclang-14-dev \
+            libclang-common-14-dev
+          echo "LLVM_SYS_140_PREFIX=/usr/lib/llvm-14" >> $GITHUB_ENV
+          echo "LLVM_CONFIG_PATH=/usr/bin/llvm-config-14" >> $GITHUB_ENV
+          echo "LIBCLANG_PATH=/usr/lib/llvm-14/lib" >> $GITHUB_ENV
+
+      - name: Install LLVM 14 (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install llvm@14
+          echo "LLVM_SYS_140_PREFIX=$(brew --prefix llvm@14)" >> $GITHUB_ENV
+          echo "LLVM_CONFIG_PATH=$(brew --prefix llvm@14)/bin/llvm-config" >> $GITHUB_ENV
+          echo "LIBCLANG_PATH=$(brew --prefix llvm@14)/lib" >> $GITHUB_ENV
+
+      - name: Install LLVM 14 (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          # Use chocolatey to install LLVM 14
+          choco install llvm --version=14.0.6 --force
+          echo "LLVM_SYS_140_PREFIX=C:\Program Files\LLVM" >> $env:GITHUB_ENV
+          echo "LIBCLANG_PATH=C:\Program Files\LLVM\lib" >> $env:GITHUB_ENV
+
       - name: Install npm dependencies
         run: npm ci
 

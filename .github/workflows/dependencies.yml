@@ -22,6 +22,20 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
+      # Install LLVM 14 for dependency testing
+      - name: Install LLVM 14
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            llvm-14 \
+            llvm-14-dev \
+            clang-14 \
+            libclang-14-dev \
+            libclang-common-14-dev
+          echo "LLVM_SYS_140_PREFIX=/usr/lib/llvm-14" >> $GITHUB_ENV
+          echo "LLVM_CONFIG_PATH=/usr/bin/llvm-config-14" >> $GITHUB_ENV
+          echo "LIBCLANG_PATH=/usr/lib/llvm-14/lib" >> $GITHUB_ENV
+
       - name: Update Cargo dependencies
         run: cd compiler && cargo update
 
