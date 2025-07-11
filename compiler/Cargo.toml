@@ -5,7 +5,7 @@ edition = "2021"
 license = "MIT"
 name = "cylc"
 rust-version = "1.75.0"
-version = "3.2.1"
+version = "4.0.0"
 
 [[bin]]
 name = "cylc"
@@ -27,8 +27,14 @@ chumsky = "0.9"
 logos = "0.13"
 
 # Code generation
-# Code generation
 inkwell = {version = "0.4", features = ["llvm14-0"], optional = true}
+
+# Cranelift backend (alternative to LLVM)
+cranelift-codegen = {version = "0.102", optional = true}
+cranelift-frontend = {version = "0.102", optional = true}
+cranelift-module = {version = "0.102", optional = true}
+cranelift-native = {version = "0.102", optional = true}
+cranelift-object = {version = "0.102", optional = true}
 
 # File handling
 path-absolutize = "3.1"
@@ -38,7 +44,8 @@ walkdir = "2.4"
 libc = "0.2"
 
 [features]
-default = ["llvm"]
+cranelift = ["cranelift-codegen", "cranelift-frontend", "cranelift-module", "cranelift-object", "cranelift-native"]
+default = ["cranelift"]
 llvm = ["inkwell"]
 
 [dev-dependencies]

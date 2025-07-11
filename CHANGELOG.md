@@ -1,5 +1,108 @@
 # cyl
 
+## 4.0.0
+
+### Major Changes
+
+- # Multi-Backend Architecture Implementation
+
+  ## Overview
+
+  This release introduces a complete multi-backend architecture for the Cyl programming language, providing multiple compilation and execution paths to suit different use cases and deployment scenarios.
+
+  ## New Features
+
+  ### 🏗️ Multi-Backend System
+
+  - **Cranelift Backend** (default): Pure Rust code generation for fast compilation and object file output
+  - **LLVM Backend** (optional): High-performance optimized code generation when LLVM is available
+  - **Interpreter Backend**: Direct execution engine for development, testing, and educational purposes
+
+  ### 🔧 Enhanced CLI Interface
+
+  - `--backend` flag to select compilation backend (`cranelift`, `llvm`, `interpreter`)
+  - `--quiet` flag to suppress compilation messages during execution
+  - Backend-specific optimization and debugging support
+
+  ### 🎯 Cranelift Integration
+
+  - Complete pure Rust compilation pipeline using Cranelift
+  - Object file generation with proper function compilation
+  - No external dependencies required for basic compilation
+  - Fast compilation times suitable for development workflows
+
+  ### 💻 Full Interpreter Implementation
+
+  - Complete execution engine supporting all language features:
+    - Variable declarations and assignments
+    - Arithmetic operations (`+`, `-`, `*`, `/`)
+    - Boolean comparisons (`==`, `!=`)
+    - Control flow (`if` statements)
+    - Function calls (`print`, `println`, `print_int`)
+    - String and numeric literals
+  - Direct code execution without intermediate files
+  - Comprehensive error handling and diagnostics
+
+  ### 🧪 Enhanced Testing Infrastructure
+
+  - Integration test framework with backend-specific testing
+  - Support for expected output validation
+  - Automatic test discovery for valid and invalid fixtures
+  - CI/CD compatibility with multiple backend testing
+
+  ## Technical Improvements
+
+  ### Architecture
+
+  - Modular backend design allowing easy addition of new compilation targets
+  - Consistent AST processing across all backends
+  - Unified error handling and diagnostics system
+  - Clean separation between compilation and execution phases
+
+  ### Performance
+
+  - Cranelift backend provides fast compilation for development cycles
+  - Interpreter enables immediate code execution for rapid prototyping
+  - LLVM backend available for production optimizations
+
+  ### Developer Experience
+
+  - Quiet mode for clean test output and CI integration
+  - Comprehensive error messages with proper context
+  - Backend selection based on use case requirements
+  - Consistent behavior across all execution paths
+
+  ## Breaking Changes
+
+  - Default backend changed from LLVM to Cranelift (LLVM still available via `--backend llvm`)
+  - CLI interface updated with new backend selection options
+  - Some internal APIs changed to support multi-backend architecture
+
+  ## Migration Guide
+
+  - Update any CI scripts to specify backend explicitly if LLVM behavior is required
+  - Use `--backend interpreter` for educational or testing scenarios requiring immediate execution
+  - Use `--backend cranelift` (default) for fast development compilation
+  - Use `--backend llvm` for production builds requiring maximum optimization
+
+  ## Compatibility
+
+  - All existing Cyl language features remain supported
+  - Source code compatibility maintained across all backends
+  - Test suite passes on all supported backends
+  - Feature parity maintained between backends where applicable
+
+  ## Future Roadmap
+
+  - Additional optimization passes for Cranelift backend
+  - WebAssembly target support via Cranelift
+  - Enhanced debugging information generation
+  - Performance profiling and benchmarking tools
+
+  ***
+
+  This release represents a significant milestone in Cyl's development, providing a flexible, performant, and developer-friendly compilation system that can adapt to various use cases from education to production deployment.
+
 ## 3.2.1
 
 ### Patch Changes
