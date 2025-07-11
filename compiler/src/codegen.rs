@@ -877,8 +877,7 @@ impl<'ctx> LLVMCodegen<'ctx> {
                             // Void function - this should not be used in expressions that need a value
                             Err(CylError::CodeGenError {
                                 message: format!(
-                                    "Function '{}' returns void and cannot be used in expressions",
-                                    function_name
+                                    "Function '{function_name}' returns void and cannot be used in expressions"
                                 ),
                             })
                         }
@@ -1060,12 +1059,12 @@ impl<'ctx> LLVMCodegen<'ctx> {
                             *variable
                         } else {
                             return Err(CylError::CodeGenError {
-                                message: format!("Variable '{}' is not a struct", var_name),
+                                message: format!("Variable '{var_name}' is not a struct"),
                             });
                         }
                     } else {
                         return Err(CylError::CodeGenError {
-                            message: format!("Unknown variable '{}'", var_name),
+                            message: format!("Unknown variable '{var_name}'"),
                         });
                     }
                 } else {
@@ -1115,11 +1114,11 @@ impl<'ctx> LLVMCodegen<'ctx> {
                 }
 
                 Err(CylError::CodeGenError {
-                    message: format!("Field '{}' not found in any struct type", property),
+                    message: format!("Field '{property}' not found in any struct type"),
                 })
             }
             _ => Err(CylError::CodeGenError {
-                message: format!("Expression type not implemented: {:?}", expression),
+                message: format!("Expression type not implemented: {expression:?}"),
             }),
         }
     }
@@ -1195,7 +1194,7 @@ impl<'ctx> LLVMCodegen<'ctx> {
                 }
             }
             _ => Err(CylError::CodeGenError {
-                message: format!("Type not implemented: {:?}", cyl_type),
+                message: format!("Type not implemented: {cyl_type:?}"),
             }),
         }
     }

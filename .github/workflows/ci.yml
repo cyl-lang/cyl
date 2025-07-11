@@ -36,7 +36,23 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y llvm-15 llvm-15-dev clang-15 pkg-config
+          sudo apt-get install -y pkg-config
+
+      # Comprehensive LLVM 15 installation and setup
+      - name: Install and configure LLVM 15
+        run: |
+          # Install LLVM 15 packages
+          sudo apt-get install -y llvm-15 llvm-15-dev llvm-15-tools clang-15 libclang-15-dev
+
+          # Set up environment variables for llvm-sys
+          echo "LLVM_SYS_150_PREFIX=/usr/lib/llvm-15" >> $GITHUB_ENV
+          echo "LLVM_CONFIG_PATH=/usr/bin/llvm-config-15" >> $GITHUB_ENV
+          echo "LIBCLANG_PATH=/usr/lib/llvm-15/lib" >> $GITHUB_ENV
+
+          # Verify installation
+          /usr/bin/llvm-config-15 --version
+          ls -la /usr/lib/llvm-15/
+          ls -la /usr/lib/llvm-15/lib/
 
       # Cache Rust dependencies aggressively
       - name: Cache Rust dependencies
@@ -51,13 +67,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-
 
-      # Install LLVM 15 for Ubuntu
-      - name: Install LLVM
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y llvm-15 llvm-15-dev clang-15
-          echo "LLVM_SYS_150_PREFIX=/usr/lib/llvm-15" >> $GITHUB_ENV
-
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -66,16 +75,28 @@ jobs:
       # Fast check before full build
       - name: Cargo check
         working-directory: compiler
+        env:
+          LLVM_SYS_150_PREFIX: /usr/lib/llvm-15
+          LLVM_CONFIG_PATH: /usr/bin/llvm-config-15
+          LIBCLANG_PATH: /usr/lib/llvm-15/lib
         run: cargo check
 
       # Build release binary for integration tests
       - name: Build release binary
         working-directory: compiler
+        env:
+          LLVM_SYS_150_PREFIX: /usr/lib/llvm-15
+          LLVM_CONFIG_PATH: /usr/bin/llvm-config-15
+          LIBCLANG_PATH: /usr/lib/llvm-15/lib
         run: cargo build --release
 
       # Main Rust workflow with optimizations
       - name: Rust tests and linting
         working-directory: compiler
+        env:
+          LLVM_SYS_150_PREFIX: /usr/lib/llvm-15
+          LLVM_CONFIG_PATH: /usr/bin/llvm-config-15
+          LIBCLANG_PATH: /usr/lib/llvm-15/lib
         run: |
           # Run tests first (fast feedback)
           cargo test
