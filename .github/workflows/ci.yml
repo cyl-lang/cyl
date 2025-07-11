@@ -123,7 +123,7 @@ jobs:
       # Minimal LLVM installation
       - name: Install LLVM (Windows)
         run: |
-          choco install llvm --version=15.0.7 -y --no-progress
+          choco install llvm --version=15.0.7 -y --no-progress --force
           echo "LLVM_SYS_150_PREFIX=C:\Program Files\LLVM" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Install Rust

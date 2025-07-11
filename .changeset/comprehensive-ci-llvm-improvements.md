@@ -10,8 +10,9 @@ Optimized CI workflows for cost efficiency and LLVM compilation
 
 - Added multi-strategy LLVM 15 installation for Ubuntu CI
 - Comprehensive environment variable configuration for llvm-sys
-- Added Windows CI support with automated LLVM installation
+- Added Windows CI support with automated LLVM installation and version downgrade
 - Enhanced debugging output for troubleshooting compilation issues
+- Fixed Windows LLVM version conflicts with `--force` flag for Chocolatey
 
 ### New Development Tools
 
@@ -32,5 +33,6 @@ Optimized CI workflows for cost efficiency and LLVM compilation
 - **Library Paths**: Configured LD_LIBRARY_PATH and PKG_CONFIG_PATH for compilation
 - **Cross-platform Support**: Both Ubuntu Linux and Windows CI jobs
 - **Dependency Verification**: Pre-compilation checks for critical LLVM dependencies
+- **Windows LLVM Management**: Force downgrade from newer LLVM versions to required v15.0.7
 
 This resolves the `LLVM_SYS_NOT_FOUND` errors that were preventing successful CI builds and provides a robust, multi-platform compilation environment for the Cyl programming language.
