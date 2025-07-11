@@ -51,10 +51,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-
 
-      # Minimal LLVM setup
-      - name: Setup LLVM
+      # Install LLVM 15 for Ubuntu
+      - name: Install LLVM
         run: |
-          echo "LLVM_SYS_150_PREFIX=$(llvm-config-15 --prefix)" >> $GITHUB_ENV
+          sudo apt-get update
+          sudo apt-get install -y llvm-15 llvm-15-dev clang-15
+          echo "LLVM_SYS_150_PREFIX=/usr/lib/llvm-15" >> $GITHUB_ENV
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -107,52 +109,11 @@ jobs:
             echo "No TypeScript changes detected, skipping tests"
           fi
 
-  # Windows testing - only when needed
-  test-windows:
-    name: Windows Test
-    runs-on: windows-latest
-    # Only run on master pushes or when explicitly requested
-    if: |
-      github.ref == 'refs/heads/master' ||
-      contains(github.event.head_commit.message, '[test-windows]')
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      # Minimal LLVM installation
-      - name: Install LLVM (Windows)
-        run: |
-          choco install llvm --version=15.0.7 -y --no-progress --force
-          echo "LLVM_SYS_150_PREFIX=C:\Program Files\LLVM" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache Rust (Windows)
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            compiler/target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
-      # Minimal Windows testing
-      - name: Test (Windows)
-        working-directory: compiler
-        run: |
-          cargo check
-          cargo test
-
-      - name: Setup Node.js (Windows)
-        uses: actions/setup-node@v4
-        with:
-          node-version: "18"
-          cache: "npm"
-
-      - name: Test TypeScript (Windows)
-        run: |
-          npm ci --prefer-offline --no-audit
-          npm run test:design
+  # Commented out Windows testing to minimize costs
+  # Windows job has been disabled to reduce CI expenses
+  # To enable: uncomment and add [test-windows] to commit message
+  # test-windows:
+  #   name: Windows Test  
+  #   runs-on: windows-latest
+  #   if: contains(github.event.head_commit.message, '[test-windows]')
+  #   steps: [...]

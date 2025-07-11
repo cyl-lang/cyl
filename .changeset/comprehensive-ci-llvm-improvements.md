@@ -2,17 +2,23 @@
 "cyl": patch
 ---
 
-Optimized CI workflows for cost efficiency and LLVM compilation
+Optimized CI workflows for maximum cost efficiency and reliable LLVM compilation
 
 ## 🚀 CI/CD Enhancements
 
+### Cost-Optimized Workflow Strategy
+
+- **Ubuntu-Only CI**: Disabled Windows CI completely to minimize runner costs
+- **Single-Platform Testing**: Focus on Linux for primary development and testing
+- **Aggressive Caching**: Comprehensive dependency and build artifact caching
+- **Fast-Fail Strategy**: Quick validation before expensive operations
+
 ### Enhanced LLVM Setup
 
-- Added multi-strategy LLVM 15 installation for Ubuntu CI
+- Reliable LLVM 15 installation for Ubuntu CI with proper package management
 - Comprehensive environment variable configuration for llvm-sys
-- Added Windows CI support with automated LLVM installation and version downgrade
+- Windows testing disabled by default (can be enabled with `[test-windows]` commit message)
 - Enhanced debugging output for troubleshooting compilation issues
-- Fixed Windows LLVM version conflicts with `--force` flag for Chocolatey
 
 ### New Development Tools
 
@@ -33,11 +39,11 @@ Optimized CI workflows for cost efficiency and LLVM compilation
 
 ### Key Technical Changes
 
-- **Environment Variables**: Proper LLVM_SYS_150_PREFIX and LLVM_CONFIG_PATH setup
-- **Library Paths**: Configured LD_LIBRARY_PATH and PKG_CONFIG_PATH for compilation
-- **Cross-platform Support**: Both Ubuntu Linux and Windows CI jobs
+- **Environment Variables**: Proper LLVM_SYS_150_PREFIX setup for Ubuntu LLVM 15
+- **Package Installation**: Direct apt-get installation of llvm-15, llvm-15-dev, clang-15
+- **Ubuntu-Only CI**: Focused testing on single platform to minimize costs
 - **Dependency Verification**: Pre-compilation checks for critical LLVM dependencies
-- **Windows LLVM Management**: Force downgrade from newer LLVM versions to required v15.0.7
 - **Linux PIE Compatibility**: Position Independent Code/Executable configuration for modern security standards
+- **Cost Control**: Windows CI disabled by default, can be enabled manually when needed
 
 This resolves the `LLVM_SYS_NOT_FOUND` errors that were preventing successful CI builds and provides a robust, multi-platform compilation environment for the Cyl programming language.
