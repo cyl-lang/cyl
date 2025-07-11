@@ -51,21 +51,7 @@ jobs:
           node-version: "20"
           cache: "npm"
 
-      - name: Cache Rust dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-            compiler/target/
-          key: ${{ runner.os }}-${{ matrix.target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.target }}-cargo-
-
-      # Install LLVM 14 for all release platforms
+      # Install LLVM 14 for each platform
       - name: Install LLVM 14 (Ubuntu)
         if: runner.os == 'Linux'
         run: |
@@ -91,10 +77,24 @@ jobs:
       - name: Install LLVM 14 (Windows)
         if: runner.os == 'Windows'
         run: |
-          # Use chocolatey to install LLVM 14
-          choco install llvm --version=14.0.6 --force
+          choco install llvm --version=14.0.6 --allow-downgrade
           echo "LLVM_SYS_140_PREFIX=C:\Program Files\LLVM" >> $env:GITHUB_ENV
+          echo "LLVM_CONFIG_PATH=C:\Program Files\LLVM\bin\llvm-config.exe" >> $env:GITHUB_ENV
           echo "LIBCLANG_PATH=C:\Program Files\LLVM\lib" >> $env:GITHUB_ENV
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+            compiler/target/
+          key: ${{ runner.os }}-${{ matrix.target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.target }}-cargo-
 
       - name: Install npm dependencies
         run: npm ci
