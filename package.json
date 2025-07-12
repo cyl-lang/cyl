@@ -26,7 +26,8 @@
         "compiler:install": "cd compiler && cargo install --path .",
         "setup": "npm install && cd compiler && cargo build",
         "version": "./scripts/update-version.sh",
-        "version:changeset-only": "npx changeset version"
+        "version:changeset-only": "npx changeset version",
+        "clean:empty": "./scripts/cleanup-empty-files.sh"
     },
     "devDependencies": {
         "@babel/preset-env": "^7.28.0",
