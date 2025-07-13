@@ -1,5 +1,5 @@
 {
-    "name": "cyl",
+    "name": "cyl-lang",
     "version": "0.4.1",
     "description": "Cyl programming language with Rust compiler backend and TypeScript design tools",
     "main": "design/src/index.ts",
@@ -16,6 +16,10 @@
         "test:design:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
         "test:compiler": "cd compiler && cargo test",
         "test:compiler:cyl": "cargo run --manifest-path compiler/Cargo.toml -- test",
+        "test:coverage": "npm run test:design:coverage && npm run test:coverage:rust",
+        "test:coverage:rust": "cd compiler && cargo tarpaulin --out xml --output-dir ../coverage",
+        "coverage:setup": "cargo install cargo-tarpaulin",
+        "coverage:clean": "rm -rf coverage && mkdir -p coverage",
         "pregrammar:validate": "npm run build:design",
         "grammar:validate": "node compiler/dist/src/tools/grammar-validator.js",
         "preast:generate": "npm run build:design",
@@ -32,7 +36,11 @@
         "build:all": "npm run build && npm run docs:generate",
         "version": "./scripts/update-version.sh",
         "version:changeset-only": "npx changeset version",
-        "clean:empty": "./scripts/cleanup-empty-files.sh"
+        "clean:empty": "./scripts/cleanup-empty-files.sh",
+        "vercel:build": "npm run docs:build",
+        "vercel:dev": "npm run docs:dev",
+        "vercel:deploy": "npx vercel --prod",
+        "vercel:deploy:preview": "npx vercel"
     },
     "devDependencies": {
         "@babel/preset-env": "^7.28.0",
@@ -46,6 +54,7 @@
         "ts-jest": "^29.4.0",
         "ts-node": "^10.9.2",
         "typescript": "^5.8.3",
+        "vercel": "^32.0.1",
         "yaml": "^2.8.0"
     },
     "dependencies": {

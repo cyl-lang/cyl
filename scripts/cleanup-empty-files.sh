@@ -27,6 +27,18 @@ EXCLUDE_DIRS=(
     "build"
     ".cargo"
     ".rustup"
+    "venv"
+    "env"
+    ".venv"
+    ".env"
+    "virtualenv"
+    "__pycache__"
+    ".pytest_cache"
+    "site-packages"
+    "lib/python*"
+    "include/python*"
+    "Scripts"
+    "pyvenv.cfg"
 )
 
 # File patterns to exclude (even if empty)
@@ -35,6 +47,12 @@ EXCLUDE_PATTERNS=(
     ".gitkeep"
     ".npmkeep"
     ".cargo-ok"
+    "*.pyc"
+    "*.pyo"
+    "*.pyd"
+    "__init__.py"
+    "pyvenv.cfg"
+    "pip-selfcheck.json"
 )
 
 # Parse command line arguments
@@ -53,7 +71,10 @@ while [[ $# -gt 0 ]]; do
             echo ""
             echo "This script deletes all empty files in the Cyl project while preserving:"
             echo "  - Files in build/cache directories (node_modules, target, etc.)"
+            echo "  - Python virtual environments (venv, env, .venv, etc.)"
+            echo "  - Python cache directories (__pycache__, .pytest_cache, etc.)"
             echo "  - Placeholder files (*.keep, .gitkeep, etc.)"
+            echo "  - Important Python files (__init__.py, pyvenv.cfg, etc.)"
             echo "  - Git and package manager metadata"
             exit 0
             ;;
