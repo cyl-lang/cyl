@@ -214,7 +214,10 @@ fn compile_and_run(file: &PathBuf, _opt_level: u8, _debug: bool, backend: &str, 
                         
                         // For now, also run with interpreter to get output
                         let mut interpreter = Interpreter::new();
-                        interpreter.run(&program);
+                        if let Err(e) = interpreter.run(&program) {
+                            eprintln!("Interpreter error: {e}");
+                            std::process::exit(1);
+                        }
                     }
                     Err(e) => {
                         eprintln!("LLVM compilation error: {e}");
@@ -247,7 +250,10 @@ fn compile_and_run(file: &PathBuf, _opt_level: u8, _debug: bool, backend: &str, 
                         
                         // Always run with interpreter to get output
                         let mut interpreter = Interpreter::new();
-                        interpreter.run(&program);
+                        if let Err(e) = interpreter.run(&program) {
+                            eprintln!("Interpreter error: {e}");
+                            std::process::exit(1);
+                        }
                     }
                     Err(e) => {
                         // If Cranelift compilation fails due to unimplemented features,
@@ -255,7 +261,10 @@ fn compile_and_run(file: &PathBuf, _opt_level: u8, _debug: bool, backend: &str, 
                         if e.to_string().contains("not implemented") || e.to_string().contains("String literals") {
                             eprintln!("Cranelift compilation failed due to unimplemented features, falling back to interpreter...");
                             let mut interpreter = Interpreter::new();
-                            interpreter.run(&program);
+                            if let Err(e) = interpreter.run(&program) {
+                                eprintln!("Interpreter error: {e}");
+                                std::process::exit(1);
+                            }
                         } else {
                             eprintln!("Cranelift compilation error: {e}");
                             std::process::exit(1);
@@ -272,7 +281,10 @@ fn compile_and_run(file: &PathBuf, _opt_level: u8, _debug: bool, backend: &str, 
         "interpreter" | _ => {
             // Use interpreter (fallback for any unrecognized backend)
             let mut interpreter = Interpreter::new();
-            interpreter.run(&program);
+            if let Err(e) = interpreter.run(&program) {
+                eprintln!("Interpreter error: {e}");
+                std::process::exit(1);
+            }
         }
     }
 

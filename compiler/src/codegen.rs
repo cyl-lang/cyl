@@ -210,6 +210,13 @@ impl<'ctx> LLVMCodegen<'ctx> {
     }
 
     fn compile_function(&mut self, function: &FunctionDeclaration) -> Result<(), CylError> {
+        // Check for unsupported features
+        if function.is_async {
+            return Err(CylError::CodeGenError {
+                message: "Async functions are not yet implemented".to_string(),
+            });
+        }
+
         let fn_value = self.functions[&function.name];
         let entry_block = self.context.append_basic_block(fn_value, "entry");
         self.builder.position_at_end(entry_block);

@@ -1,5 +1,143 @@
 # cyl
 
+## 0.4.1
+
+### Patch Changes
+
+- # Documentation System Implementation
+
+  ## 🎯 Overview
+
+  Added a comprehensive documentation generation system for the Cyl programming language, providing automated documentation extraction from source code and examples with a modern, accessible web interface.
+
+  ## ✨ New Features
+
+  ### 📚 Documentation Generator (`docs/generator/`)
+
+  - **Python-based documentation generator** using Jinja2 templating
+  - **Automated syntax extraction** from Rust parser source code (`compiler/src/parser/`)
+  - **Example code integration** from `examples/` directory
+  - **Changelog parsing** from `CHANGELOG.md`
+  - **Standard library documentation** extraction
+  - **Backend information** compilation
+
+  ### 🎨 Modern Web Interface
+
+  - **Responsive design** with mobile-first approach
+  - **Syntax highlighting** for code examples
+  - **Interactive navigation** with collapsible sections
+  - **Search functionality** across documentation
+  - **Accessibility features** including focus management and ARIA labels
+
+  ### 🖼️ Enhanced UI/UX
+
+  - **Rounded focus rings** for improved accessibility (8px-16px border radius)
+  - **Enhanced icon visibility** with shadow/glow effects
+  - **Larger, more prominent icons** (20% size increase)
+  - **Feature icons** with multi-layered shadows and hover animations
+  - **Smooth transitions** and micro-interactions
+
+  ### 📋 Content Organization
+
+  - **Syntax Reference** - Comprehensive language syntax documentation
+  - **Examples Gallery** - Interactive code examples with syntax highlighting
+  - **Changelog** - Version history and release notes
+  - **Backends** - Compilation target information
+  - **Standard Library** - Built-in function documentation
+
+  ## 🔧 Technical Implementation
+
+  ### Build System Integration
+
+  - **npm scripts** for documentation workflow:
+    - `docs:setup` - Virtual environment and dependency installation
+    - `docs:generate` - Documentation generation from source
+    - `docs:dev` - Development server with auto-regeneration
+    - `docs:build` - Full documentation build process
+
+  ### Asset Management
+
+  - **External CSS/JS assets** properly separated from Python code
+  - **Favicon integration** with PNG and ICO support
+  - **Responsive image handling**
+  - **Modern CSS features** including CSS Grid and Flexbox
+
+  ### Python Environment
+
+  - **Virtual environment** isolation for Python dependencies
+  - **Jinja2 templating** for dynamic content generation
+  - **Modular code structure** with reusable functions
+  - **Error handling** and validation
+
+  ## 🚀 Developer Experience
+
+  ### Automated Workflow
+
+  - **Source code parsing** automatically extracts syntax rules
+  - **Example validation** ensures code examples are current
+  - **Template-driven generation** allows easy customization
+  - **Hot reload development** server for rapid iteration
+
+  ### Configuration Management
+
+  - **JSON configuration** for site metadata and navigation
+  - **Template inheritance** for consistent page structure
+  - **Asset optimization** for production deployment
+  - **Cross-platform compatibility** (macOS, Linux, Windows)
+
+  ## 📖 Documentation Coverage
+
+  ### Syntax Documentation
+
+  - **49 comprehensive syntax rules** across 7 categories
+  - **Parser integration** with automatic rule extraction
+  - **Code examples** for each syntax feature
+  - **Cross-references** between related concepts
+
+  ### Example Library
+
+  - **6 interactive examples** with full source code
+  - **Syntax highlighting** for better readability
+  - **Copy-to-clipboard** functionality
+  - **Mobile-responsive** code display
+
+  ### Changelog Integration
+
+  - **13 changelog entries** with proper formatting
+  - **Version history** tracking
+  - **Release note** organization
+  - **Semantic versioning** support
+
+  ## 🎯 Accessibility Improvements
+
+  - **Enhanced focus indicators** with rounded borders and glow effects
+  - **Keyboard navigation** support throughout interface
+  - **Screen reader optimization** with proper ARIA labels
+  - **Color contrast compliance** for text readability
+  - **Responsive typography** scaling
+
+  ## 🔮 Future Extensibility
+
+  - **Modular template system** for easy customization
+  - **Plugin architecture** ready for additional content types
+  - **API documentation** integration capability
+  - **Multi-language** support foundation
+  - **Theme system** preparation
+
+  This documentation system establishes a solid foundation for the Cyl programming language's public-facing documentation, providing both developers and users with comprehensive, accessible, and visually appealing resources.
+
+## 0.4.0
+
+### Minor Changes
+
+- **Documentation System**: Added comprehensive documentation generation system with Python-based generator, modern web interface, and enhanced UI/UX
+- **Enhanced Focus Accessibility**: Implemented rounded focus rings with glow effects for better accessibility
+- **Icon Enhancements**: Increased icon visibility with shadow/glow effects and larger sizes
+- **Responsive Design**: Added mobile-first responsive documentation with interactive navigation
+- **Automated Content Extraction**: Implemented automated syntax rule extraction from Rust parser source code
+- **Example Integration**: Added interactive code examples with syntax highlighting
+- **Build System Integration**: Added npm scripts for documentation workflow (setup, generate, dev, build)
+
 ## 4.0.0
 
 ### Major Changes

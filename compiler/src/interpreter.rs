@@ -30,12 +30,17 @@ impl Interpreter {
         }
     }
 
-    pub fn run(&mut self, program: &Program) {
+    pub fn run(&mut self, program: &Program) -> Result<(), String> {
         // Store function definitions
         let mut functions = HashMap::new();
         
         for stmt in &program.statements {
             if let Statement::Function(func) = stmt {
+                // Check for unsupported features
+                if func.is_async {
+                    return Err("Async functions are not yet implemented".to_string());
+                }
+                
                 if let Err(e) = self.infer_parameter_types(func) {
                     eprintln!("[error] {e}");
                 }
@@ -54,6 +59,8 @@ impl Interpreter {
         if let Some(main_func) = functions.get("main") {
             self.eval_block(&main_func.body).ok();
         }
+        
+        Ok(())
     }
 
     fn infer_parameter_types(&mut self, func: &FunctionDeclaration) -> Result<(), String> {

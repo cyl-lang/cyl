@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyl Compilation Backends</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <div class="nav-brand">
+                <img src="favicon.ico" alt="Cyl" width="24" height="24" style="margin-right: 8px;">
+                Cyl
+            </div>
+            
+            <button class="hamburger-menu" aria-label="Toggle navigation menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="syntax.html">Reference</a>
+                <a href="examples.html">Examples</a>
+                <a href="changelog.html">Changelog</a>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <div class="container">
+            <h1>Compilation Backends</h1>
+            <p><a href="index.html">← Back to Home</a></p>
+
+            <div class="grid">
+                {% for backend in backends %}
+                    <div class="card">
+                        <h3>{{ backend.name }}</h3>
+                        <p>{{ backend.description }}</p>
+                        
+                        <h4>Features:</h4>
+                        <ul>
+                            {% for feature in backend.features %}
+                                <li>{{ feature }}</li>
+                            {% endfor %}
+                        </ul>
+                        
+                        <div class="code-block">{{ backend.usage }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </main>
+
+    <script src="assets/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "folders": [
+    {
+      "path": "."
+    },
+    {
+      "path": "./docs",
+      "name": "Documentation"
+    },
+    {
+      "path": "./compiler",
+      "name": "Compiler"
+    },
+    {
+      "path": "./tests",
+      "name": "Tests"
+    },
+    {
+      "path": "./design",
+      "name": "Design"
+    }
+  ],
+  "settings": {}
+}

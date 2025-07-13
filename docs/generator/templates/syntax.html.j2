@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Reference - {{ config.site.title or 'Cyl' }}</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <a href="index.html" class="logo">
+                    <img src="favicon.png" alt="{{ config.site.title or 'Cyl' }}" width="24" height="24">
+                    <span>{{ config.site.title or 'Cyl' }}</span>
+                </a>
+                
+                <button class="hamburger-menu" aria-label="Toggle navigation menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                
+                <div class="nav-links">
+                    <a href="syntax.html" class="active">Reference</a>
+                    <a href="examples.html">Examples</a>
+                    <a href="changelog.html">Changelog</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <div class="page-header">
+                <h1>Language Reference</h1>
+                <p>Complete syntax and feature documentation for {{ config.site.title or 'Cyl' }}</p>
+            </div>
+
+            <!-- Quick Navigation -->
+            <nav class="quick-nav">
+                <h2>Quick Navigation</h2>
+                <div class="category-nav">
+                    {% if syntax_categories %}
+                    {% for category in syntax_categories %}
+                    <div class="category-nav-item">
+                        <a href="#{{ category.id }}" class="category-link">
+                            <svg class="icon icon-{{ category.icon }}">
+                                <use href="#icon-{{ category.icon }}"></use>
+                            </svg>
+                            <span>{{ category.name }}</span>
+                        </a>
+                        <button class="expand-toggle" data-target="{{ category.id }}-items" aria-label="Show {{ category.name }} items">
+                            <svg class="icon icon-chevron-down">
+                                <use href="#icon-chevron-down"></use>
+                            </svg>
+                        </button>
+                        <div class="sub-nav" id="{{ category.id }}-items" style="display: none;">
+                            {% set category_rules = syntax | selectattr('category', 'equalto', category.id) | list %}
+                            {% for rule in category_rules %}
+                            <a href="#{{ rule.name | lower | replace(' ', '-') }}" class="sub-nav-link">{{ rule.name }}</a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </nav>
+
+            {% if syntax %}
+            
+            <!-- Group syntax rules by category -->
+            {% set syntax_by_category = syntax | groupby('category_name') %}
+            
+            {% for category_name, category_rules in syntax_by_category %}
+            {% set category_info = syntax_categories | selectattr('name', 'equalto', category_name) | first %}
+            <section class="syntax-category" id="{{ category_info.id if category_info else (category_name | lower | replace(' ', '-')) }}">
+                <div class="category-header">
+                    <h2 class="category-title">
+                        {% if category_info %}
+                        <svg class="icon icon-{{ category_info.icon }}">
+                            <use href="#icon-{{ category_info.icon }}"></use>
+                        </svg>
+                        {% endif %}
+                        {{ category_name }}
+                    </h2>
+                    {% if category_info %}
+                    <p class="category-description">{{ category_info.description }}</p>
+                    {% endif %}
+                </div>
+                <div class="syntax-blocks-grid">
+                    {% for rule in category_rules %}
+                    <div class="syntax-block" id="{{ rule.name | lower | replace(' ', '-') }}">
+                        <div class="syntax-block-header">
+                            <h3 class="syntax-title">{{ rule.name }}</h3>
+                            <span class="syntax-type">{{ rule.type | title }}</span>
+                        </div>
+                        <div class="syntax-content">
+                            <div class="syntax-code">
+                                <pre><code>{{ rule.syntax }}</code></pre>
+                            </div>
+                            <div class="syntax-description">
+                                <p>{{ rule.description }}</p>
+                            </div>
+                            {% if rule.examples %}
+                            <div class="syntax-examples">
+                                <h4>Examples:</h4>
+                                {% for example in rule.examples %}
+                                <pre><code>{{ example }}</code></pre>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            {% if rule.heritage %}
+                            <div class="syntax-heritage">
+                                <p><strong>Heritage:</strong> {{ rule.heritage }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endfor %}
+            {% endif %}
+            
+            <div class="syntax-quick-reference">
+                <h2>Quick Reference</h2>
+                <div class="quick-examples-grid">
+                    <div class="quick-example">
+                        <h4>Variables</h4>
+                        <div class="code">
+                            <pre><code>let name: string = "Cyl";
+let count: i32 = 42;</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="quick-example">
+                        <h4>Functions</h4>
+                        <div class="code">
+                            <pre><code>fn greet(name: string) -> string {
+    return "Hello, " + name + "!";
+}</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="quick-example">
+                        <h4>Control Flow</h4>
+                        <div class="code">
+                            <pre><code>if count > 0 {
+    print("Positive");
+} else {
+    print("Zero or negative");
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="empty-state">
+                <p>No syntax information available. Check that compiler source files exist.</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <p>{{ config.footer.copyright or '&copy; 2025 Cyl Programming Language' }}</p>
+                
+                {% if config.footer.links %}
+                <div class="footer-links">
+                    {% for link in config.footer.links %}
+                    <a href="{{ link.url }}" class="footer-link">
+                        {% if link.icon %}
+                        <svg class="icon icon-{{ link.icon }}" width="16" height="16">
+                            <use href="#icon-{{ link.icon }}"></use>
+                        </svg>
+                        {% endif %}
+                        {{ link.name }}
+                    </a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                {% if config.footer.license %}
+                <div class="footer-license">
+                    <a href="{{ config.footer.license.url }}" class="license-link">
+                        <svg class="icon icon-scale" width="14" height="14">
+                            <use href="#icon-scale"></use>
+                        </svg>
+                        {{ config.footer.license.name }}
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </footer>
+
+    <!-- Include SVG Icon Definitions (same as index.html) -->
+    <svg style="display: none;">
+        <defs>
+            <!-- Navigation Icons -->
+            <symbol id="icon-github" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
+            </symbol>
+            <symbol id="icon-book-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+            </symbol>
+            <symbol id="icon-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </symbol>
+            <symbol id="icon-scale" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 11c0 2.5-1.5 4.5-4 4.5s-4-2-4-4.5 1.5-4.5 4-4.5 4 2 4 4.5z"/>
+                <path d="M12 2v4"/>
+                <path d="M12 18v4"/>
+                <path d="M4.93 4.93l2.83 2.83"/>
+                <path d="M16.24 16.24l2.83 2.83"/>
+                <path d="M2 12h4"/>
+                <path d="M18 12h4"/>
+                <path d="M4.93 19.07l2.83-2.83"/>
+                <path d="M16.24 7.76l2.83-2.83"/>
+            </symbol>
+            
+            <!-- Syntax Category Icons -->
+            <symbol id="icon-file-text" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2Z"/>
+                <polyline points="14,2 14,8 20,8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <polyline points="10,9 9,9 8,9"/>
+            </symbol>
+            <symbol id="icon-zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="13,2 3,14 12,14 11,22 21,10 12,10 13,2"/>
+            </symbol>
+            <symbol id="icon-calculator" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="2" width="16" height="20" rx="2"/>
+                <line x1="8" y1="6" x2="16" y2="6"/>
+                <line x1="16" y1="14" x2="16" y2="14"/>
+                <line x1="8" y1="14" x2="8" y2="14"/>
+                <line x1="12" y1="14" x2="12" y2="14"/>
+                <line x1="8" y1="18" x2="8" y2="18"/>
+                <line x1="12" y1="18" x2="12" y2="18"/>
+            </symbol>
+            <symbol id="icon-git-branch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="6" y1="3" x2="6" y2="15"/>
+                <circle cx="18" cy="6" r="3"/>
+                <circle cx="6" cy="18" r="3"/>
+                <path d="M18 9a9 9 0 0 1-9 9"/>
+            </symbol>
+            <symbol id="icon-tag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                <line x1="7" y1="7" x2="7.01" y2="7"/>
+            </symbol>
+            <symbol id="icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+            </symbol>
+            <symbol id="icon-message-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+            </symbol>
+            <symbol id="icon-chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6,9 12,15 18,9"/>
+            </symbol>
+            <symbol id="icon-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <line x1="3" y1="12" x2="21" y2="12"/>
+                <line x1="3" y1="18" x2="21" y2="18"/>
+            </symbol>
+            <symbol id="icon-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+            </symbol>
+        </defs>
+    </svg>
+
+    <script src="assets/script.js"></script>
+</body>
+</html>

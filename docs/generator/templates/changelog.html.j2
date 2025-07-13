@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Changelog - {{ config.site.title or 'Cyl' }}</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <a href="index.html" class="logo">
+                    <img src="favicon.png" alt="{{ config.site.title or 'Cyl' }}" width="24" height="24">
+                    <span>{{ config.site.title or 'Cyl' }}</span>
+                </a>
+                
+                <button class="hamburger-menu" aria-label="Toggle navigation menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                
+                <div class="nav-links">
+                    <a href="syntax.html">Reference</a>
+                    <a href="examples.html">Examples</a>
+                    <a href="changelog.html" class="active">Changelog</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <div class="page-header">
+                <h1>Changelog</h1>
+                <p>Version history and release notes</p>
+            </div>
+
+            {% if changelog.toc %}
+            <div class="changelog-toc">
+                <h2>Version History</h2>
+                <div class="toc-grid-wide">
+                    {% for version in changelog.toc %}
+                    <div class="toc-item-wide">
+                        <a href="#{{ version.anchor }}" class="toc-link-wide">
+                            <h3>{{ version.version }}</h3>
+                            <p class="toc-date">{{ version.date }}</p>
+                            <p class="toc-summary">{{ version.summary }}</p>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if changelog.versions %}
+                <div class="changelog-content">
+                    {% for version in changelog.versions %}
+                    <section id="{{ version.anchor }}" class="changelog-version">
+                        <div class="version-header">
+                            <h2>{{ version.version }}</h2>
+                            <span class="version-date">{{ version.date }}</span>
+                        </div>
+                        
+                        {% if version.content_html %}
+                        <div class="version-content">
+                            {{ version.content_html|safe }}
+                        </div>
+                        {% elif version.changes %}
+                        <div class="changes-grid">
+                            {% set categories = version.changes | groupby('category') %}
+                            {% for category, changes in categories %}
+                            <div class="changes-category">
+                                <h3>{{ category }}</h3>
+                                <ul>
+                                    {% for change in changes %}
+                                    <li>{{ change.text }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="no-changes">No detailed changes available for this version.</p>
+                        {% endif %}
+                    </section>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <p>No changelog entries found. Check back later for version updates.</p>
+                </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>{{ config.footer.copyright or '&copy; 2025 Cyl Programming Language' }}</p>
+            {% if config.footer.links %}
+            <div class="footer-links">
+                {% for link in config.footer.links %}
+                <a href="{{ link.url }}">{{ link.name }}</a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </footer>
+
+    <script src="assets/script.js"></script>
+</body>
+</html>
