@@ -1,0 +1,472 @@
+{
+    "site": {
+        "title": "Cyl Programming Language",
+        "description": "A modern systems programming language",
+        "version": "0.4.0",
+        "url": "https://cyl-lang.org"
+    },
+    "branding": {
+        "logo_path": "icon.png",
+        "favicon_path": "icon.png",
+        "primary_color": "#0969da",
+        "secondary_color": "#f6f8fa"
+    },
+    "navigation": {
+        "main_nav": [
+            {
+                "name": "Reference",
+                "url": "syntax.html"
+            },
+            {
+                "name": "Examples",
+                "url": "examples.html"
+            },
+            {
+                "name": "Changelog",
+                "url": "changelog.html"
+            }
+        ]
+    },
+    "footer": {
+        "copyright": "© 2025 Cyl Programming Language",
+        "license": {
+            "name": "GPL-3.0",
+            "url": "https://github.com/clxrityy/cyl/blob/master/LICENSE"
+        },
+        "links": [
+            {
+                "name": "GitHub",
+                "url": "https://github.com/clxrityy/cyl",
+                "icon": "github"
+            },
+            {
+                "name": "Documentation",
+                "url": "https://cyl-lang.org/docs",
+                "icon": "documentation"
+            },
+            {
+                "name": "Community",
+                "url": "https://discord.gg/cyl",
+                "icon": "community"
+            }
+        ]
+    },
+    "content": {
+        "hero": {
+            "title": "Cyl",
+            "subtitle": "A modern systems programming language",
+            "primary_button": {
+                "text": "Get Started",
+                "url": "#install"
+            },
+            "secondary_button": {
+                "text": "Reference",
+                "url": "syntax.html"
+            }
+        },
+        "features": [
+            {
+                "title": "Multi-Backend",
+                "description": "Cranelift, LLVM, or interpreter",
+                "icon": "layers"
+            },
+            {
+                "title": "Memory Safe",
+                "description": "No garbage collection needed",
+                "icon": "shield"
+            },
+            {
+                "title": "Modern Syntax",
+                "description": "Clean and expressive",
+                "icon": "code"
+            }
+        ]
+    },
+    "paths": {
+        "examples_dir": "examples",
+        "compiler_dir": "compiler/src",
+        "changelog_file": "CHANGELOG.md"
+    },
+    "syntax": {
+        "categories": [
+            {
+                "name": "Declarations",
+                "id": "declarations",
+                "description": "Variable, function, and constant declarations",
+                "icon": "file-text"
+            },
+            {
+                "name": "Statements",
+                "id": "statements",
+                "description": "Executable statements and control flow",
+                "icon": "zap"
+            },
+            {
+                "name": "Expressions",
+                "id": "expressions",
+                "description": "Values and computations",
+                "icon": "calculator"
+            },
+            {
+                "name": "Control Flow",
+                "id": "control_flow",
+                "description": "Conditional logic and loops",
+                "icon": "git-branch"
+            },
+            {
+                "name": "Types",
+                "id": "types",
+                "description": "Type system and primitive types",
+                "icon": "tag"
+            },
+            {
+                "name": "Operators",
+                "id": "operators",
+                "description": "Arithmetic, logical, and comparison operators",
+                "icon": "plus"
+            },
+            {
+                "name": "Comments",
+                "id": "comments",
+                "description": "Code documentation and comments",
+                "icon": "message-circle"
+            }
+        ],
+        "rules": {
+            "declarations": [
+                {
+                    "name": "Variable Declaration",
+                    "syntax": "let variable_name: type = value;",
+                    "description": "Declares a new variable with an explicit type and initial value. Variables in Cyl are immutable by default.",
+                    "examples": [
+                        "let count: i32 = 42;",
+                        "let name: string = \"Hello\";",
+                        "let is_active: bool = true;"
+                    ],
+                    "heritage": "Inspired by Rust's let bindings with mandatory type annotations for clarity."
+                },
+                {
+                    "name": "Mutable Variable Declaration",
+                    "syntax": "let mut variable_name: type = value;",
+                    "description": "Declares a mutable variable that can be reassigned after initialization.",
+                    "examples": [
+                        "let mut counter: i32 = 0;",
+                        "let mut buffer: string = \"\";"
+                    ],
+                    "heritage": "Follows Rust's explicit mutability model for memory safety."
+                },
+                {
+                    "name": "Function Declaration",
+                    "syntax": "fn function_name(param: type) -> return_type {\n    // function body\n}",
+                    "description": "Defines a function with parameters and return type. Functions are first-class values in Cyl.",
+                    "examples": [
+                        "fn add(a: i32, b: i32) -> i32 {\n    return a + b;\n}",
+                        "fn greet(name: string) -> string {\n    return \"Hello, \" + name;\n}"
+                    ],
+                    "heritage": "Function syntax borrowed from Rust with influences from modern functional languages."
+                },
+                {
+                    "name": "Constant Declaration",
+                    "syntax": "const CONSTANT_NAME: type = value;",
+                    "description": "Declares a compile-time constant that cannot be changed.",
+                    "examples": [
+                        "const PI: f64 = 3.14159;",
+                        "const MAX_SIZE: i32 = 1000;"
+                    ],
+                    "heritage": "Constant declaration pattern from Rust and C++ traditions."
+                }
+            ],
+            "statements": [
+                {
+                    "name": "Expression Statement",
+                    "syntax": "expression;",
+                    "description": "Any expression followed by a semicolon becomes a statement that discards its value.",
+                    "examples": [
+                        "print(\"Hello\");",
+                        "calculate_result();",
+                        "5 + 3;"
+                    ],
+                    "heritage": "Statement-expression distinction from C-family languages."
+                },
+                {
+                    "name": "Assignment Statement",
+                    "syntax": "variable = expression;",
+                    "description": "Assigns a new value to a mutable variable.",
+                    "examples": [
+                        "counter = counter + 1;",
+                        "name = \"New Name\";"
+                    ],
+                    "heritage": "Traditional assignment semantics with mutation restrictions."
+                },
+                {
+                    "name": "Return Statement",
+                    "syntax": "return expression;",
+                    "description": "Returns a value from a function and exits the function immediately.",
+                    "examples": [
+                        "return 42;",
+                        "return calculate_sum(a, b);"
+                    ],
+                    "heritage": "Standard return statement from imperative programming languages."
+                },
+                {
+                    "name": "Block Statement",
+                    "syntax": "{\n    // statements\n}",
+                    "description": "Groups multiple statements together and creates a new scope.",
+                    "examples": [
+                        "{\n    let x = 5;\n    print(x);\n}"
+                    ],
+                    "heritage": "Block scoping from C-family languages with Rust-like scope rules."
+                }
+            ],
+            "expressions": [
+                {
+                    "name": "Arithmetic Expression",
+                    "syntax": "operand operator operand",
+                    "description": "Mathematical operations with standard operator precedence.",
+                    "examples": [
+                        "5 + 3",
+                        "x * y - z",
+                        "(a + b) / 2"
+                    ],
+                    "heritage": "Standard arithmetic operators with C-style precedence rules."
+                },
+                {
+                    "name": "Function Call Expression",
+                    "syntax": "function_name(arg1, arg2, ...)",
+                    "description": "Calls a function with the provided arguments and evaluates to the return value.",
+                    "examples": [
+                        "add(5, 3)",
+                        "print(\"Hello\")",
+                        "max(a, b, c)"
+                    ],
+                    "heritage": "Function call syntax from C-family languages."
+                },
+                {
+                    "name": "Literal Expression",
+                    "syntax": "literal_value",
+                    "description": "Direct representation of values like numbers, strings, and booleans.",
+                    "examples": [
+                        "42",
+                        "\"Hello, World!\"",
+                        "true",
+                        "3.14"
+                    ],
+                    "heritage": "Standard literal syntax across programming languages."
+                },
+                {
+                    "name": "Variable Expression",
+                    "syntax": "variable_name",
+                    "description": "References the value stored in a variable.",
+                    "examples": [
+                        "counter",
+                        "user_name",
+                        "is_ready"
+                    ],
+                    "heritage": "Simple variable reference from all major programming languages."
+                }
+            ],
+            "control_flow": [
+                {
+                    "name": "If Expression",
+                    "syntax": "if condition {\n    // if block\n} else {\n    // else block\n}",
+                    "description": "Conditional execution based on boolean expressions. In Cyl, if is an expression that returns a value.",
+                    "examples": [
+                        "if x > 0 {\n    print(\"positive\");\n}",
+                        "let result = if condition { value1 } else { value2 };"
+                    ],
+                    "heritage": "If expressions from functional languages combined with C-style syntax."
+                },
+                {
+                    "name": "While Loop",
+                    "syntax": "while condition {\n    // loop body\n}",
+                    "description": "Repeats a block of code while a condition remains true.",
+                    "examples": [
+                        "while counter < 10 {\n    counter = counter + 1;\n}"
+                    ],
+                    "heritage": "Traditional while loop from imperative programming languages."
+                },
+                {
+                    "name": "For Loop",
+                    "syntax": "for item in iterable {\n    // loop body\n}",
+                    "description": "Iterates over collections or ranges with automatic iteration variable binding.",
+                    "examples": [
+                        "for i in 0..10 {\n    print(i);\n}",
+                        "for item in array {\n    process(item);\n}"
+                    ],
+                    "heritage": "For-in loops from Python and modern languages with range syntax from Rust."
+                },
+                {
+                    "name": "Match Expression",
+                    "syntax": "match value {\n    pattern => result,\n    _ => default\n}",
+                    "description": "Pattern matching with exhaustive case analysis, similar to switch statements but more powerful.",
+                    "examples": [
+                        "match status {\n    \"ok\" => process(),\n    \"error\" => handle_error(),\n    _ => unknown()\n}"
+                    ],
+                    "heritage": "Pattern matching from functional languages like ML and Rust."
+                }
+            ],
+            "types": [
+                {
+                    "name": "Integer Types",
+                    "syntax": "i8, i16, i32, i64, u8, u16, u32, u64",
+                    "description": "Signed (i) and unsigned (u) integer types with explicit bit sizes.",
+                    "examples": [
+                        "let small: i8 = 127;",
+                        "let big: u64 = 18446744073709551615;"
+                    ],
+                    "heritage": "Explicit integer sizing from Rust for predictable memory usage."
+                },
+                {
+                    "name": "Floating Point Types",
+                    "syntax": "f32, f64",
+                    "description": "IEEE 754 floating point numbers with 32-bit and 64-bit precision.",
+                    "examples": [
+                        "let pi: f64 = 3.14159;",
+                        "let ratio: f32 = 0.5;"
+                    ],
+                    "heritage": "Standard floating point types from systems programming languages."
+                },
+                {
+                    "name": "Boolean Type",
+                    "syntax": "bool",
+                    "description": "Boolean type with true and false values.",
+                    "examples": [
+                        "let is_ready: bool = true;",
+                        "let finished: bool = false;"
+                    ],
+                    "heritage": "Standard boolean type from most modern programming languages."
+                },
+                {
+                    "name": "String Type",
+                    "syntax": "string",
+                    "description": "UTF-8 encoded string type for text data.",
+                    "examples": [
+                        "let message: string = \"Hello, World!\";"
+                    ],
+                    "heritage": "String handling influenced by modern languages with UTF-8 by default."
+                }
+            ],
+            "operators": [
+                {
+                    "name": "Arithmetic Operators",
+                    "syntax": "+, -, *, /, %",
+                    "description": "Basic arithmetic operations: addition, subtraction, multiplication, division, and modulo.",
+                    "examples": [
+                        "5 + 3",
+                        "10 - 4",
+                        "6 * 7",
+                        "15 / 3",
+                        "17 % 5"
+                    ],
+                    "heritage": "Standard arithmetic operators from mathematical notation and C."
+                },
+                {
+                    "name": "Comparison Operators",
+                    "syntax": "==, !=, <, >, <=, >=",
+                    "description": "Operators for comparing values and producing boolean results.",
+                    "examples": [
+                        "x == y",
+                        "a != b",
+                        "count < 10",
+                        "score >= 90"
+                    ],
+                    "heritage": "Comparison operators from C with logical mathematical symbols."
+                },
+                {
+                    "name": "Logical Operators",
+                    "syntax": "&&, ||, !",
+                    "description": "Boolean logic operators for combining and negating boolean expressions.",
+                    "examples": [
+                        "x && y",
+                        "a || b",
+                        "!condition"
+                    ],
+                    "heritage": "Logical operators from C-family languages."
+                }
+            ],
+            "comments": [
+                {
+                    "name": "Single Line Comment",
+                    "syntax": "// comment text",
+                    "description": "Comments that extend to the end of the line.",
+                    "examples": [
+                        "// This is a comment",
+                        "let x = 5; // inline comment"
+                    ],
+                    "heritage": "C++ style single-line comments."
+                },
+                {
+                    "name": "Multi-line Comment",
+                    "syntax": "/* comment text */",
+                    "description": "Comments that can span multiple lines.",
+                    "examples": [
+                        "/* This is a\n   multi-line comment */"
+                    ],
+                    "heritage": "C-style block comments for longer documentation."
+                },
+                {
+                    "name": "Documentation Comment",
+                    "syntax": "/// documentation text",
+                    "description": "Special comments for generating documentation.",
+                    "examples": [
+                        "/// Calculates the sum of two numbers",
+                        "/// Returns: The sum as an integer"
+                    ],
+                    "heritage": "Documentation comments from Rust and modern documentation tools."
+                }
+            ]
+        }
+    },
+    "backends": [
+        {
+            "name": "Cranelift",
+            "description": "Pure Rust code generation backend (default)",
+            "features": [
+                "Fast compilation",
+                "No external dependencies",
+                "Object file generation"
+            ],
+            "usage": "--backend cranelift"
+        },
+        {
+            "name": "LLVM",
+            "description": "High-performance optimized code generation",
+            "features": [
+                "Advanced optimizations",
+                "Cross-platform support",
+                "Production-ready"
+            ],
+            "usage": "--backend llvm"
+        },
+        {
+            "name": "Interpreter",
+            "description": "Direct execution engine for development and testing",
+            "features": [
+                "Immediate execution",
+                "No compilation step",
+                "Educational purposes"
+            ],
+            "usage": "--backend interpreter"
+        }
+    ],
+    "icons": {
+        "github": "github",
+        "documentation": "book-open",
+        "community": "users",
+        "license": "scale",
+        "file-text": "file-text",
+        "zap": "zap",
+        "calculator": "calculator",
+        "git-branch": "git-branch",
+        "tag": "tag",
+        "plus": "plus",
+        "message-circle": "message-circle",
+        "layers": "layers",
+        "shield": "shield",
+        "code": "code",
+        "download": "download",
+        "external-link": "external-link",
+        "menu": "menu",
+        "x": "x"
+    }
+}

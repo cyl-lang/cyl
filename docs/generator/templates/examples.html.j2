@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Examples - {{ config.site.title or 'Cyl' }}</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <a href="index.html" class="logo">
+                    <img src="favicon.png" alt="{{ config.site.title or 'Cyl' }}" width="24" height="24">
+                    <span>{{ config.site.title or 'Cyl' }}</span>
+                </a>
+                
+                <button class="hamburger-menu" aria-label="Toggle navigation menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                
+                <div class="nav-links">
+                    <a href="syntax.html">Reference</a>
+                    <a href="examples.html" class="active">Examples</a>
+                    <a href="changelog.html">Changelog</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <div class="page-header">
+                <h1>Code Examples</h1>
+                <p>Real-world examples showing {{ config.site.title or 'Cyl' }} language features</p>
+            </div>
+
+            {% if examples %}
+                <div class="examples-grid-spaced">
+                    {% for example in examples %}
+                    <div class="example-item-spaced">
+                        <h3>{{ example.name }}</h3>
+                        <p>{{ example.description }}</p>
+                        <div class="code">
+                            <pre><code>{{ example.code }}</code></pre>
+                        </div>
+                        <div class="example-meta">
+                            <small>📁 {{ example.filename }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <p>No examples found. Add .cyl files to the examples directory.</p>
+                </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>{{ config.footer.copyright or '&copy; 2025 Cyl Programming Language' }}</p>
+            {% if config.footer.links %}
+            <div class="footer-links">
+                {% for link in config.footer.links %}
+                <a href="{{ link.url }}">{{ link.name }}</a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </footer>
+
+    <script src="assets/script.js"></script>
+</body>
+</html>

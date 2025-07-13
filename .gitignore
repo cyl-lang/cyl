@@ -8,5 +8,11 @@
 node_modules
 dist
 coverage
-temp*
+temp.*
 .DS_Store
+.venv
+.vercel
+
+# Documentation generated files
+docs/website/
+docs/generator/venv/

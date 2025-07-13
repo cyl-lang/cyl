@@ -12,6 +12,13 @@ setup:
 	cd compiler && cargo build
 	@echo "Setup complete!"
 
+# Setup documentation environment
+setup-docs:
+	@echo "Setting up documentation environment..."
+	cd docs/generator && python3 -m venv venv
+	cd docs/generator && source venv/bin/activate && pip install -r requirements.txt
+	@echo "Documentation environment setup complete!"
+
 # Build everything
 build: build-design build-compiler
 
@@ -100,8 +107,8 @@ lint:
 # Documentation
 docs:
 	@echo "Generating documentation..."
-	cd compiler && cargo doc --no-deps
-	@echo "Documentation available in target/doc/"
+	cd docs/generator && source venv/bin/activate && python generate-docs.py
+	@echo "Documentation generated in docs/website/"
 
 # Version info
 version:
@@ -151,3 +158,6 @@ ci-test:
 		echo "   brew install act  # on macOS"; \
 		echo "   # or visit: https://github.com/nektos/act"; \
 	fi
+
+# Build everything including docs
+build-all: build docs

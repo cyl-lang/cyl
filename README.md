@@ -19,10 +19,26 @@ Welcome to Cyl programming language!
 [![CI](https://github.com/clxrityy/cyl/actions/workflows/ci.yml/badge.svg)](https://github.com/clxrityy/cyl/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/clxrityy/cyl/branch/main/graph/badge.svg)](https://codecov.io/gh/clxrityy/cyl)
 
+## Documentation
+
 - [Implementation Plan](IMPLEMENTATION_PLAN.md)
 - [Language Specification](LANGUAGE_SPEC.md)
 - [Standard Library](STDLIB.md)
 - [Tests](tests/README.md)
+
+## Quick Start
+
+```bash
+# Setup development environment
+make setup
+
+# Generate documentation
+make setup-docs
+make docs
+
+# Build everything
+make build-all
+```
 
 **Purpose:** Systems & web programming with simple syntax, multi-backend compilation, safe concurrency, OS & network integration
 
