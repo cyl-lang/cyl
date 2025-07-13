@@ -1,6 +1,6 @@
 {
     "name": "cyl",
-    "version": "4.0.0",
+    "version": "0.4.1",
     "description": "Cyl programming language with Rust compiler backend and TypeScript design tools",
     "main": "design/src/index.ts",
     "type": "module",
@@ -25,6 +25,11 @@
         "compiler:dev": "cd compiler && cargo run",
         "compiler:install": "cd compiler && cargo install --path .",
         "setup": "npm install && cd compiler && cargo build",
+        "docs:setup": "cd docs/generator && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt",
+        "docs:generate": "cd docs/generator && source venv/bin/activate && python3 generate-docs.py",
+        "docs:dev": "npm run docs:generate && cd docs/website && python3 -m http.server 8080",
+        "docs:build": "npm run docs:setup && npm run docs:generate",
+        "build:all": "npm run build && npm run docs:generate",
         "version": "./scripts/update-version.sh",
         "version:changeset-only": "npx changeset version",
         "clean:empty": "./scripts/cleanup-empty-files.sh"
@@ -36,6 +41,7 @@
         "@types/jest": "^30.0.0",
         "@types/node": "^24.0.10",
         "babel-jest": "^30.0.4",
+        "http-server": "^14.1.1",
         "jest": "^30.0.4",
         "ts-jest": "^29.4.0",
         "ts-node": "^10.9.2",
@@ -59,7 +65,7 @@
         "email": "contact@mjanglin.com",
         "url": "https://www.mjanglin.com"
     },
-    "license": "MIT",
+    "license": "GPL-3.0+",
     "engines": {
         "node": ">=22.0.0"
     }
