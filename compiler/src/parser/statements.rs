@@ -255,11 +255,10 @@ impl Parser {
     }
 
     pub fn parse_while(&mut self) -> Result<Statement, CylError> {
-        Err(CylError::ParseError {
-            message: "parse_while not yet implemented".to_string(),
-            line: 0,
-            column: 0,
-        })
+        self.consume(Token::While, "Expected 'while'")?;
+        let condition = self.parse_expression()?;
+        let body = self.parse_block()?;
+        Ok(Statement::While(WhileStatement { condition, body }))
     }
     pub fn parse_for(&mut self) -> Result<Statement, CylError> {
         self.consume(Token::For, "Expected 'for'")?;

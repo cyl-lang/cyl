@@ -49,6 +49,9 @@ _These features are implemented, tested, and production-ready across all backend
   - `if condition { }` ✅
   - `if x == 10 { print("test"); }` ✅
   - Working in all backends including interpreter
+- [x] **For Loops**
+  - `for i in 5 { print_int(i); }` ✅ (LLVM backend)
+  - Array iteration patterns ✅
 - [x] **Comparisons**
   - `==`, `!=`, `<`, `<=`, `>`, `>=` ✅
   - Boolean evaluation in conditionals ✅
@@ -76,9 +79,11 @@ _These features are implemented, tested, and production-ready across all backend
 - [x] **Arrays**
   - Array literals: `[10, 20, 30, 40, 50]` ✅
   - Array assignment: `let numbers = [1, 2, 3];` ✅
+  - Array indexing: `numbers[0]` ✅ (LLVM backend)
 - [x] **Structs**
   - Struct declaration: `struct Person { age: int, id: int }` ✅
   - Struct instantiation: `Person { age: 25, id: 1001 }` ✅
+  - Struct field access: `person.age` ✅ (LLVM backend)
 
 ## 🚧 **PARSING ONLY (NOT COMPILED)**
 
@@ -131,9 +136,6 @@ _These features parse correctly but don't generate working LLVM code yet_
 
 - [ ] **Else Statements** - `if/else` not fully implemented
 - [ ] **While Loops** - Parsing only, no LLVM compilation
-- [ ] **For Loops** - Parsing only, no LLVM compilation
-- [ ] **Array Indexing** - `arr[0]` not working in output
-- [ ] **Struct Field Access** - `person.age` not working
 - [ ] **String Operations** - No string manipulation functions
 - [ ] **Multiple Parameters** - Functions with multiple params need testing
 

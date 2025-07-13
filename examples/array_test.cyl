@@ -1,6 +1,13 @@
 // Array creation and indexing example
 fn main() -> void {
     let numbers = [10, 20, 30, 40, 50];
-    // Note: This example compiles and runs successfully
-    // Array access with numbers[0] works but doesn't produce output
+    
+    // Test array indexing - should now work!
+    let first = numbers[0];   // 10
+    let third = numbers[2];   // 30
+    let last = numbers[4];    // 50
+    
+    print_int(first);
+    print_int(third);
+    print_int(last);
 }

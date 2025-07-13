@@ -300,6 +300,16 @@ impl CraneliftCodegen {
                     Ok(builder.ins().iconst(types::I32, 0))
                 }
             }
+            Expression::ArrayLiteral(_elements) => {
+                // For now, return a dummy value since array support is complex in Cranelift
+                // TODO: Implement proper array allocation and initialization
+                Ok(builder.ins().iconst(types::I64, 0))
+            }
+            Expression::IndexAccess { object: _object, index: _index } => {
+                // For now, return a dummy value since array indexing requires proper array support
+                // TODO: Implement proper array indexing with bounds checking
+                Ok(builder.ins().iconst(types::I32, 0))
+            }
             _ => Err(CylError::CodeGenError { 
                 message: format!("Expression type not implemented: {:?}", expr) 
             }),
@@ -322,6 +332,8 @@ impl CraneliftCodegen {
                     _ => Self::infer_expression_type_static(left), // Assume same type as left operand
                 }
             }
+            Expression::ArrayLiteral(_) => Ok(Type::Array(Box::new(Type::Int))), // Assume int arrays for now
+            Expression::IndexAccess { .. } => Ok(Type::Int), // Array elements are ints for now
             _ => Err(CylError::CodeGenError { 
                 message: format!("Type inference not implemented for: {:?}", expr) 
             }),

@@ -233,7 +233,7 @@ impl Interpreter {
                     }
                     return Ok(());
                 }
-                Statement::Declare(_) | Statement::Expression(_) | Statement::Match(_) | Statement::If(_) => {
+                Statement::Declare(_) | Statement::Expression(_) | Statement::Match(_) | Statement::If(_) | Statement::While(_) => {
                     self.eval_statement(stmt);
                 }
                 _ => {}
@@ -290,6 +290,26 @@ impl Interpreter {
                 }
                 Ok(())
             }
+            Statement::While(while_stmt) => {
+                loop {
+                    let condition = self.eval_expression(&while_stmt.condition);
+                    let is_true = match condition {
+                        Value::Bool(b) => b,
+                        Value::Int(i) => i != 0,
+                        Value::Float(f) => f != 0.0,
+                        Value::String(s) => !s.is_empty(),
+                        Value::Void => false,
+                        _ => true,
+                    };
+                    
+                    if !is_true {
+                        break;
+                    }
+                    
+                    self.eval_block(&while_stmt.body)?;
+                }
+                Ok(())
+            }
             Statement::Match(m) => {
                 let val = self.eval_expression(&m.expression);
                 for arm in &m.arms {
@@ -328,6 +348,25 @@ impl Interpreter {
                     self.eval_block(&if_stmt.then_block).ok();
                 } else if let Some(else_block) = &if_stmt.else_block {
                     self.eval_statement(else_block);
+                }
+            }
+            Statement::While(while_stmt) => {
+                loop {
+                    let condition = self.eval_expression(&while_stmt.condition);
+                    let is_true = match condition {
+                        Value::Bool(b) => b,
+                        Value::Int(i) => i != 0,
+                        Value::Float(f) => f != 0.0,
+                        Value::String(s) => !s.is_empty(),
+                        Value::Void => false,
+                        _ => true,
+                    };
+                    
+                    if !is_true {
+                        break;
+                    }
+                    
+                    self.eval_block(&while_stmt.body).ok();
                 }
             }
             Statement::Match(m) => {
@@ -593,6 +632,26 @@ impl Interpreter {
                         (Value::Bool(a), Value::Bool(b)) => Value::Bool(a != b),
                         _ => Value::Bool(true),
                     },
+                    BinaryOperator::Less => match (l, r) {
+                        (Value::Int(a), Value::Int(b)) => Value::Bool(a < b),
+                        (Value::Float(a), Value::Float(b)) => Value::Bool(a < b),
+                        _ => Value::Bool(false),
+                    },
+                    BinaryOperator::Greater => match (l, r) {
+                        (Value::Int(a), Value::Int(b)) => Value::Bool(a > b),
+                        (Value::Float(a), Value::Float(b)) => Value::Bool(a > b),
+                        _ => Value::Bool(false),
+                    },
+                    BinaryOperator::LessEqual => match (l, r) {
+                        (Value::Int(a), Value::Int(b)) => Value::Bool(a <= b),
+                        (Value::Float(a), Value::Float(b)) => Value::Bool(a <= b),
+                        _ => Value::Bool(false),
+                    },
+                    BinaryOperator::GreaterEqual => match (l, r) {
+                        (Value::Int(a), Value::Int(b)) => Value::Bool(a >= b),
+                        (Value::Float(a), Value::Float(b)) => Value::Bool(a >= b),
+                        _ => Value::Bool(false),
+                    },
                     _ => Value::Void,
                 }
             }
@@ -602,6 +661,19 @@ impl Interpreter {
                 match val {
                     Value::Future(b) => *b,
                     v => v,
+                }
+            }
+            Expression::Assignment { target, value } => {
+                // Evaluate the right-hand side first
+                let val = self.eval_expression(value);
+                
+                // For now, only support identifier assignment
+                if let Expression::Identifier(var_name) = target.as_ref() {
+                    self.variables.insert(var_name.clone(), val.clone());
+                    val
+                } else {
+                    // Complex assignment targets not supported yet
+                    Value::Void
                 }
             }
             _ => Value::Void,
