@@ -20,5 +20,7 @@
       "name": "Design"
     }
   ],
-  "settings": {}
+  "settings": {
+    "liveServer.settings.multiRootWorkspaceName": "cyl"
+  }
 }

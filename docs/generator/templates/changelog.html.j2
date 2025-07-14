@@ -33,57 +33,53 @@
 
     <main class="main">
         <div class="container">
-            <div class="page-header">
-                <h1>Changelog</h1>
-                <p>Version history and release notes</p>
+            <div class="page-header" style="margin-bottom: 48px;">
+                <h1 style="margin-bottom: 18px;">Changelog</h1>
+                <p style="margin-bottom: 32px; font-size: 1.18em; color: #475569;">Version history and release notes</p>
             </div>
 
             {% if changelog.toc %}
-            <div class="changelog-toc">
-                <h2>Version History</h2>
-                <div class="toc-grid-wide">
-                    {% for version in changelog.toc %}
-                    <div class="toc-item-wide">
-                        <a href="#{{ version.anchor }}" class="toc-link-wide">
-                            <h3>{{ version.version }}</h3>
-                            <p class="toc-date">{{ version.date }}</p>
-                            <p class="toc-summary">{{ version.summary }}</p>
-                        </a>
+            <div class="changelog-version-grid">
+                {% for version in changelog.toc %}
+                <a href="#{{ version.anchor }}" class="changelog-version-link">
+                    <div>
+                        <h3>{{ version.version }}</h3>
+                        <p class="toc-date">{{ version.date }}</p>
+                        <p class="toc-summary">{{ version.summary }}</p>
                     </div>
-                    {% endfor %}
-                </div>
+                </a>
+                {% endfor %}
             </div>
             {% endif %}
 
             {% if changelog.versions %}
-                <div class="changelog-content">
+                <div class="changelog-content" style="display: grid; gap: 56px; margin-top: 32px;">
                     {% for version in changelog.versions %}
-                    <section id="{{ version.anchor }}" class="changelog-version">
-                        <div class="version-header">
-                            <h2>{{ version.version }}</h2>
-                            <span class="version-date">{{ version.date }}</span>
+                    <section id="{{ version.anchor }}" class="changelog-version" style="margin-bottom: 48px;">
+                        <div class="version-header" style="margin-bottom: 18px;">
+                            <h2 style="margin-bottom: 8px;">{{ version.version }}</h2>
+                            <span class="version-date" style="font-size: 1.08em; color: #64748b;">{{ version.date }}</span>
                         </div>
-                        
                         {% if version.content_html %}
-                        <div class="version-content">
+                        <div class="version-content" style="margin-bottom: 18px; font-size: 1.08em; color: #334155; line-height: 1.8;">
                             {{ version.content_html|safe }}
                         </div>
                         {% elif version.changes %}
-                        <div class="changes-grid">
+                        <div class="changes-grid" style="margin-bottom: 18px;">
                             {% set categories = version.changes | groupby('category') %}
                             {% for category, changes in categories %}
-                            <div class="changes-category">
-                                <h3>{{ category }}</h3>
-                                <ul>
+                            <div class="changes-category" style="margin-bottom: 18px;">
+                                <h3 style="margin-bottom: 8px;">{{ category }}</h3>
+                                <ul style="margin-bottom: 8px;">
                                     {% for change in changes %}
-                                    <li>{{ change.text }}</li>
+                                    <li style="margin-bottom: 6px; line-height: 1.7;">{{ change.text }}</li>
                                     {% endfor %}
                                 </ul>
                             </div>
                             {% endfor %}
                         </div>
                         {% else %}
-                        <p class="no-changes">No detailed changes available for this version.</p>
+                        <p class="no-changes" style="margin-bottom: 18px;">No detailed changes available for this version.</p>
                         {% endif %}
                     </section>
                     {% endfor %}

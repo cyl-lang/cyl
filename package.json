@@ -15,6 +15,7 @@
         "test:design:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
         "test:design:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
         "test:compiler": "cd compiler && cargo test",
+        "test:coverage:rust": "cd compiler && cargo tarpaulin --out Xml --output-dir ../coverage",
         "test:compiler:cyl": "cargo run --manifest-path compiler/Cargo.toml -- test",
         "pregrammar:validate": "npm run build:design",
         "grammar:validate": "node compiler/dist/src/tools/grammar-validator.js",
