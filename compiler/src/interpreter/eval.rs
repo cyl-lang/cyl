@@ -497,6 +497,7 @@ impl Interpreter {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub fn run_main(&mut self, program: &Program) -> Result<(), String> {
         let main_fn = program.statements.iter().find_map(|stmt| {
             if let Statement::Function(func) = stmt {
