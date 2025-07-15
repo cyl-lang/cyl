@@ -17,7 +17,8 @@ Welcome to Cyl programming language!
 ```
 
 [![CI](https://github.com/cyl-lang/cyl/actions/workflows/ci.yml/badge.svg)](https://github.com/cyl-lang/cyl/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/cyl-lang/cyl/branch/master/graph/badge.svg)](https://codecov.io/gh/cyl-lang/cyl)
+[![codecov](https://codecov.io/gh/cyl-lang/cyl/branch/main/graph/badge.svg)](https://codecov.io/gh/cyl-lang/cyl)
+
 
 ## Documentation
 
