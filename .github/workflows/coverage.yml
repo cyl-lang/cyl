@@ -33,7 +33,7 @@ jobs:
         run: npm run build:design
 
       - name: Run TypeScript tests with coverage
-        run: npm run test:coverage
+        run: npm run test:design:coverage
 
       - name: Install cargo-tarpaulin for Rust coverage
         run: cargo install cargo-tarpaulin
