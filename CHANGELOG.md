@@ -1,5 +1,39 @@
 # cyl
 
+## 0.5.0
+
+### Minor Changes
+
+- ## Modular Interpreter, Test Coverage, and Documentation Improvements
+
+  ### Interpreter Refactor
+
+  - Interpreter logic has been split into multiple files: `value.rs`, `eval.rs`, `stdlib.rs`, and `utils.rs` for improved modularity and maintainability.
+  - Removed legacy `interpreter.rs` to resolve Rust module ambiguity.
+  - Added support for `Statement::For` and `Statement::Block` in the interpreter, enabling correct execution of for-loops and block statements.
+
+  ### Test Coverage & Fixes
+
+  - All tests now pass, including those for for-loops, arrays, and block statements.
+  - Fixed output formatting for string and integer values to match test harness expectations.
+  - Improved debug logging, now conditional on the `CYL_DEBUG_LOG` environment variable and redirected to `cyl_debug.log`.
+  - Ensured CLI prints interpreter output buffer to stdout for test harness compatibility.
+
+  ### Documentation Updates
+
+  - Updated documentation to reflect new interpreter structure and modularization.
+  - Added notes on coverage, output formatting, and debug logging.
+  - Clarified test expectations and output requirements for contributors.
+
+  ### Other Improvements
+
+  - Cleaned up unused files and resolved build errors due to module ambiguity.
+  - Improved error handling and diagnostics in the interpreter and CLI.
+
+  ***
+
+  This changeset covers all major refactors, bug fixes, and documentation improvements made in this cycle. See the main README and implementation plan for further details.
+
 ## 0.4.2
 
 ### Patch Changes

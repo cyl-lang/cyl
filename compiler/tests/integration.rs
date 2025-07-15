@@ -100,13 +100,12 @@ fn discover_cyl_files(dir_path: &str) -> Result<Vec<String>, Box<dyn std::error:
 mod tests {
     use super::*;
 
+
     #[test]
     fn test_hello_world() {
         let result = compile_and_run_cyl_file_with_backend("examples/hello_world.cyl", "interpreter")
             .expect("Failed to run hello_world.cyl");
-        
         assert!(result.success(), "Hello world test should succeed: {:?}", result);
-        
         let expected = "Hello, World!\nWelcome to Cyl programming language!";
         assert_eq!(result.stdout.trim(), expected);
     }
@@ -115,9 +114,7 @@ mod tests {
     fn test_print_functionality() {
         let result = compile_and_run_cyl_file_with_backend("examples/print_test.cyl", "interpreter")
             .expect("Failed to run print_test.cyl");
-        
         assert!(result.success(), "Print test should succeed: {:?}", result);
-        
         let expected = "Hello, World!\n42";
         assert_eq!(result.stdout.trim(), expected);
     }
@@ -126,10 +123,7 @@ mod tests {
     fn test_arithmetic() {
         let result = compile_and_run_cyl_file("tests/fixtures/valid/arithmetic_test.cyl")
             .expect("Failed to run arithmetic_test.cyl");
-        
         assert!(result.success(), "Arithmetic test should succeed: {:?}", result);
-        
-        // Check that we have some output (the actual numbers)
         assert!(!result.stdout.trim().is_empty(), "Should have arithmetic output");
     }
 
@@ -137,10 +131,7 @@ mod tests {
     fn test_variables() {
         let result = compile_and_run_cyl_file_with_backend("tests/fixtures/valid/variables_test.cyl", "interpreter")
             .expect("Failed to run variables_test.cyl");
-        
         assert!(result.success(), "Variables test should succeed: {:?}", result);
-        
-        // Check that we have some output
         assert!(!result.stdout.trim().is_empty(), "Should have variable output");
     }
 
@@ -148,11 +139,74 @@ mod tests {
     fn test_simple_if() {
         let result = compile_and_run_cyl_file_with_backend("tests/fixtures/valid/simple_if_test.cyl", "interpreter")
             .expect("Failed to run simple_if_test.cyl");
-        
         assert!(result.success(), "Simple if test should succeed: {:?}", result);
-        
-        // Check that we have the expected output
         assert!(!result.stdout.trim().is_empty(), "Should have if output");
+    }
+
+    #[test]
+    fn test_struct_member_access() {
+        let result = compile_and_run_cyl_file_with_backend("examples/struct_test.cyl", "interpreter")
+            .expect("Failed to run struct_test.cyl");
+        assert!(result.success(), "Struct test should succeed: {:?}", result);
+        // No output expected, just check for success
+    }
+
+    #[test]
+    fn test_array_indexing() {
+        let result = compile_and_run_cyl_file_with_backend("examples/array_test.cyl", "interpreter")
+            .expect("Failed to run array_test.cyl");
+        if !result.success() || result.stdout.trim() != "10\n30\n50" {
+            println!("[debug] STDOUT:\n{}", result.stdout);
+            println!("[debug] STDERR:\n{}", result.stderr);
+        }
+        assert!(result.success(), "Array test should succeed: {:?}", result);
+        let expected = "10\n30\n50";
+        assert_eq!(result.stdout.trim(), expected);
+    }
+
+    #[test]
+    fn test_array_for_loop() {
+        let result = compile_and_run_cyl_file_with_backend("examples/array_for_loop_combined.cyl", "interpreter")
+            .expect("Failed to run array_for_loop_combined.cyl");
+        assert!(result.success(), "Array for loop test should succeed: {:?}", result);
+        let expected = "10\n20\n30\n40\n50";
+        assert_eq!(result.stdout.trim(), expected);
+    }
+
+    #[test]
+    fn test_comprehensive_array_fixture() {
+        let result = compile_and_run_cyl_file_with_backend("tests/fixtures/valid/array_comprehensive_test.cyl", "interpreter")
+            .expect("Failed to run array_comprehensive_test.cyl");
+        assert!(result.success(), "Comprehensive array test should succeed: {:?}", result);
+        let expected = "100\n200\n500";
+        assert_eq!(result.stdout.trim(), expected);
+    }
+
+    #[test]
+    fn test_array_arithmetic_fixture() {
+        let result = compile_and_run_cyl_file_with_backend("tests/fixtures/valid/array_arithmetic_test.cyl", "interpreter")
+            .expect("Failed to run array_arithmetic_test.cyl");
+        assert!(result.success(), "Array arithmetic test should succeed: {:?}", result);
+        let expected = "30\n50";
+        assert_eq!(result.stdout.trim(), expected);
+    }
+
+    #[test]
+    fn test_while_countdown_fixture() {
+        let result = compile_and_run_cyl_file_with_backend("tests/fixtures/valid/while_countdown_test.cyl", "interpreter")
+            .expect("Failed to run while_countdown_test.cyl");
+        assert!(result.success(), "While countdown test should succeed: {:?}", result);
+        let expected = "3\n2\n1\n999";
+        assert_eq!(result.stdout.trim(), expected);
+    }
+
+    #[test]
+    fn test_while_loop_fixture() {
+        let result = compile_and_run_cyl_file_with_backend("tests/fixtures/valid/while_loop_test.cyl", "interpreter")
+            .expect("Failed to run while_loop_test.cyl");
+        assert!(result.success(), "While loop test should succeed: {:?}", result);
+        let expected = "999";
+        assert_eq!(result.stdout.trim(), expected);
     }
 
     #[test]

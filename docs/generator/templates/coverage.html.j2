@@ -48,25 +48,49 @@
             <!-- Coverage Overview -->
             <section class="coverage-overview" style="padding: 32px 0;">
                 <h2 style="margin-bottom: 24px;">
-                    <span class="icon">�</span> Coverage Summary
+                    <span class="icon">📊</span> Coverage Summary
                 </h2>
                 <div class="coverage-summary" style="margin-bottom: 40px;">
-                    <!-- Overall Coverage Bar Graph -->
+                    <!-- Overall Coverage SVG Bar Graphs -->
                     <div class="coverage-bar-graph">
                         {% if coverage.typescript or coverage.rust %}
-                        <div class="coverage-bar-row">
+                        {% set ts_overall = coverage.typescript.overall_pct if coverage.typescript and coverage.typescript.get('overall_pct') is not none else coverage.typescript.lines.pct if coverage.typescript and coverage.typescript.get('lines') else 0 %}
+                        {% set rust_overall = coverage.rust.overall_pct if coverage.rust and coverage.rust.get('overall_pct') is not none else coverage.rust.lines.pct if coverage.rust and coverage.rust.get('lines') else 0 %}
+                        <div class="coverage-bar-row" style="display: flex; gap: 32px; align-items: flex-end;">
                             {% if coverage.typescript %}
-                            <div class="coverage-bar-label">TypeScript</div>
-                            <div class="coverage-bar-outer">
-                                <div class="coverage-bar-fill" style="width: {{ coverage.typescript.overall_pct }}%; background: linear-gradient(90deg,#2563eb,#60a5fa);"></div>
-                                <span class="coverage-bar-text">{{ coverage.typescript.overall_pct }}%</span>
+                            <div style="flex:1; text-align:center;">
+                                <div class="coverage-bar-label" style="margin-bottom:8px; color:#2563eb; font-weight:600;">TypeScript</div>
+                                <svg width="100%" height="54" viewBox="0 0 220 54">
+                                    <!-- Thicker bar: height 28, y=12 -->
+                                    <rect x="0" y="12" width="220" height="28" rx="14" fill="#e3f0ff"/>
+                                    <rect x="0" y="12" width="{{ 2.2 * ts_overall }}" height="28" rx="14" fill="url(#tsBarGradient)"/>
+                                    <defs>
+                                        <linearGradient id="tsBarGradient" x1="0" y1="0" x2="220" y2="0" gradientUnits="userSpaceOnUse">
+                                            <stop stop-color="#2563eb"/>
+                                            <stop offset="1" stop-color="#60a5fa"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <!-- Percentage text with background for legibility -->
+                                    <rect x="70" y="44" width="80" height="28" rx="8" fill="#fff" opacity="0.92" />
+                                    <text x="110" y="64" text-anchor="middle" font-size="22" fill="#2563eb" font-weight="bold" style="text-shadow:0 2px 8px #e3f0ff,0 0 2px #fff;">{{ ts_overall }}%</text>
+                                </svg>
                             </div>
                             {% endif %}
                             {% if coverage.rust %}
-                            <div class="coverage-bar-label">Rust</div>
-                            <div class="coverage-bar-outer">
-                                <div class="coverage-bar-fill" style="width: {{ coverage.rust.overall_pct }}%; background: linear-gradient(90deg,#d97706,#fbbf24);"></div>
-                                <span class="coverage-bar-text">{{ coverage.rust.overall_pct }}%</span>
+                            <div style="flex:1; text-align:center;">
+                                <div class="coverage-bar-label" style="margin-bottom:8px; color:#d97706; font-weight:600;">Rust</div>
+                                <svg width="100%" height="54" viewBox="0 0 220 54">
+                                    <rect x="0" y="12" width="220" height="28" rx="14" fill="#fdf6e3"/>
+                                    <rect x="0" y="12" width="{{ 2.2 * rust_overall }}" height="28" rx="14" fill="url(#rustBarGradient)"/>
+                                    <defs>
+                                        <linearGradient id="rustBarGradient" x1="0" y1="0" x2="220" y2="0" gradientUnits="userSpaceOnUse">
+                                            <stop stop-color="#d97706"/>
+                                            <stop offset="1" stop-color="#fbbf24"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <rect x="70" y="44" width="80" height="28" rx="8" fill="#fff" opacity="0.92" />
+                                    <text x="110" y="64" text-anchor="middle" font-size="22" fill="#d97706" font-weight="bold" style="text-shadow:0 2px 8px #fdf6e3,0 0 2px #fff;">{{ rust_overall }}%</text>
+                                </svg>
                             </div>
                             {% endif %}
                         </div>
@@ -79,46 +103,19 @@
                             TypeScript
                         </h3>
                         <div class="coverage-metrics" style="padding: 12px 0;">
+                            {% for metric in ['statements', 'branches', 'functions', 'lines'] %}
                             <div class="metric">
-                                <div class="metric-label">Statements</div>
+                                <div class="metric-label">{{ metric|capitalize }}</div>
                                 <div class="metric-value" style="padding-bottom: 10px;">
-                                    <div class="progress-bar">
-                                        <div class="progress-fill" style="width: {{ coverage.typescript.statements.pct }}%; background-color: {{ coverage.typescript.statements.color }}"></div>
-                                    </div>
-                                    <span class="percentage">{{ coverage.typescript.statements.pct }}%</span>
-                                    <span class="fraction">({{ coverage.typescript.statements.covered }}/{{ coverage.typescript.statements.total }})</span>
+                                    <svg width="100%" height="18" viewBox="0 0 180 18">
+                                        <rect x="0" y="4" width="180" height="18" rx="9" fill="#e3f0ff"/>
+                                        <rect x="0" y="4" width="{{ 1.8 * coverage.typescript[metric].pct }}" height="18" rx="9" fill="{{ coverage.typescript[metric].color }}"/>
+                                        <text x="90" y="16" text-anchor="middle" font-size="14" fill="#0f172a" font-weight="bold" style="text-shadow:0 1px 4px #e3f0ff,0 0 1px #fff;">{{ coverage.typescript[metric].pct }}%</text>
+                                    </svg>
+                                    <span class="fraction" style="margin-left:8px; color:#64748b; font-size:0.98em;">({{ coverage.typescript[metric].covered }}/{{ coverage.typescript[metric].total }})</span>
                                 </div>
                             </div>
-                            <div class="metric">
-                                <div class="metric-label">Branches</div>
-                                <div class="metric-value" style="padding-bottom: 10px;">
-                                    <div class="progress-bar">
-                                        <div class="progress-fill" style="width: {{ coverage.typescript.branches.pct }}%; background-color: {{ coverage.typescript.branches.color }}"></div>
-                                    </div>
-                                    <span class="percentage">{{ coverage.typescript.branches.pct }}%</span>
-                                    <span class="fraction">({{ coverage.typescript.branches.covered }}/{{ coverage.typescript.branches.total }})</span>
-                                </div>
-                            </div>
-                            <div class="metric">
-                                <div class="metric-label">Functions</div>
-                                <div class="metric-value" style="padding-bottom: 10px;">
-                                    <div class="progress-bar">
-                                        <div class="progress-fill" style="width: {{ coverage.typescript.functions.pct }}%; background-color: {{ coverage.typescript.functions.color }}"></div>
-                                    </div>
-                                    <span class="percentage">{{ coverage.typescript.functions.pct }}%</span>
-                                    <span class="fraction">({{ coverage.typescript.functions.covered }}/{{ coverage.typescript.functions.total }})</span>
-                                </div>
-                            </div>
-                            <div class="metric">
-                                <div class="metric-label">Lines</div>
-                                <div class="metric-value" style="padding-bottom: 10px;">
-                                    <div class="progress-bar">
-                                        <div class="progress-fill" style="width: {{ coverage.typescript.lines.pct }}%; background-color: {{ coverage.typescript.lines.color }}"></div>
-                                    </div>
-                                    <span class="percentage">{{ coverage.typescript.lines.pct }}%</span>
-                                    <span class="fraction">({{ coverage.typescript.lines.covered }}/{{ coverage.typescript.lines.total }})</span>
-                                </div>
-                            </div>
+                            {% endfor %}
                         </div>
                     </div>
                     {% endif %}
@@ -133,22 +130,24 @@
                             <div class="metric">
                                 <div class="metric-label">Lines</div>
                                 <div class="metric-value" style="padding-bottom: 10px;">
-                                    <div class="progress-bar">
-                                        <div class="progress-fill" style="width: {{ coverage.rust.lines.pct }}%; background-color: {{ coverage.rust.lines.color }}"></div>
-                                    </div>
-                                    <span class="percentage">{{ coverage.rust.lines.pct }}%</span>
-                                    <span class="fraction">({{ coverage.rust.lines.covered }}/{{ coverage.rust.lines.total }})</span>
+                                    <svg width="100%" height="18" viewBox="0 0 180 18">
+                                        <rect x="0" y="4" width="180" height="18" rx="9" fill="#fdf6e3"/>
+                                        <rect x="0" y="4" width="{{ 1.8 * coverage.rust.lines.pct }}" height="18" rx="9" fill="{{ coverage.rust.lines.color }}"/>
+                                        <text x="90" y="16" text-anchor="middle" font-size="14" fill="#7c2d12" font-weight="bold" style="text-shadow:0 1px 4px #fdf6e3,0 0 1px #fff;">{{ coverage.rust.lines.pct }}%</text>
+                                    </svg>
+                                    <span class="fraction" style="margin-left:8px; color:#64748b; font-size:0.98em;">({{ coverage.rust.lines.covered }}/{{ coverage.rust.lines.total }})</span>
                                 </div>
                             </div>
                             {% if coverage.rust.branches %}
                             <div class="metric">
                                 <div class="metric-label">Branches</div>
                                 <div class="metric-value">
-                                    <div class="progress-bar">
-                                        <div class="progress-fill" style="width: {{ coverage.rust.branches.pct }}%; background-color: {{ coverage.rust.branches.color }}"></div>
-                                    </div>
-                                    <span class="percentage">{{ coverage.rust.branches.pct }}%</span>
-                                    <span class="fraction">({{ coverage.rust.branches.covered }}/{{ coverage.rust.branches.total }})</span>
+                                    <svg width="100%" height="18" viewBox="0 0 180 18">
+                                        <rect x="0" y="4" width="180" height="18" rx="9" fill="#fdf6e3"/>
+                                        <rect x="0" y="4" width="{{ 1.8 * coverage.rust.branches.pct }}" height="18" rx="9" fill="{{ coverage.rust.branches.color }}"/>
+                                        <text x="90" y="16" text-anchor="middle" font-size="14" fill="#7c2d12" font-weight="bold" style="text-shadow:0 1px 4px #fdf6e3,0 0 1px #fff;">{{ coverage.rust.branches.pct }}%</text>
+                                    </svg>
+                                    <span class="fraction" style="margin-left:8px; color:#64748b; font-size:0.98em;">({{ coverage.rust.branches.covered }}/{{ coverage.rust.branches.total }})</span>
                                 </div>
                             </div>
                             {% endif %}

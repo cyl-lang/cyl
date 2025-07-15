@@ -240,8 +240,12 @@ impl Parser {
                 Ok(Expression::FloatLiteral(value))
             }
             Token::StringLiteral(value) => {
-                let value = value.clone();
+                let mut value = value.clone();
                 self.advance();
+                // Remove leading and trailing quotes if present
+                if value.starts_with('"') && value.ends_with('"') && value.len() >= 2 {
+                    value = value[1..value.len()-1].to_string();
+                }
                 Ok(Expression::StringLiteral(value))
             }
             Token::BoolLiteral(value) => {
