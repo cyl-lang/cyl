@@ -5,6 +5,7 @@ use std::io::Write;
 
 pub struct Interpreter {
     pub variables: HashMap<String, Value>,
+    #[allow(dead_code)]
     pub stdlib: StdLibWrapper,
     pub output_buffer: Vec<String>, // Captures printed output for tests
 }
