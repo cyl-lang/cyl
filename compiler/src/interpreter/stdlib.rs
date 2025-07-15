@@ -1,6 +1,7 @@
 use crate::stdlib;
 
 pub struct StdLibWrapper {
+    #[allow(dead_code)]
     pub modules: stdlib::StdLib,
 }
 

@@ -8,12 +8,14 @@ pub mod string;
 use std::collections::HashMap;
 
 pub struct StdLib {
+    #[allow(dead_code)]
     pub modules: HashMap<String, Box<dyn ModuleTrait>>,
 }
 
 pub trait ModuleTrait {
     #[allow(dead_code)]
     fn name(&self) -> &str;
+    #[allow(dead_code)]
     fn functions(&self) -> &HashMap<String, Function>;
     #[allow(dead_code)]
     fn types(&self) -> &HashMap<String, Type>;
