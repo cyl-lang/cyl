@@ -1,0 +1,8 @@
+fn main() -> void {
+    let i = 3;
+    while i > 0 {
+        print_int(i);
+        i = i - 1;
+    }
+    print_int(999);
+}

@@ -285,6 +285,10 @@ fn compile_and_run(file: &PathBuf, _opt_level: u8, _debug: bool, backend: &str, 
                 eprintln!("Interpreter error: {e}");
                 std::process::exit(1);
             }
+            // Print captured output buffer to stdout, one line at a time
+            for line in &interpreter.output_buffer {
+                println!("{}", line);
+            }
         }
     }
 

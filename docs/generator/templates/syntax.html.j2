@@ -39,43 +39,29 @@
             </div>
 
             <!-- Quick Navigation -->
-            <nav class="quick-nav">
-                <h2>Quick Navigation</h2>
-                <div class="category-nav">
-                    {% if syntax_categories %}
-                    {% for category in syntax_categories %}
-                    <div class="category-nav-item">
-                        <a href="#{{ category.id }}" class="category-link">
-                            <svg class="icon icon-{{ category.icon }}">
-                                <use href="#icon-{{ category.icon }}"></use>
-                            </svg>
-                            <span>{{ category.name }}</span>
-                        </a>
-                        <button class="expand-toggle" data-target="{{ category.id }}-items" aria-label="Show {{ category.name }} items">
-                            <svg class="icon icon-chevron-down">
-                                <use href="#icon-chevron-down"></use>
-                            </svg>
-                        </button>
-                        <div class="sub-nav" id="{{ category.id }}-items" style="display: none;">
-                            {% set category_rules = syntax | selectattr('category', 'equalto', category.id) | list %}
-                            {% for rule in category_rules %}
-                            <a href="#{{ rule.name | lower | replace(' ', '-') }}" class="sub-nav-link">{{ rule.name }}</a>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                    {% endif %}
+            <nav class="syntax-category-grid">
+                {% if syntax_categories %}
+                {% for category in syntax_categories %}
+                <div style="padding: 18px 0;">
+                    <a href="#{{ category.id }}" class="syntax-category-link simple-large">
+                        <svg class="icon icon-{{ category.icon }}" style="margin-right:10px;">
+                            <use href="#icon-{{ category.icon }}"></use>
+                        </svg>
+                        <span>{{ category.name }}</span>
+                    </a>
                 </div>
+                {% endfor %}
+                {% endif %}
             </nav>
 
             {% if syntax %}
             
             <!-- Group syntax rules by category -->
             {% set syntax_by_category = syntax | groupby('category_name') %}
-            
+            <div class="syntax-category-blocks">
             {% for category_name, category_rules in syntax_by_category %}
             {% set category_info = syntax_categories | selectattr('name', 'equalto', category_name) | first %}
-            <section class="syntax-category" id="{{ category_info.id if category_info else (category_name | lower | replace(' ', '-')) }}">
+            <section class="syntax-category-block syntax-category" id="{{ category_info.id if category_info else (category_name | lower | replace(' ', '-') ) }}">
                 <div class="category-header">
                     <h2 class="category-title">
                         {% if category_info %}
@@ -86,7 +72,7 @@
                         {{ category_name }}
                     </h2>
                     {% if category_info %}
-                    <p class="category-description">{{ category_info.description }}</p>
+                    <div class="syntax-category-link-desc">{{ category_info.description }}</div>
                     {% endif %}
                 </div>
                 <div class="syntax-blocks-grid">
@@ -122,6 +108,7 @@
                 </div>
             </section>
             {% endfor %}
+            </div>
             {% endif %}
             
             <div class="syntax-quick-reference">

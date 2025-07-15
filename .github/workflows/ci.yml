@@ -1,5 +1,8 @@
 name: CI
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [master, development]
@@ -79,3 +82,58 @@ jobs:
             echo "❌ LLVM build failed, but non-LLVM builds work"
             exit 0
           fi
+
+  # Code coverage job
+  coverage:
+    name: Code Coverage
+    runs-on: ubuntu-22.04
+    needs: test-no-llvm
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ~/.cargo/bin
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}-tarpaulin
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Build TypeScript
+        run: npm run build # or your actual build command
+
+      - name: Install cargo-tarpaulin
+        run: |
+          if ! command -v cargo-tarpaulin &> /dev/null; then
+            cargo install cargo-tarpaulin
+          else
+            echo "cargo-tarpaulin already installed"
+          fi
+
+      - name: Generate TypeScript coverage
+        run: npm run test:design:coverage
+
+      - name: Generate Rust coverage
+        run: npm run test:coverage:rust
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage/coverage-final.json,./coverage/cobertura.xml
+          fail_ci_if_error: false
+          verbose: true

@@ -37,10 +37,27 @@
             <section class="hero">
                 <h1>{{ config.content.hero.title or 'Cyl' }}</h1>
                 <p>{{ config.content.hero.subtitle or 'A modern systems programming language' }}</p>
-                
-                <div class="actions">
-                    <a href="{{ config.content.hero.primary_button.url or '#install' }}" class="btn-primary">{{ config.content.hero.primary_button.text or 'Get Started' }}</a>
-                    <a href="{{ config.content.hero.secondary_button.url or 'syntax.html' }}" class="btn-secondary">{{ config.content.hero.secondary_button.text or 'Reference' }}</a>
+                <div class="actions actions-centered">
+                    <a href="{{ config.content.hero.primary_button.url or '#install' }}" class="btn-primary btn-glow">{{ config.content.hero.primary_button.text or 'Get Started' }}</a>
+                    <a href="{{ config.content.hero.secondary_button.url or 'syntax.html' }}" class="btn-reference btn-glow">{{ config.content.hero.secondary_button.text or 'Reference' }}</a>
+                </div>
+            </section>
+
+            <section class="reference-blocks">
+                <h2 class="section-title">Language Reference</h2>
+                <div class="reference-grid">
+                    {% for ref in config.content.reference %}
+                    <div class="reference-block" tabindex="0" onclick="this.classList.toggle('expanded')">
+                        <div class="reference-block-header">
+                            <svg class="icon icon-{{ ref.icon }}" width="32" height="32">
+                                <use href="#icon-{{ ref.icon }}"></use>
+                            </svg>
+                            <span class="reference-block-title">{{ ref.title }}</span>
+                        </div>
+                        <div class="reference-block-summary">{{ ref.summary }}</div>
+                        <div class="reference-block-details">{{ ref.details }}</div>
+                    </div>
+                    {% endfor %}
                 </div>
             </section>
 

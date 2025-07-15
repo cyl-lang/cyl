@@ -1119,6 +1119,63 @@ impl<'ctx> LLVMCodegen<'ctx> {
                     message: format!("Field '{property}' not found in any struct type"),
                 })
             }
+            Expression::IndexAccess { object, index } => {
+                // Array indexing compilation: array[index]
+                let array_ptr = if let Expression::Identifier(var_name) = object.as_ref() {
+                    // Get the array variable directly
+                    if let Some((variable, var_type)) = self.variables.get(var_name) {
+                        if matches!(var_type, Type::Array(_)) {
+                            *variable
+                        } else {
+                            return Err(CylError::CodeGenError {
+                                message: format!("Variable '{var_name}' is not an array"),
+                            });
+                        }
+                    } else {
+                        return Err(CylError::CodeGenError {
+                            message: format!("Unknown variable '{var_name}'"),
+                        });
+                    }
+                } else {
+                    // For other expressions, compile and expect a pointer
+                    let array_val = self.compile_expression(object)?;
+                    if !array_val.is_pointer_value() {
+                        return Err(CylError::CodeGenError {
+                            message: "Can only index arrays".to_string(),
+                        });
+                    }
+                    array_val.into_pointer_value()
+                };
+
+                // Compile the index expression
+                let index_val = self.compile_expression(index)?;
+                let index_int = if index_val.is_int_value() {
+                    index_val.into_int_value()
+                } else {
+                    return Err(CylError::CodeGenError {
+                        message: "Array index must be an integer".to_string(),
+                    });
+                };
+
+                // Generate GEP (GetElementPtr) to access the array element
+                // GEP needs two indices: [0, index] where 0 is for the array itself
+                let zero = self.context.i32_type().const_int(0, false);
+                let indices = [zero, index_int];
+                
+                let element_ptr = unsafe {
+                    self.builder
+                        .build_gep(array_ptr, &indices, "array_element_ptr")
+                        .unwrap()
+                };
+
+                // Load the value from the array element
+                let loaded_val = self
+                    .builder
+                    .build_load(element_ptr, "array_element")
+                    .unwrap();
+
+                Ok(loaded_val)
+            }
             _ => Err(CylError::CodeGenError {
                 message: format!("Expression type not implemented: {expression:?}"),
             }),

@@ -1,0 +1,6 @@
+// Test for loop functionality
+fn main() -> void {
+    for i in 5 {
+        print_int(i);
+    }
+}

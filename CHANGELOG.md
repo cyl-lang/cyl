@@ -1,5 +1,205 @@
 # cyl
 
+## 0.5.0
+
+### Minor Changes
+
+- ## Modular Interpreter, Test Coverage, and Documentation Improvements
+
+  ### Interpreter Refactor
+
+  - Interpreter logic has been split into multiple files: `value.rs`, `eval.rs`, `stdlib.rs`, and `utils.rs` for improved modularity and maintainability.
+  - Removed legacy `interpreter.rs` to resolve Rust module ambiguity.
+  - Added support for `Statement::For` and `Statement::Block` in the interpreter, enabling correct execution of for-loops and block statements.
+
+  ### Test Coverage & Fixes
+
+  - All tests now pass, including those for for-loops, arrays, and block statements.
+  - Fixed output formatting for string and integer values to match test harness expectations.
+  - Improved debug logging, now conditional on the `CYL_DEBUG_LOG` environment variable and redirected to `cyl_debug.log`.
+  - Ensured CLI prints interpreter output buffer to stdout for test harness compatibility.
+
+  ### Documentation Updates
+
+  - Updated documentation to reflect new interpreter structure and modularization.
+  - Added notes on coverage, output formatting, and debug logging.
+  - Clarified test expectations and output requirements for contributors.
+
+  ### Other Improvements
+
+  - Cleaned up unused files and resolved build errors due to module ambiguity.
+  - Improved error handling and diagnostics in the interpreter and CLI.
+
+  ***
+
+  This changeset covers all major refactors, bug fixes, and documentation improvements made in this cycle. See the main README and implementation plan for further details.
+
+## 0.4.2
+
+### Patch Changes
+
+- # While Loop Implementation
+
+  ## Summary
+
+  Complete implementation of while loops across all language backends, including parser, interpreter, and enhanced comparison operators support.
+
+  ## New Features
+
+  ### Core Language Features
+
+  - **While Loop Syntax**: Full parsing and execution support for `while condition { body }` statements
+  - **Enhanced Comparison Operators**: Added support for `>`, `<`, `>=`, `<=` operators in interpreter backend
+  - **Assignment Expression Evaluation**: Implemented proper variable assignment within expressions (`i = i - 1`)
+  - **Nested Block Execution**: Enhanced block statement evaluation to handle while loops within other control structures
+
+  ### Backend Support
+
+  - **Parser**: Complete `parse_while()` implementation replacing placeholder functionality
+  - **Interpreter**: Full while loop evaluation with condition checking and body execution
+  - **LLVM**: While loop compilation support (pre-existing, now fully integrated)
+  - **Cranelift**: Falls back to interpreter for while loop execution
+
+  ## Code Changes
+
+  ### Parser Enhancements
+
+  **File**: `compiler/src/parser/statements.rs`
+
+  - Implemented complete `parse_while()` function
+  - Added proper condition expression parsing
+  - Integrated with existing block parsing infrastructure
+  - Replaced TODO placeholder with production-ready implementation
+
+  ### Interpreter Enhancements
+
+  **File**: `compiler/src/interpreter.rs`
+
+  - Added `Statement::While` evaluation in `eval_statement()` and `eval_statement_with_diagnostics()`
+  - Implemented `Expression::Assignment` evaluation for variable updates within loops
+  - Enhanced `BinaryOperator` matching to include:
+    - `Greater` (`>`) comparison
+    - `Less` (`<`) comparison
+    - `GreaterEqual` (`>=`) comparison
+    - `LessEqual` (`<=`) comparison
+  - Fixed `eval_block()` to properly handle while statements alongside other statement types
+
+  ### Test Coverage
+
+  **Added Test Files**:
+
+  - `tests/fixtures/valid/while_loop_test.cyl`: Basic while loop functionality validation
+  - `tests/fixtures/valid/while_countdown_test.cyl`: Complex while loop with variable modification
+
+  ## Technical Details
+
+  ### While Loop Evaluation Process
+
+  1. **Condition Evaluation**: Expression parsed and evaluated for truthiness
+  2. **Body Execution**: Block statements executed if condition is true
+  3. **Variable Updates**: Assignment expressions properly modify loop variables
+  4. **Condition Re-evaluation**: Loop continues until condition becomes false
+  5. **Clean Exit**: Execution proceeds to statements after the while block
+
+  ### Integration Points
+
+  - **Variable Scoping**: Proper variable access and modification within loop bodies
+  - **Expression System**: Full integration with existing expression evaluation
+  - **Control Flow**: Seamless integration with if statements and other control structures
+  - **Error Handling**: Consistent error reporting for malformed while loops
+
+  ## Breaking Changes
+
+  None - this is a purely additive feature that maintains backward compatibility.
+
+  ## Migration Guide
+
+  No migration required. Existing code continues to work unchanged.
+
+  ## Examples
+
+  ### Basic While Loop
+
+  ```cyl
+  let i = 0;
+  while i < 5 {
+      print_int(i);
+      i = i + 1;
+  }
+  ```
+
+  ### Countdown Loop
+
+  ```cyl
+  let count = 3;
+  while count > 0 {
+      print_int(count);
+      count = count - 1;
+  }
+  print_int(999); // Executes after loop
+  ```
+
+  ### Conditional While Loop
+
+  ```cyl
+  let continue_loop = true;
+  while continue_loop {
+      // Loop body
+      continue_loop = false; // Exit condition
+  }
+  ```
+
+  ## Performance Impact
+
+  - **Parser**: Minimal overhead for while loop parsing
+  - **Interpreter**: Efficient condition evaluation and body execution
+  - **Memory**: No additional memory overhead for while loop constructs
+  - **Compilation**: LLVM backend generates optimized loop assembly
+
+  ## Future Enhancements
+
+  This implementation provides the foundation for:
+
+  - `for` loops with iterator syntax
+  - `loop` constructs with explicit `break` statements
+  - Enhanced loop control flow (`continue`, `break`)
+  - Loop unrolling optimizations
+
+  ## Validation
+
+  - ✅ Simple while loops with false conditions skip execution correctly
+  - ✅ Complex while loops with variable modification execute properly
+  - ✅ Assignment expressions update variables within loop bodies
+  - ✅ Comparison operators evaluate conditions accurately
+  - ✅ Loop termination works as expected
+  - ✅ Integration with existing control flow constructs
+  - ✅ Multi-backend compatibility (interpreter primary, LLVM compilation ready)
+
+  ### Documentation Updates
+
+  **File**: `docs/generator/config.json`
+
+  - Added "If Statement" documentation (existing feature that was undocumented)
+  - Added "While Loop" documentation with syntax, description, and examples
+  - Enhanced statement documentation to include all control flow constructs
+  - Comparison operators already documented in existing operator section
+
+  ## Documentation Impact
+
+  This changeset includes manual documentation updates to ensure:
+
+  - While loop syntax appears in language specification
+  - If statement syntax is properly documented (existing feature)
+  - Updated grammar examples showing control flow constructs
+  - Enhanced code samples demonstrating iteration patterns
+  - Complete operator documentation including comparison operators
+
+  After running the documentation generator, the website will include:
+
+  - Complete control flow syntax reference
+  - Working code examples for while loops
+  - Integration with existing language features
+
 ## 0.4.1
 
 ### Patch Changes

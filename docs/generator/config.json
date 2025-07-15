@@ -2,7 +2,7 @@
     "site": {
         "title": "Cyl Programming Language",
         "description": "A modern systems programming language",
-        "version": "0.4.0",
+        "version": "0.5.0",
         "url": "https://cyl-lang.org"
     },
     "branding": {
@@ -22,6 +22,10 @@
                 "url": "examples.html"
             },
             {
+                "name": "Coverage",
+                "url": "coverage.html"
+            },
+            {
                 "name": "Changelog",
                 "url": "changelog.html"
             }
@@ -31,22 +35,22 @@
         "copyright": "© 2025 Cyl Programming Language",
         "license": {
             "name": "GPL-3.0",
-            "url": "https://github.com/clxrityy/cyl/blob/master/LICENSE"
+            "url": "https://github.com/cyl-lang/cyl/blob/master/LICENSE"
         },
         "links": [
             {
                 "name": "GitHub",
-                "url": "https://github.com/clxrityy/cyl",
+                "url": "https://github.com/cyl-lang/cyl",
                 "icon": "github"
             },
             {
                 "name": "Documentation",
-                "url": "https://cyl-lang.org/docs",
+                "url": "https://cyl-lang.org",
                 "icon": "documentation"
             },
             {
                 "name": "Community",
-                "url": "https://discord.gg/cyl",
+                "url": "/",
                 "icon": "community"
             }
         ]
@@ -278,12 +282,13 @@
                 },
                 {
                     "name": "While Loop",
-                    "syntax": "while condition {\n    // loop body\n}",
-                    "description": "Repeats a block of code while a condition remains true.",
+                    "syntax": "while condition {\n    // statements\n}",
+                    "description": "Repeatedly executes the loop body while the condition remains true. Supports variable assignment and complex conditions.",
                     "examples": [
-                        "while counter < 10 {\n    counter = counter + 1;\n}"
+                        "while i < 10 {\n    print_int(i);\n    i = i + 1;\n}",
+                        "while continue_loop {\n    process_data();\n    continue_loop = check_condition();\n}"
                     ],
-                    "heritage": "Traditional while loop from imperative programming languages."
+                    "heritage": "Standard while loop construct from imperative programming languages with C-style syntax."
                 },
                 {
                     "name": "For Loop",

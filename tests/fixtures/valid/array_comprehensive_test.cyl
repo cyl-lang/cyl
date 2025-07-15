@@ -1,0 +1,13 @@
+// Test comprehensive array indexing
+fn main() -> void {
+    let numbers = [100, 200, 300, 400, 500];
+    
+    // Test different indices
+    let first = numbers[0];   // Should be 100
+    let second = numbers[1];  // Should be 200
+    let last = numbers[4];    // Should be 500
+    
+    print_int(first);
+    print_int(second);
+    print_int(last);
+}

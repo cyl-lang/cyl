@@ -16,3 +16,4 @@ temp.*
 # Documentation generated files
 docs/website/
 docs/generator/venv/
+*.log
