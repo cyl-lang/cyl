@@ -34,66 +34,23 @@
     <main class="main">
         <div class="container">
             {% if syntax %}
-            <!-- Group syntax rules by category -->
-            {% set syntax_by_category = syntax | groupby('category_name') %}
-            <div class="syntax-category-blocks">
-            {% for category_name, category_rules in syntax_by_category %}
-            {% set category_info = syntax_categories | selectattr('name', 'equalto', category_name) | first %}
-            <section class="syntax-category-block syntax-category" id="{{ category_info.id if category_info else (category_name | lower | replace(' ', '-') ) }}">
-                <div class="category-header">
-                    <h2 class="category-title">
-                        {% if category_info %}
-                        <svg class="icon icon-{{ category_info.icon }}">
-                            <use href="#icon-{{ category_info.icon }}"></use>
-                        </svg>
-                        {% endif %}
-                        {{ category_name }}
-                    </h2>
-                    {% if category_info %}
-                    <div class="syntax-category-link-desc">{{ category_info.description }}</div>
-                    {% endif %}
-                </div>
-                <div class="syntax-blocks-grid">
-                    {% for rule in category_rules %}
-                    <div class="syntax-block" id="{{ rule.name | lower | replace(' ', '-') }}">
-                        <div class="syntax-block-header">
-                            <h3 class="syntax-title">{{ rule.name }}</h3>
-                            <span class="syntax-type">{{ rule.type | title }}</span>
-                        </div>
-        <!-- Plugin System Section -->
-        <section class="syntax-category-block syntax-category" id="plugin-system">
-            <div class="category-header">
-                <h2 class="category-title">
-                    <svg class="icon icon-plus">
-                        <use href="#icon-plus"></use>
-                    </svg>
-                    Plugin System
-                </h2>
-                <div class="syntax-category-link-desc">Extending Cyl with Python or Rust plugins for custom syntax, types, and functions.</div>
-            </div>
-            <div class="syntax-blocks-grid">
-                <div class="syntax-block" id="python-plugin">
-                    <div class="syntax-block-header">
-                        <h3 class="syntax-title">Python Plugin Example</h3>
-        <div class="container">
-            {% if syntax %}
             <!-- Quick Links at the top -->
             <nav class="syntax-quick-links" style="margin-bottom:2.5em;display:flex;flex-wrap:wrap;gap:1em;justify-content:center;">
                 {% set syntax_by_category = syntax | groupby('category_name') %}
                 {% for category_name, category_rules in syntax_by_category %}
-                {% set category_info = syntax_categories | selectattr('name', 'equalto', category_name) | first %}
-                <a href="#{{ category_info.id if category_info else (category_name | lower | replace(' ', '-') ) }}" class="syntax-quick-link" data-category="{{ category_info.id if category_info else (category_name | lower | replace(' ', '-') ) }}" style="display:flex;align-items:center;gap:0.5em;padding:0.7em 1.2em;border-radius:8px;background:#f4f8fb;color:#1746a2;font-weight:600;text-decoration:none;box-shadow:0 2px 8px #2563eb11;transition:background 0.18s;">
-                    {% if category_info %}
-                    <svg class="icon icon-{{ category_info.icon }}" style="width:1.2em;height:1.2em;">
-                        <use href="#icon-{{ category_info.icon }}"></use>
-                    </svg>
-                    {% endif %}
-                    {{ category_name }}
-                </a>
+                    {% set category_info = syntax_categories | selectattr('name', 'equalto', category_name) | first %}
+                    <a href="#{{ category_info.id if category_info else (category_name | lower | replace(' ', '-') ) }}" class="syntax-quick-link" style="display:flex;align-items:center;gap:0.5em;padding:0.7em 1.2em;border-radius:8px;background:#f4f8fb;color:#1746a2;font-weight:600;text-decoration:none;box-shadow:0 2px 8px #2563eb11;transition:background 0.18s;">
+                        {% if category_info %}
+                        <svg class="icon icon-{{ category_info.icon }}" style="width:1.2em;height:1.2em;">
+                            <use href="#icon-{{ category_info.icon }}"></use>
+                        </svg>
+                        {% endif %}
+                        {{ category_name }}
+                    </a>
                 {% endfor %}
             </nav>
 
-            <!-- Toggleable Category Info Sections -->
+            <!-- Category Sections -->
             <div class="syntax-category-blocks">
             {% for category_name, category_rules in syntax_by_category %}
             {% set category_info = syntax_categories | selectattr('name', 'equalto', category_name) | first %}
@@ -111,7 +68,7 @@
                     <div class="syntax-category-link-desc">{{ category_info.description }}</div>
                     {% endif %}
                 </div>
-                <div class="syntax-blocks-grid" style="display:none;">
+                <div class="syntax-blocks-grid">
                     {% for rule in category_rules %}
                     <div class="syntax-block" id="{{ rule.name | lower | replace(' ', '-') }}">
                         <div class="syntax-block-header">
@@ -143,209 +100,30 @@
             </section>
             {% endfor %}
             </div>
-            <script>
-            // Toggle category info on quick link click
-            document.addEventListener('DOMContentLoaded', function() {
-                const quickLinks = document.querySelectorAll('.syntax-quick-link');
-                quickLinks.forEach(link => {
-                    link.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        const catId = this.getAttribute('data-category');
-                        document.querySelectorAll('.syntax-category-blocks .syntax-category').forEach(section => {
-                            if(section.id === catId) {
-                                const grid = section.querySelector('.syntax-blocks-grid');
-                                if(grid) grid.style.display = (grid.style.display === 'none' || !grid.style.display) ? 'block' : 'none';
-                                section.scrollIntoView({behavior:'smooth', block:'start'});
-                            } else {
-                                const grid = section.querySelector('.syntax-blocks-grid');
-                                if(grid) grid.style.display = 'none';
-                            }
-                        });
-                    });
-                });
-            });
-            </script>
-            {% endif %}
-                            <use href="#icon-plus"></use>
-                        </svg>
-                        Plugin System
-                    </h2>
-                    <div class="syntax-category-link-desc">Extending Cyl with Python or Rust plugins for custom syntax, types, and functions.</div>
+
+            <!-- Plugin System Info Box (not a main category) -->
+            <div class="plugin-system-info" style="margin: 2em 0; padding: 1.5em; border: 1px solid #e0e0e0; border-radius: 8px; background: #f9f9fc;">
+                <div style="display: flex; align-items: center; gap: 0.5em; margin-bottom: 0.5em;">
+                    <svg class="icon icon-plus" style="width: 1.5em; height: 1.5em; vertical-align: middle;">
+                        <use href="#icon-plus"></use>
+                    </svg>
+                    <span style="font-size: 1.2em; font-weight: 600;">Plugin System</span>
                 </div>
-                <!-- Plugin System Section -->
+                <div style="margin-bottom: 0.5em;">
+                    <strong>Extending Cyl:</strong> You can add new syntax, types, and functions using Python or Rust plugins. Just place your plugin in the <code>plugins/</code> directory and the compiler will auto-load it at runtime.
                 </div>
-            </section>
-            <!-- Plugin System Section -->
-            <section class="syntax-category-block syntax-category" id="plugin-system">
-                <div class="category-header">
-                    <h2 class="category-title">
-                        <svg class="icon icon-plus">
-                            <use href="#icon-plus"></use>
-                        </svg>
-                        Plugin System
-                    </h2>
-                    <div class="syntax-category-link-desc">Extending Cyl with Python or Rust plugins for custom syntax, types, and functions.</div>
-                </div>
-                <div class="syntax-blocks-grid">
-                    <div class="syntax-block" id="python-plugin">
-                        <div class="syntax-block-header">
-                            <h3 class="syntax-title">Python Plugin Example</h3>
-                            <span class="syntax-type">Plugin</span>
-                        </div>
-                        <div class="syntax-content">
-                            <div class="syntax-code">
-                                <pre><code>class LanguagePlugin:
-                    </div>
-                    
-                    <div class="quick-example">
-                            </div>
-                            <div class="syntax-description">
-                                <p>Implement the <code>LanguagePlugin</code> class in Python and place it in <code>plugins/</code>. The compiler will auto-load and use your plugin at runtime.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            <!-- Quick Reference Section -->
-            <div class="syntax-quick-reference">
-                <h2>Quick Reference</h2>
-                        <h4>Control Flow</h4>
-                <div class="quick-examples-grid">
-                    <div class="quick-example">
-                        <h4>Variables</h4>
-                        <div class="code">
-                            <pre><code>let name: string = "Cyl";
-                    </a>
-                        </div>
-                    </div>
-        <!-- Plugin System Info Box (not a main category) -->
-        <div class="plugin-system-info" style="margin: 2em 0; padding: 1.5em; border: 1px solid #e0e0e0; border-radius: 8px; background: #f9f9fc;">
-            <div style="display: flex; align-items: center; gap: 0.5em; margin-bottom: 0.5em;">
-                <svg class="icon icon-plus" style="width: 1.5em; height: 1.5em; vertical-align: middle;">
-                    <use href="#icon-plus"></use>
-                </svg>
-                <span style="font-size: 1.2em; font-weight: 600;">Plugin System</span>
-            </div>
-            <div style="margin-bottom: 0.5em;">
-                <strong>Extending Cyl:</strong> You can add new syntax, types, and functions using Python or Rust plugins. Just place your plugin in the <code>plugins/</code> directory and the compiler will auto-load it at runtime.
-            </div>
-            <div>
-                <b>Python Plugin Example:</b>
-                <pre style="background: #f4f4f8; padding: 0.75em; border-radius: 4px; margin: 0.5em 0 0 0;"><code>class LanguagePlugin:
-            </symbol>
-            <symbol id="icon-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-            </div>
-        </div>
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-            </symbol>
-            <symbol id="icon-scale" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M16 11c0 2.5-1.5 4.5-4 4.5s-4-2-4-4.5 1.5-4.5 4-4.5 4 2 4 4.5z"/>
-                <path d="M12 2v4"/>
-                <path d="M12 18v4"/>
-                <path d="M4.93 4.93l2.83 2.83"/>
-                <path d="M16.24 16.24l2.83 2.83"/>
-                <path d="M2 12h4"/>
-                <path d="M18 12h4"/>
-                <path d="M4.93 19.07l2.83-2.83"/>
-                <path d="M16.24 7.76l2.83-2.83"/>
-            </symbol>
-            <!-- Syntax Category Icons -->
-            <symbol id="icon-file-text" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2Z"/>
-                <polyline points="14,2 14,8 20,8"/>
-                <line x1="16" y1="13" x2="8" y2="13"/>
-                <line x1="16" y1="17" x2="8" y2="17"/>
-                <polyline points="10,9 9,9 8,9"/>
-            </symbol>
-            <!-- ...existing SVG icons... -->
-        </defs>
-    </svg>
-    <script src="assets/script.js"></script>
-</body>
-</html>
-                            <use href="#icon-plus"></use>
-                        </svg>
-                        Plugin System
-                    </h2>
-                    <div class="syntax-category-link-desc">Extending Cyl with Python or Rust plugins for custom syntax, types, and functions.</div>
-                </div>
-                <div class="syntax-blocks-grid">
-                    <div class="syntax-block" id="python-plugin">
-                        <div class="syntax-block-header">
-                            <h3 class="syntax-title">Python Plugin Example</h3>
-                            <span class="syntax-type">Plugin</span>
-                        </div>
-                        <div class="syntax-content">
-                            <div class="syntax-code">
-                                <pre><code>class LanguagePlugin:
-                            {% if rule.examples %}
-                            <div class="syntax-examples">
-                                <h4>Examples:</h4>
-                                {% for example in rule.examples %}
-                                <pre><code>{{ example }}</code></pre>
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                            {% if rule.heritage %}
-                            <div class="syntax-heritage">
-                                <p><strong>Heritage:</strong> {{ rule.heritage }}</p>
-                            </div>
-                            <div class="syntax-description">
-                                <p>Implement the <code>LanguagePlugin</code> class in Python and place it in <code>plugins/</code>. The compiler will auto-load and use your plugin at runtime.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </section>
-            {% endfor %}
-            </div>
-            {% endif %}
-            
-            <div class="syntax-quick-reference">
-                <h2>Quick Reference</h2>
-                <div class="quick-examples-grid">
-                    <div class="quick-example">
-                        <h4>Variables</h4>
-                        <div class="code">
-                            <pre><code>let name: string = "Cyl";
-let count: i32 = 42;</code></pre>
-                        </div>
-                    </div>
-                    
-                    <div class="quick-example">
-                        <h4>Functions</h4>
-                        <div class="code">
-                            <pre><code>fn greet(name: string) -> string {
-    return "Hello, " + name + "!";
-}</code></pre>
-                        </div>
-                    </div>
-                    
-                    <div class="quick-example">
-                        <h4>Control Flow</h4>
-                        <div class="code">
-                            <pre><code>if count > 0 {
-    print("Positive");
-} else {
-    print("Zero or negative");
-}</code></pre>
-                        </div>
-                    </div>
+                <div>
+                    <b>Python Plugin Example:</b>
+                    <pre style="background: #f4f4f8; padding: 0.75em; border-radius: 4px; margin: 0.5em 0 0 0;"><code>class LanguagePlugin:
+    # ... implement plugin methods ...
+</code></pre>
                 </div>
             </div>
+            {% else %}
             <div class="empty-state">
                 <p>No syntax information available. Check that compiler source files exist.</p>
             </div>
+            {% endif %}
         </div>
     </main>
 

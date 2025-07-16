@@ -129,7 +129,7 @@ jobs:
         run: npm run test:design:coverage
 
       - name: Generate Rust coverage
-        run: npm run test:coverage:rust
+        run: npm run coverage:rust
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
