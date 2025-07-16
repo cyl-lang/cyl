@@ -9,8 +9,10 @@ on:
   pull_request:
     branches: [master, development]
 
+
 env:
   CARGO_TERM_COLOR: always
+  PYO3_CONFIGURE_OPS: "1"
 
 jobs:
   # Test without LLVM first - this should always work
@@ -115,7 +117,7 @@ jobs:
         run: npm ci
 
       - name: Build TypeScript
-        run: npm run build # or your actual build command
+        run: npm run build
 
       - name: Install cargo-tarpaulin
         run: |

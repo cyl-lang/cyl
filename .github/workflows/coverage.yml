@@ -32,7 +32,7 @@ jobs:
         run: npm ci
 
       - name: Build TypeScript
-        run: npm run build:design
+        run: npm run build
 
       - name: Run TypeScript tests with coverage
         run: npm run test:design:coverage
@@ -41,7 +41,7 @@ jobs:
         run: cargo install cargo-tarpaulin
 
       - name: Run Rust tests with coverage
-        run: npm run test:coverage:rust
+        run: npm run coverage:rust
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
