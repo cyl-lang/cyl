@@ -1,3 +1,5 @@
+[package.metadata.pyo3]
+extension-module = false
 [package]
 authors = ["clxrity"]
 description = "Cyl programming language compiler"
