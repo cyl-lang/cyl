@@ -1,8 +1,8 @@
 module.exports = {
   testEnvironment: "node",
-  roots: ["<rootDir>/compiler/dist"],
+  roots: ["<rootDir>/compiler/src"],
   testMatch: ["**/*.test.js"],
-  collectCoverageFrom: ["compiler/dist/**/*.js", "!compiler/dist/**/*.d.ts"],
+  collectCoverageFrom: ["compiler/src/**/*.js", "!compiler/src/**/*.d.ts"],
   coverageDirectory: "coverage",
   coverageReporters: ["text", "lcov", "html"],
   transform: {},
