@@ -1,5 +1,6 @@
+
 [workspace]
-members = ["compiler"]
+members = ["compiler", "pyo3_minimal_test"]
 resolver = "2"
 
 [workspace.dependencies]

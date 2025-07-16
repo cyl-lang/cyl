@@ -12,6 +12,7 @@
     <header class="header">
         <div class="container">
             <nav class="nav">
+
                 <a href="index.html" class="logo">
                     <img src="favicon.png" alt="{{ config.site.title or 'Cyl' }}" width="24" height="24">
                     <span>{{ config.site.title or 'Cyl' }}</span>
@@ -34,12 +35,19 @@
 
     <main class="main">
         <div class="container">
+
             <section class="hero">
                 <h1>{{ config.content.hero.title or 'Cyl' }}</h1>
                 <p>{{ config.content.hero.subtitle or 'A modern systems programming language' }}</p>
                 <div class="actions actions-centered">
                     <a href="{{ config.content.hero.primary_button.url or '#install' }}" class="btn-primary btn-glow">{{ config.content.hero.primary_button.text or 'Get Started' }}</a>
                     <a href="{{ config.content.hero.secondary_button.url or 'syntax.html' }}" class="btn-reference btn-glow">{{ config.content.hero.secondary_button.text or 'Reference' }}</a>
+                </div>
+                <div class="plugin-system-cta" style="margin-top:2em;text-align:center;">
+                    <a href="https://github.com/cyl-lang/cyl/tree/main/plugins" target="_blank" class="btn-secondary">
+                        <svg class="icon icon-plus" width="18" height="18" style="vertical-align:middle;margin-right:0.3em;"><use href="#icon-plus"></use></svg>
+                        See plugin examples
+                    </a>
                 </div>
             </section>
 

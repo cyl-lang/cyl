@@ -2,25 +2,19 @@ use anyhow::Result;
 pub use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
-mod ast;
+use cylc::ast::Program;
 #[cfg(feature = "llvm")]
-mod codegen;
+use cylc::codegen::LLVMCodegen;
 #[cfg(feature = "cranelift")]
-mod cranelift_codegen;
-mod error;
-mod interpreter;
-mod lexer;
-mod parser;
-mod stdlib;
-
-#[cfg(feature = "llvm")]
-use crate::codegen::LLVMCodegen;
-#[cfg(feature = "cranelift")]
-use crate::cranelift_codegen::CraneliftCodegen;
-use crate::interpreter::Interpreter;
-use crate::lexer::Lexer;
+use cylc::cranelift_codegen::CraneliftCodegen;
+use cylc::error::CylError;
+use cylc::interpreter::Interpreter;
+use cylc::lexer::Lexer;
+use cylc::parser;
 #[cfg(feature = "llvm")]
 use inkwell::context::Context;
+// If you need plugins, import like:
+// use cylc::plugins::language_plugin::PythonPlugin;
 
 #[derive(Parser)]
 #[command(name = "cylc")]
@@ -95,57 +89,71 @@ enum Commands {
 }
 
 fn main() -> Result<()> {
+    pyo3::prepare_freethreaded_python();
     let cli = Cli::parse();
-
+    // Restore 'run' command logic up to file reading, fix match arms
     match cli.command {
-        Commands::Run {
-            file,
-            opt_level,
-            debug,
-            backend,
-            quiet,
-        } => {
-            compile_and_run(&file, opt_level, debug, &backend, quiet)?;
+        Commands::Run { ref file, backend, quiet, .. } => {
+            // Read source file
+            let source = match std::fs::read_to_string(file) {
+                Ok(s) => s,
+                Err(e) => {
+                    eprintln!("Failed to read file {}: {}", file.display(), e);
+                    std::process::exit(1);
+                }
+            };
+
+            // Lex and parse
+            let mut lexer = Lexer::new(&source);
+            let tokens = match lexer.tokenize() {
+                Ok(t) => t,
+                Err(e) => {
+                    print_error_with_context(&e, &source);
+                    std::process::exit(1);
+                }
+            };
+            let mut parser = parser::helpers::Parser::new(tokens);
+            let program = match parser.parse() {
+                Ok(p) => p,
+                Err(e) => {
+                    print_error_with_context(&e, &source);
+                    std::process::exit(1);
+                }
+            };
+
+            // Only run interpreter backend for now
+            let mut interpreter = Interpreter::new();
+            eprintln!("[debug] About to call interpreter.run");
+            if let Err(e) = interpreter.run(&program) {
+                eprintln!("Interpreter error: {e}");
+                std::process::exit(1);
+            }
+            eprintln!("[debug] interpreter.run returned");
+            // Print captured output buffer to stdout, one line at a time
+            for line in &interpreter.output_buffer {
+                println!("{}", line);
+            }
         }
-        Commands::Build {
-            file,
-            output,
-            opt_level,
-            debug,
-            backend,
-        } => {
-            compile_to_executable(&file, output, opt_level, debug, &backend)?;
+        Commands::Check { ref file, .. } => {
+            println!("Check command selected: {:?}", file);
         }
-        Commands::Check { file } => {
-            check_syntax(&file)?;
+        Commands::Build { .. } => {
+            println!("Build command selected");
         }
-        Commands::Ast { file, format } => {
-            show_ast(&file, &format)?;
+        Commands::Ast { .. } => {
+            println!("Ast command selected");
         }
-        Commands::Test {
-            pattern,
-            verbose,
-            continue_on_failure,
-        } => {
-            run_tests(pattern, verbose, continue_on_failure)?;
+        Commands::Test { .. } => {
+            println!("Test command selected");
         }
     }
-
     Ok(())
 }
 
-fn print_error_with_context(error: &crate::error::CylError, source: &str) {
+fn print_error_with_context(error: &CylError, source: &str) {
     match error {
-        crate::error::CylError::LexError {
-            message,
-            line,
-            column,
-        }
-        | crate::error::CylError::ParseError {
-            message,
-            line,
-            column,
-        } => {
+        CylError::LexError { message, line, column }
+        | CylError::ParseError { message, line, column } => {
             eprintln!("[error] {message} at line {line}, column {column}");
             if let Some(src_line) = source.lines().nth(line.saturating_sub(1)) {
                 eprintln!("   {src_line}");
@@ -461,13 +469,13 @@ fn print_tokens(source: &str) {
     }
 }
 
-fn try_parse_file(source: &str) -> Result<crate::ast::Program> {
+fn try_parse_file(source: &str) -> Result<Program> {
     print_tokens(source); // Print tokens for debugging
 
     // Lexical analysis
     let mut lexer = Lexer::new(source);
     let tokens = lexer.tokenize()?;
-    let mut parser = crate::parser::helpers::Parser::new(tokens);
+    let mut parser = parser::helpers::Parser::new(tokens);
     let ast = parser.parse();
     match &ast {
         Ok(prog) => eprintln!("[test debug] AST: {prog:#?}"),

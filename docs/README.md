@@ -1,6 +1,53 @@
 # Cyl Documentation System
 
+
 ## Overview
+
+## 🔌 Plugin System & Extensibility
+
+Cyl supports a powerful plugin system that allows you to extend the language with custom syntax, types, and functions using either Rust or Python. This enables rapid prototyping, domain-specific extensions, and integration with external tools—all without modifying the core compiler.
+
+### Python Plugin Support
+
+- **Write plugins in Python**: Implement the `LanguagePlugin` class and place your plugin in the `plugins/` directory.
+- **Dynamic loading**: The compiler uses [PyO3](https://pyo3.rs/) to load and interact with Python plugins at runtime.
+- **Extensible hooks**: Plugins can register new syntax, types, and functions, and provide custom evaluation logic.
+
+#### Example: Python Plugin
+
+```python
+# plugins/example_plugin.py
+class LanguagePlugin:
+    def register_syntax(self):
+        return ["custom_syntax"]
+    def register_types(self):
+        return ["CustomType"]
+    def register_functions(self):
+        return {"custom_func": lambda args: f"CustomFunc called with {args}"}
+    def eval_hook(self, expr):
+        if expr == "custom_syntax":
+            return "Handled by ExamplePlugin"
+        return None
+```
+
+#### Example: Rust Plugin Interface
+
+```rust
+pub trait LanguagePlugin {
+    fn register_syntax(&self) -> Vec<String> { Vec::new() }
+    fn register_types(&self) -> Vec<String> { Vec::new() }
+    fn register_functions(&self) -> HashMap<String, Box<dyn Fn(Vec<String>) -> String>> { HashMap::new() }
+    fn eval_hook(&self, _expr: &str) -> Option<String> { None }
+}
+```
+
+#### How to Use
+
+1. Place your plugin in the `plugins/` directory (Python or Rust).
+2. The compiler will automatically detect and load plugins at startup.
+3. Use your custom syntax, types, or functions in `.cyl` code as if they were built-in.
+
+See `plugins/example_plugin.py` and `plugins/language_plugin.rs` for reference implementations.
 
 The Cyl documentation system provides a modern, automated, and fully integrated solution for generating, formatting, and deploying documentation for the Cyl programming language. It combines Python, Jinja2 templates, and a robust build system to ensure your docs are always up-to-date and production-ready.
 

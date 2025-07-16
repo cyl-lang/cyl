@@ -3,8 +3,8 @@ import { CylLanguageDesign } from '../src/index.js';
 describe('CylLanguageDesign', () => {
     let cylDesign: CylLanguageDesign;
 
-    beforeEach(() => {
-        cylDesign = new CylLanguageDesign();
+    beforeEach(async () => {
+        cylDesign = await CylLanguageDesign.create();
     });
 
     describe('Initialization', () => {
