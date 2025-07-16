@@ -5,6 +5,16 @@ module.exports = {
   collectCoverageFrom: ["compiler/src/**/*.js", "!compiler/src/**/*.d.ts"],
   coverageDirectory: "coverage",
   coverageReporters: ["text", "lcov", "html"],
-  transform: {},
+  transform: {
+    "^.+\\.(ts|mts|js)$": ["ts-jest", { useESM: true }],
+  },
+  extensionsToTreatAsEsm: [".ts", ".mts"],
+  globals: {
+    'ts-jest': {
+      useESM: true,
+      tsconfig: 'tsconfig.json',
+    },
+  },
+  moduleNameMapper: {},
   verbose: true,
 };
