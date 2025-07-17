@@ -53,11 +53,11 @@ jobs:
         run: npm run test:design:coverage
 
       - name: Generate Rust coverage
-        run: cd compiler && cargo tarpaulin --out Xml --output-dir ../coverage
+        run: cd compiler && cargo tarpaulin --out Xml --output-dir ../coverage --output-files cobertura.xml
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: cyl-lang/cyl
-          files: ./coverage/lcov.info,./coverage/tarpaulin-report.xml
+          files: ./coverage/lcov.info,./coverage/cobertura.xml
