@@ -53,7 +53,7 @@ jobs:
         run: npm run test:design:coverage
 
       - name: Generate Rust coverage
-        run: cd compiler && cargo tarpaulin --out Xml --output-dir ../coverage --output-files cobertura.xml
+        run: cd compiler && cargo tarpaulin --out Xml --output-dir ../coverage
 
       - name: Debug coverage files
         run: |
