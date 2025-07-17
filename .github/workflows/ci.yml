@@ -135,9 +135,8 @@ jobs:
       - name: Generate Rust coverage
         run: npm run coverage:rust
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
         with:
-          files: ./coverage/coverage-final.json,./coverage/cobertura.xml
-          fail_ci_if_error: false
-          verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: cyl-lang/cyl
