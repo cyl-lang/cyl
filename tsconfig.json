@@ -1,11 +1,11 @@
 {
   "compilerOptions": {
     "target": "es2020",
-    "lib": ["ES2020"],
+    "lib": ["es2020"],
     "module": "node16",
     "declaration": true,
-    "outDir": "compiler/dist",
-    "rootDir": "./design",
+    "outDir": "./design/dist",
+    "rootDir": "./design/src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -14,8 +14,12 @@
     "downlevelIteration": true,
     "moduleResolution": "nodenext",
     "isolatedModules": true,
-    "emitDeclarationOnly": false
+    "emitDeclarationOnly": false,
+    "baseUrl": ".",
+    "paths": {
+      "@src/*": ["design/src/*"]
+    }
   },
-  "include": ["design/src/**/*", "design/tests/**/*"],
+  "include": ["design/src/**/*"],
   "exclude": ["node_modules", "compiler/dist", "compiler"]
 }

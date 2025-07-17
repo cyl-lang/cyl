@@ -32,8 +32,12 @@
 
     <main>
         <div class="container">
+
             <h1>Compilation Backends</h1>
             <p><a href="index.html">← Back to Home</a></p>
+            <div class="info-block" style="margin-bottom: 1.5em; background: #f6f8fa; border-left: 4px solid #0969da; padding: 1em;">
+                <strong>Extensible:</strong> Cyl supports <b>plugin-based language extensions</b> via Python or Rust. See the <a href="index.html#plugin-system">Plugin System</a> for details on adding custom syntax, types, or functions.
+            </div>
 
             <div class="grid">
                 {% for backend in backends %}

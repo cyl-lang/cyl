@@ -1,4 +1,8 @@
 use crate::ast::*;
+use pyo3::prelude::*;
+use std::fs;
+use std::path::Path;
+use crate::plugins::language_plugin::PythonPlugin;
 use std::collections::HashMap;
 use super::{Value, value_to_string, StdLibWrapper};
 use std::io::Write;
@@ -8,11 +12,29 @@ pub struct Interpreter {
     #[allow(dead_code)]
     pub stdlib: StdLibWrapper,
     pub output_buffer: Vec<String>, // Captures printed output for tests
+    pub python_plugins: Vec<PythonPlugin>,
 }
 
 impl Interpreter {
 
     fn eval_expression(&mut self, expr: &Expression) -> Value {
+        // Check Python plugins for eval_hook
+        if let Some(expr_str) = Interpreter::expr_to_string(expr) {
+            let mut plugin_result: Option<Value> = None;
+            Python::with_gil(|py| {
+                for plugin in &self.python_plugins {
+                    if let Ok(result) = plugin.eval_hook(py, &expr_str) {
+                        if let Some(val) = result {
+                            plugin_result = Some(Value::String(val));
+                            break;
+                        }
+                    }
+                }
+            });
+            if let Some(val) = plugin_result {
+                return val;
+            }
+        }
         use std::fs::OpenOptions;
         use std::io::Write as IoWrite;
         let cyl_debug_enabled = std::env::var("CYL_DEBUG_LOG").is_ok();
@@ -219,10 +241,39 @@ impl Interpreter {
         true
     }
     pub fn new() -> Self {
+        let mut python_plugins = Vec::new();
+        Python::with_gil(|py| {
+            let plugins_dir = Path::new("plugins");
+            if let Ok(entries) = fs::read_dir(plugins_dir) {
+                for entry in entries.flatten() {
+                    let path = entry.path();
+                    if path.extension().map(|e| e == "py").unwrap_or(false) {
+                        let module_name = path.file_stem().unwrap().to_string_lossy();
+                        let module_path = format!("plugins.{}", module_name);
+                        if let Ok(plugin) = PythonPlugin::new(py, &module_path) {
+                            python_plugins.push(plugin);
+                        }
+                    }
+                }
+            }
+        });
         Interpreter {
             variables: HashMap::new(),
             stdlib: StdLibWrapper::new(),
             output_buffer: Vec::new(),
+            python_plugins,
+        }
+    }
+
+    // Helper to convert Expression to string for plugin eval_hook
+    fn expr_to_string(expr: &Expression) -> Option<String> {
+        match expr {
+            Expression::IntLiteral(i) => Some(i.to_string()),
+            Expression::FloatLiteral(f) => Some(f.to_string()),
+            Expression::StringLiteral(s) => Some(s.clone()),
+            Expression::BoolLiteral(b) => Some(b.to_string()),
+            Expression::Identifier(name) => Some(name.clone()),
+            _ => None,
         }
     }
     // ...existing run and run_main...

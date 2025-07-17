@@ -1,5 +1,49 @@
 # cyl
 
+## 0.6.0
+
+### Minor Changes
+
+- 2479fd8: Initial implementation of Python plugin support:
+
+  - Added plugin loading infrastructure for Python plugins.
+  - Created example plugin files in `plugins/` (e.g., `example_plugin.py`).
+  - Integrated plugin loader with the design/compiler workflow (early stage).
+  - No breaking changes to the CLI or public API yet, but this lays the foundation for extensibility via Python plugins.
+
+  Further work will expand plugin APIs and documentation.
+
+- 2479fd8: **Workflow and scripts cleanup:**
+
+  - Removed legacy and redundant scripts from `package.json` and the `scripts/` directory.
+  - Consolidated build, test, and docs scripts to use only the current, working workflow.
+  - Updated `package.json` scripts for clarity and correctness.
+  - Ensured all local workflows (build, test, docs, versioning) work as expected before pushing.
+  - No breaking changes to the public API or CLI, but developer experience and CI reliability are improved.
+
+  **Details:**
+
+  - Only one version sync script is now used (`update-version.sh`).
+  - Python setup scripts and diagnostic scripts are retained only if still relevant to current workflows.
+  - `.changeset/` updated to reflect these changes.
+
+### Patch Changes
+
+- d1e3d68: - Updated test implementations in `design/tests` to ensure compatibility with ESM, TypeScript, and Jest.
+  - Fixed import paths in test files to use `.js` extensions and reference built output where necessary.
+  - Removed duplicate and non-top-level import statements in test files.
+  - Cleaned up Jest configuration to avoid over-broad module mapping and ensure robust ESM+TypeScript support.
+  - Ensured all tests run against the built output and pass in CI workflows.
+  - No changes to the public API, but internal test and build reliability is significantly improved.
+- 043afe9: Suppress dead code warnings for unused fields and methods in interpreter and stdlib modules.
+
+  - Added #[allow(dead_code)] to unused struct fields and trait methods (Interpreter, StdLibWrapper, StdLib, ModuleTrait)
+  - Ensures builds and tests pass with -D warnings
+  - Improves CI reliability and developer experience
+  - No runtime or API changes
+
+  This is a maintenance update to support strict warning policies and future-proof the codebase against unused code errors.
+
 ## 0.5.0
 
 ### Minor Changes

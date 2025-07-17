@@ -1,12 +1,16 @@
-import { loadGrammar, saveGrammar, getDefaultGrammar } from '../src/grammar/index.js';
-import { LanguageGrammar } from '../src/types/grammar.js';
+
+
+import { loadGrammar, saveGrammar, getDefaultGrammar } from '../dist/grammar/index.js';
+import { LanguageGrammar } from '../dist/types/grammar.js';
 import * as fs from 'fs';
 import * as path from 'path';
+// Polyfill __dirname for Jest compatibility
+const __dirname = path.resolve();
 
 describe('Grammar Module', () => {
     describe('loadGrammar', () => {
         test('should load default grammar when file does not exist', () => {
-            const grammar = loadGrammar();
+            const grammar = loadGrammar('__definitely_does_not_exist__.yaml');
             expect(grammar).toBeDefined();
             expect(grammar.name).toBe('Cyl');
             expect(grammar.version).toBeDefined();
@@ -32,7 +36,6 @@ describe('Grammar Module', () => {
     describe('getDefaultGrammar', () => {
         test('should return valid grammar structure', () => {
             const grammar = getDefaultGrammar();
-
             expect(grammar).toHaveProperty('name');
             expect(grammar).toHaveProperty('version');
             expect(grammar).toHaveProperty('keywords');

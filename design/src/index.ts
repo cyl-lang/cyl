@@ -4,6 +4,7 @@ import { GrammarValidator, ValidationResult } from './tools/grammar-validator.js
 import { ASTGenerator } from './tools/ast-generator.js';
 import { SyntaxChecker, SyntaxCheckResult } from './tools/syntax-checker.js';
 import chalk from 'chalk';
+import { loadPythonPlugins } from './tools/python-plugin-loader.js';
 
 export class CylLanguageDesign {
     private grammar: LanguageGrammar;
@@ -11,12 +12,31 @@ export class CylLanguageDesign {
     private astGenerator: ASTGenerator;
     private syntaxChecker: SyntaxChecker;
 
-    constructor(grammarPath?: string) {
-        this.grammar = grammarPath ? this.loadCustomGrammar(grammarPath) : loadGrammar();
+    private constructor(grammar: LanguageGrammar) {
+        this.grammar = grammar;
         this.validator = new GrammarValidator(this.grammar);
         this.astGenerator = new ASTGenerator(this.grammar);
         this.syntaxChecker = new SyntaxChecker(this.grammar);
     }
+
+    // Static async factory for proper initialization
+    static async create(grammarPath?: string): Promise<CylLanguageDesign> {
+        let grammar = grammarPath ? CylLanguageDesign.prototype.loadCustomGrammar(grammarPath) : loadGrammar();
+        // Load Python plugins and merge their info asynchronously
+        const pluginInfo = await loadPythonPlugins();
+        if (pluginInfo) {
+            if (pluginInfo.syntax && Array.isArray(grammar.keywords)) {
+                grammar.keywords.push(...pluginInfo.syntax.map((s: string) => ({ value: s, type: 'PluginSyntax', description: 'From Python plugin' })));
+            }
+            if (pluginInfo.types && Array.isArray(grammar.types)) {
+                grammar.types = grammar.types.concat(pluginInfo.types.map((t: string) => ({ name: t, description: 'From Python plugin', kind: 'generic' })));
+            }
+        }
+        return new CylLanguageDesign(grammar);
+    }
+
+    // ...existing code...
+// ...existing code...
 
     private loadCustomGrammar(path: string): LanguageGrammar {
         try {
@@ -184,66 +204,3 @@ export * from './tools/grammar-validator.js';
 export * from './tools/ast-generator.js';
 export * from './tools/syntax-checker.js';
 
-// CLI interface
-if (import.meta.url === `file://${process.argv[1]}` || import.meta.url === process.argv[1]) {
-    const design = new CylLanguageDesign();
-
-    const args = process.argv.slice(2);
-    const command = args[0];
-
-    switch (command) {
-        case 'validate':
-            design.validateGrammar();
-            break;
-
-        case 'generate':
-            design.generateAST();
-            break;
-
-        case 'info':
-            design.displayLanguageInfo();
-            design.displayKeywords();
-            design.displayOperators();
-            design.displaySyntaxRules();
-            break;
-
-        case 'check':
-            if (args[1]) {
-                const fs = require('fs');
-                if (fs.existsSync(args[1])) {
-                    const code = fs.readFileSync(args[1], 'utf8');
-                    design.checkSyntax(code);
-                } else {
-                    console.error(chalk.red(`File not found: ${args[1]}`));
-                    if (typeof process.env.JEST_WORKER_ID === 'undefined') {
-                        process.exit(1);
-                    }
-                }
-            } else {
-                console.error(chalk.red('Please provide a file to check'));
-                if (typeof process.env.JEST_WORKER_ID === 'undefined') {
-                    process.exit(1);
-                }
-            }
-            break;
-
-        case 'full': {
-            const success = design.runFullCheck();
-            if (typeof process.env.JEST_WORKER_ID === 'undefined') {
-                process.exit(success ? 0 : 1);
-            }
-            break;
-        }
-
-        default:
-            console.log(chalk.cyan('Cyl Language Design Tool'));
-            console.log('========================');
-            console.log('Commands:');
-            console.log('  validate  - Validate the grammar');
-            console.log('  generate  - Generate AST definitions');
-            console.log('  info      - Display language information');
-            console.log('  check <file> - Check syntax of a file');
-            console.log('  full      - Run complete validation and generation');
-            break;
-    }
-}

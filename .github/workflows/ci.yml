@@ -11,6 +11,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  PYO3_CONFIGURE_OPS: "1"
 
 jobs:
   # Test without LLVM first - this should always work
@@ -42,8 +43,11 @@ jobs:
       - name: Run Rust tests (no LLVM)
         run: cd compiler && cargo test --no-default-features --verbose
 
-      - name: Run TypeScript tests
-        run: npm test
+      - name: Build TypeScript
+        run: npx tsc --project tsconfig.json
+
+      - name: Run tests
+        run: npm run test:design
 
   # Only test LLVM on Ubuntu where we know it might work
   test-with-llvm-ubuntu:
@@ -115,7 +119,7 @@ jobs:
         run: npm ci
 
       - name: Build TypeScript
-        run: npm run build # or your actual build command
+        run: npm run build
 
       - name: Install cargo-tarpaulin
         run: |
@@ -129,7 +133,7 @@ jobs:
         run: npm run test:design:coverage
 
       - name: Generate Rust coverage
-        run: npm run test:coverage:rust
+        run: npm run coverage:rust
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4

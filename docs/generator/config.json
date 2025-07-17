@@ -2,7 +2,7 @@
     "site": {
         "title": "Cyl Programming Language",
         "description": "A modern systems programming language",
-        "version": "0.5.0",
+        "version": "0.6.0",
         "url": "https://cyl-lang.org"
     },
     "branding": {
@@ -83,6 +83,31 @@
                 "title": "Modern Syntax",
                 "description": "Clean and expressive",
                 "icon": "code"
+            },
+            {
+                "title": "Plugin System",
+                "description": "Extend Cyl with Python or Rust plugins for custom syntax, types, and functions.",
+                "icon": "plus"
+            }
+        ],
+        "reference": [
+            {
+                "title": "Language Reference",
+                "summary": "Complete syntax and feature documentation.",
+                "details": "Cyl's syntax, types, control flow, and more.",
+                "icon": "file-text"
+            },
+            {
+                "title": "Plugin System",
+                "summary": "Extensible architecture via Python or Rust plugins.",
+                "details": "Add new syntax, types, and functions using plugins. See docs for examples.",
+                "icon": "plus"
+            },
+            {
+                "title": "Compilation Backends",
+                "summary": "Cranelift, LLVM, and interpreter support.",
+                "details": "Choose the backend that fits your workflow.",
+                "icon": "layers"
             }
         ]
     },

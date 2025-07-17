@@ -33,37 +33,30 @@
 
     <main class="main">
         <div class="container">
-            <div class="page-header">
-                <h1>Language Reference</h1>
-                <p>Complete syntax and feature documentation for {{ config.site.title or 'Cyl' }}</p>
-            </div>
-
-            <!-- Quick Navigation -->
-            <nav class="syntax-category-grid">
-                {% if syntax_categories %}
-                {% for category in syntax_categories %}
-                <div style="padding: 18px 0;">
-                    <a href="#{{ category.id }}" class="syntax-category-link simple-large">
-                        <svg class="icon icon-{{ category.icon }}" style="margin-right:10px;">
-                            <use href="#icon-{{ category.icon }}"></use>
+            {% if syntax %}
+            <!-- Quick Links at the top -->
+            <nav class="syntax-quick-links" style="margin-bottom:2.5em;display:flex;flex-wrap:wrap;gap:1em;justify-content:center;">
+                {% set syntax_by_category = syntax | groupby('category_name') %}
+                {% for category_name, category_rules in syntax_by_category %}
+                    {% set category_info = syntax_categories | selectattr('name', 'equalto', category_name) | first %}
+                    <a href="#{{ category_info.id if category_info else (category_name | lower | replace(' ', '-') ) }}" class="syntax-quick-link" style="display:flex;align-items:center;gap:0.5em;padding:0.7em 1.2em;border-radius:8px;background:#f4f8fb;color:#1746a2;font-weight:600;text-decoration:none;box-shadow:0 2px 8px #2563eb11;transition:background 0.18s;">
+                        {% if category_info %}
+                        <svg class="icon icon-{{ category_info.icon }}" style="width:1.2em;height:1.2em;">
+                            <use href="#icon-{{ category_info.icon }}"></use>
                         </svg>
-                        <span>{{ category.name }}</span>
+                        {% endif %}
+                        {{ category_name }}
                     </a>
-                </div>
                 {% endfor %}
-                {% endif %}
             </nav>
 
-            {% if syntax %}
-            
-            <!-- Group syntax rules by category -->
-            {% set syntax_by_category = syntax | groupby('category_name') %}
+            <!-- Category Sections -->
             <div class="syntax-category-blocks">
             {% for category_name, category_rules in syntax_by_category %}
             {% set category_info = syntax_categories | selectattr('name', 'equalto', category_name) | first %}
-            <section class="syntax-category-block syntax-category" id="{{ category_info.id if category_info else (category_name | lower | replace(' ', '-') ) }}">
+            <section class="syntax-category-block syntax-category" id="{{ category_info.id if category_info else (category_name | lower | replace(' ', '-') ) }}" style="margin-bottom:2.5em;">
                 <div class="category-header">
-                    <h2 class="category-title">
+                    <h2 class="category-title" style="display:flex;align-items:center;gap:0.5em;">
                         {% if category_info %}
                         <svg class="icon icon-{{ category_info.icon }}">
                             <use href="#icon-{{ category_info.icon }}"></use>
@@ -82,70 +75,55 @@
                             <h3 class="syntax-title">{{ rule.name }}</h3>
                             <span class="syntax-type">{{ rule.type | title }}</span>
                         </div>
-                        <div class="syntax-content">
-                            <div class="syntax-code">
-                                <pre><code>{{ rule.syntax }}</code></pre>
-                            </div>
-                            <div class="syntax-description">
-                                <p>{{ rule.description }}</p>
-                            </div>
-                            {% if rule.examples %}
-                            <div class="syntax-examples">
-                                <h4>Examples:</h4>
-                                {% for example in rule.examples %}
-                                <pre><code>{{ example }}</code></pre>
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                            {% if rule.heritage %}
-                            <div class="syntax-heritage">
-                                <p><strong>Heritage:</strong> {{ rule.heritage }}</p>
-                            </div>
-                            {% endif %}
+                        {% if rule.syntax %}
+                        <div class="syntax-code"><pre><code>{{ rule.syntax }}</code></pre></div>
+                        {% endif %}
+                        {% if rule.description %}
+                        <div class="syntax-description"><p>{{ rule.description }}</p></div>
+                        {% endif %}
+                        {% if rule.examples %}
+                        <div class="syntax-examples">
+                            <h4>Examples:</h4>
+                            {% for example in rule.examples %}
+                            <pre><code>{{ example }}</code></pre>
+                            {% endfor %}
                         </div>
+                        {% endif %}
+                        {% if rule.heritage %}
+                        <div class="syntax-heritage">
+                            <p><strong>Heritage:</strong> {{ rule.heritage }}</p>
+                        </div>
+                        {% endif %}
                     </div>
                     {% endfor %}
                 </div>
             </section>
             {% endfor %}
             </div>
-            {% endif %}
-            
-            <div class="syntax-quick-reference">
-                <h2>Quick Reference</h2>
-                <div class="quick-examples-grid">
-                    <div class="quick-example">
-                        <h4>Variables</h4>
-                        <div class="code">
-                            <pre><code>let name: string = "Cyl";
-let count: i32 = 42;</code></pre>
-                        </div>
-                    </div>
-                    
-                    <div class="quick-example">
-                        <h4>Functions</h4>
-                        <div class="code">
-                            <pre><code>fn greet(name: string) -> string {
-    return "Hello, " + name + "!";
-}</code></pre>
-                        </div>
-                    </div>
-                    
-                    <div class="quick-example">
-                        <h4>Control Flow</h4>
-                        <div class="code">
-                            <pre><code>if count > 0 {
-    print("Positive");
-} else {
-    print("Zero or negative");
-}</code></pre>
-                        </div>
-                    </div>
+
+            <!-- Plugin System Info Box (not a main category) -->
+            <div class="plugin-system-info" style="margin: 2em 0; padding: 1.5em; border: 1px solid #e0e0e0; border-radius: 8px; background: #f9f9fc;">
+                <div style="display: flex; align-items: center; gap: 0.5em; margin-bottom: 0.5em;">
+                    <svg class="icon icon-plus" style="width: 1.5em; height: 1.5em; vertical-align: middle;">
+                        <use href="#icon-plus"></use>
+                    </svg>
+                    <span style="font-size: 1.2em; font-weight: 600;">Plugin System</span>
+                </div>
+                <div style="margin-bottom: 0.5em;">
+                    <strong>Extending Cyl:</strong> You can add new syntax, types, and functions using Python or Rust plugins. Just place your plugin in the <code>plugins/</code> directory and the compiler will auto-load it at runtime.
+                </div>
+                <div>
+                    <b>Python Plugin Example:</b>
+                    <pre style="background: #f4f4f8; padding: 0.75em; border-radius: 4px; margin: 0.5em 0 0 0;"><code>class LanguagePlugin:
+    # ... implement plugin methods ...
+</code></pre>
                 </div>
             </div>
+            {% else %}
             <div class="empty-state">
                 <p>No syntax information available. Check that compiler source files exist.</p>
             </div>
+            {% endif %}
         </div>
     </main>
 

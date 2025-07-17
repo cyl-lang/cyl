@@ -238,9 +238,7 @@ document.addEventListener("DOMContentLoaded", function () {
     element.appendChild(sparkle);
 
     setTimeout(() => {
-      if (sparkle && sparkle.parentNode) {
-        sparkle.parentNode.removeChild(sparkle);
-      }
+      sparkle.parentNode?.removeChild(sparkle);
     }, 800);
   }
 
