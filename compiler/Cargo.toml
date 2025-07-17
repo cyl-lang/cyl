@@ -7,7 +7,7 @@ edition = "2021"
 license = "MIT"
 name = "cylc"
 rust-version = "1.75.0"
-version = "0.5.0"
+version = "0.6.0"
 
 [[bin]]
 name = "cylc"

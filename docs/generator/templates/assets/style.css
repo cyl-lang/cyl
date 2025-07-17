@@ -284,42 +284,31 @@ body {
 }
 
 
+/* Less prominent style for the 'See plugin examples' button */
 .btn-secondary {
-    background: linear-gradient(135deg, #1746a2 0%, #2563eb 80%, #3b82f6 100%);
-    color: #fff;
-    border: 2.5px solid #14316b;
-    box-shadow: 0 6px 32px 0 rgba(36, 70, 170, 0.25), 0 1.5px 8px 0 rgba(59, 130, 246, 0.18);
-    font-weight: 700;
-    text-shadow: 0 1px 8px #1746a2cc, 0 0.5px 0 #fff2;
+    background: #f4f8fb;
+    color: #2563eb;
+    border: 1.5px solid #e2e8f0;
+    box-shadow: none;
+    font-weight: 500;
+    text-shadow: none;
     text-decoration: none !important;
     letter-spacing: 0.01em;
-    transition: background 0.18s, color 0.18s, box-shadow 0.18s, border 0.18s, text-shadow 0.18s;
-    outline: 2px solid #14316b22;
-    outline-offset: 2px;
+    transition: background 0.18s, color 0.18s, box-shadow 0.18s, border 0.18s;
+    outline: none;
+    outline-offset: 0;
+    font-size: 0.98em;
+    padding: 8px 18px;
 }
 
 .btn-secondary:hover {
-    background: linear-gradient(135deg, #14316b 0%, #2563eb 80%, #3b82f6 100%);
-    color: #fff;
-    border: 2.5px solid #2563eb;
-    box-shadow: 0 12px 36px 0 rgba(36, 70, 170, 0.32),
-        0 2px 12px 0 rgba(59, 130, 246, 0.22);
-    text-shadow: 0 2px 12px #14316bcc,
-        0 1px 0 #fff3;
+    background: #e3f0ff;
+    color: #1746a2;
+    border: 1.5px solid #2563eb;
+    box-shadow: none;
+    text-shadow: none;
     transform: none;
-    outline: 2.5px solid #2563eb55;
-}
-
-.btn-reference {
-    background: linear-gradient(90deg, rgba(59, 130, 246, 0.10) 0%, rgba(30, 41, 59, 0.08) 100%);
-    color: #222;
-    font-weight: 700;
-    border: none;
-    box-shadow: 0 2px 12px rgba(59, 130, 246, 0.08);
-    padding: 18px 36px;
-    border-radius: 16px;
-    font-size: 1.18em;
-    text-decoration: none !important;
+    outline: none;
 }
 
 .btn-reference {
@@ -344,6 +333,8 @@ body {
     box-shadow: 0 8px 32px rgba(59, 130, 246, 0.10);
     color: #2563eb;
     opacity: 1;
+    transform: scale(1.035);
+    transition: transform 0.32s cubic-bezier(.4, 0, .2, 1), background 0.7s cubic-bezier(.4, 0, .2, 1), box-shadow 0.5s cubic-bezier(.4, 0, .2, 1), color 0.4s cubic-bezier(.4, 0, .2, 1), opacity 0.5s cubic-bezier(.4, 0, .2, 1);
 }
 
 @keyframes fadeInReference {
