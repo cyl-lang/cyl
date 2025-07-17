@@ -12,6 +12,7 @@ temp.*
 .DS_Store
 .venv
 .vercel
+.vscode
 
 # Documentation generated files
 docs/website/
