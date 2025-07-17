@@ -17,3 +17,4 @@ temp.*
 docs/website/
 docs/generator/venv/
 *.log
+*.bak

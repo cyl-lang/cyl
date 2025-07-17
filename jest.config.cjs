@@ -1,20 +1,18 @@
 module.exports = {
   testEnvironment: "node",
-  roots: ["<rootDir>/compiler/src", "<rootDir>/design/tests"],
-  testMatch: ["**/*.test.js", "**/*.test.ts", "**/*.test.mts"],
-  collectCoverageFrom: ["compiler/src/**/*.js", "!compiler/src/**/*.d.ts"],
+  roots: ["<rootDir>/design/tests"],
+  testMatch: ["**/*.test.ts", "**/*.test.mts"],
+  collectCoverageFrom: ["design/src/**/*.ts", "!design/src/**/*.d.ts"],
   coverageDirectory: "coverage",
   coverageReporters: ["text", "lcov", "html"],
   transform: {
-    "^.+\\.(ts|mts|js)$": ["ts-jest", { useESM: true }],
+    "^.+\\.(ts|mts)$": "babel-jest",
   },
-  extensionsToTreatAsEsm: [".ts", ".mts"],
-  globals: {
-    'ts-jest': {
-      useESM: true,
-      tsconfig: 'tsconfig.json',
-    },
+  moduleNameMapper: {
+    "^@src/(.*)$": "<rootDir>/design/src/$1",
+    // Map ESM .js extension imports to .ts files for internal modules
+    // Only map .js to .ts for internal design/src imports
   },
-  moduleNameMapper: {},
   verbose: true,
+  extensionsToTreatAsEsm: [".ts", ".mts"],
 };

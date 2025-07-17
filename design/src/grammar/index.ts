@@ -1,15 +1,20 @@
+
 import path from 'path';
 import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+let __dirname: string;
+if (typeof jest !== 'undefined' || process.env.JEST_WORKER_ID) {
+    __dirname = process.cwd();
+} else {
+    const __filename = fileURLToPath(import.meta.url);
+    __dirname = path.dirname(__filename);
+}
 
 import type { LanguageGrammar } from '../types/grammar.js';
 import * as yaml from 'yaml';
 import * as fs from 'fs';
 
-export function loadGrammar(): LanguageGrammar {
-    const grammarPath = path.join(__dirname, '../../specs/syntax.yaml');
+export function loadGrammar(customPath?: string): LanguageGrammar {
+    const grammarPath = customPath || path.join(__dirname, '../../specs/syntax.yaml');
 
     if (!fs.existsSync(grammarPath)) {
         // Return default grammar if file doesn't exist
@@ -17,12 +22,30 @@ export function loadGrammar(): LanguageGrammar {
     }
 
     const yamlContent = fs.readFileSync(grammarPath, 'utf8');
-    return yaml.parse(yamlContent) as LanguageGrammar;
+    const grammar = yaml.parse(yamlContent) as LanguageGrammar;
+    // Ensure all required properties are present as arrays
+    return {
+        name: grammar.name,
+        version: grammar.version,
+        keywords: grammar.keywords ?? [],
+        operators: grammar.operators ?? [],
+        syntaxRules: grammar.syntaxRules ?? [],
+        types: grammar.types ?? []
+    };
 }
 
 export function saveGrammar(grammar: LanguageGrammar, filePath?: string): void {
     const outputPath = filePath || path.join(__dirname, '../../specs/syntax.yaml');
-    const yamlContent = yaml.stringify(grammar, { indent: 2 });
+    // Ensure all properties are present for serialization
+    const grammarToSave: LanguageGrammar = {
+        name: grammar.name,
+        version: grammar.version,
+        keywords: grammar.keywords ?? [],
+        operators: grammar.operators ?? [],
+        syntaxRules: grammar.syntaxRules ?? [],
+        types: grammar.types ?? []
+    };
+    const yamlContent = yaml.stringify(grammarToSave, { indent: 2 });
     fs.writeFileSync(outputPath, yamlContent, 'utf8');
 }
 
@@ -139,7 +162,9 @@ export function getDefaultGrammar(): LanguageGrammar {
             { name: 'void', kind: 'primitive', description: 'No value type' },
             { name: 'Array<T>', kind: 'generic', description: 'Dynamic array type' },
             { name: 'Option<T>', kind: 'generic', description: 'Optional value type' },
-        ]
+        ],
+        // Always include all properties as arrays
+        // (if you add new properties to LanguageGrammar, add them here as empty arrays if not present)
     };
 }
 

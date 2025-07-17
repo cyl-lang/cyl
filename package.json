@@ -28,7 +28,8 @@
         "vercel:dev": "npm run docs:dev",
         "vercel:deploy": "npx vercel --prod",
         "vercel:deploy:preview": "npx vercel",
-        "ci:local": "bash scripts/local_ci_check.sh"
+        "ci:local": "bash scripts/local_ci_check.sh",
+        "clean:all": "rm -rf node_modules design/dist compiler/target coverage docs/generator/venv"
     },
     "devDependencies": {
         "@babel/preset-env": "^7.28.0",
@@ -62,8 +63,5 @@
         "email": "contact@mjanglin.com",
         "url": "https://www.mjanglin.com"
     },
-    "license": "GPL-3.0+",
-    "engines": {
-        "node": ">=22.0.0"
-    }
+    "license": "GPL-3.0+"
 }
