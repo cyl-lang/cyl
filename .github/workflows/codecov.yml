@@ -55,9 +55,18 @@ jobs:
       - name: Generate Rust coverage
         run: cd compiler && cargo tarpaulin --out Xml --output-dir ../coverage --output-files cobertura.xml
 
+      - name: Debug coverage files
+        run: |
+          ls -lh ./coverage
+          head -20 ./coverage/lcov.info || true
+          head -20 ./coverage/cobertura.xml || true
+
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: cyl-lang/cyl
           files: ./coverage/lcov.info,./coverage/cobertura.xml
+          fail_ci_if_error: true
+          verbose: true
+          root_dir: .
