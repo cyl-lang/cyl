@@ -35,7 +35,7 @@
         <div class="container">
             {% if syntax %}
             <!-- Quick Links at the top -->
-            <nav class="syntax-quick-links" style="margin-bottom:2.5em;display:flex;flex-wrap:wrap;gap:1em;justify-content:center;">
+            <nav class="syntax-quick-links" style="margin-top:72px;margin-bottom:2.5em;display:flex;flex-wrap:wrap;gap:1em;justify-content:center;">
                 {% set syntax_by_category = syntax | groupby('category_name') %}
                 {% for category_name, category_rules in syntax_by_category %}
                     {% set category_info = syntax_categories | selectattr('name', 'equalto', category_name) | first %}

@@ -1,7 +1,7 @@
 
 
-import { loadGrammar, saveGrammar, getDefaultGrammar } from '../dist/grammar/index.js';
-import { LanguageGrammar } from '../dist/types/grammar.js';
+import { loadGrammar, saveGrammar, getDefaultGrammar } from '../src/grammar/index.js';
+import { LanguageGrammar } from '../src/types/grammar.js';
 import * as fs from 'fs';
 import * as path from 'path';
 // Polyfill __dirname for Jest compatibility

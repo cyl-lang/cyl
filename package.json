@@ -10,7 +10,7 @@
         "test:design": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
         "test:design:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
         "test:design:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
-        "coverage:rust": "cd compiler && cargo tarpaulin --out xml --output-dir ../coverage",
+        "coverage:rust": "cd compiler && cargo tarpaulin --out Xml --output-dir ../coverage --verbose",
         "coverage:setup": "cargo install cargo-tarpaulin",
         "coverage:clean": "rm -rf coverage && mkdir -p coverage",
         "grammar:validate": "node compiler/dist/src/tools/grammar-validator.js",

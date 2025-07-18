@@ -1,4 +1,4 @@
-import { CylLanguageDesign } from '../dist/index.js';
+import { CylLanguageDesign } from '../src/index.js';
 
 describe('CylLanguageDesign', () => {
     let cylDesign: CylLanguageDesign;

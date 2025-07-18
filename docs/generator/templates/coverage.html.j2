@@ -1,10 +1,11 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ config.site.title or 'Cyl Programming Language' }} - Code Coverage</title>
-    <meta name="description" content="Code coverage reports for {{ config.site.title or 'Cyl Programming Language' }}">
+    <title>{{ config.site.title or 'Cyl Programming Language' }} - Coverage</title>
+    <meta name="description" content="Test coverage for {{ config.site.title or 'Cyl Programming Language' }}">
     <link rel="stylesheet" href="assets/style.css">
     <link rel="icon" type="image/png" href="favicon.png">
 </head>
@@ -16,16 +17,14 @@
                     <img src="favicon.png" alt="{{ config.site.title or 'Cyl' }}" width="24" height="24">
                     <span>{{ config.site.title or 'Cyl' }}</span>
                 </a>
-                
                 <button class="hamburger-menu" aria-label="Toggle navigation menu">
                     <span></span>
                     <span></span>
                     <span></span>
                 </button>
-                
                 <div class="nav-links">
                     {% for nav_item in config.navigation.main_nav %}
-                    <a href="{{ nav_item.url }}" {% if nav_item.url == 'coverage.html' %}class="active"{% endif %}>{{ nav_item.name }}</a>
+                    <a href="{{ nav_item.url }}">{{ nav_item.name }}</a>
                     {% endfor %}
                 </div>
             </nav>
@@ -35,264 +34,165 @@
     <main class="main">
         <div class="container">
             <div class="page-header">
-                <h1>📊 Code Coverage</h1>
-                <p>Test coverage metrics for {{ config.site.title or 'Cyl' }} codebase</p>
-                {% if coverage.last_updated %}
-                <div class="coverage-timestamp">
-                    <span class="icon">🕒</span>
-                    Last updated: {{ coverage.last_updated }}
-                </div>
-                {% endif %}
+                <h1 style="font-size:2.2rem; font-weight:700; color:#2563eb; margin-bottom:18px;">Code Coverage</h1>
+                <p style="font-size:1.15rem; color:#4b5563; margin-bottom:32px;">See the latest test coverage for Cyl's compiler and tools. High coverage means more reliability and fewer bugs.</p>
             </div>
 
-            <!-- Coverage Overview -->
-            <section class="coverage-overview" style="padding: 32px 0;">
-                <h2 style="margin-bottom: 24px;">
-                    <span class="icon">📊</span> Coverage Summary
-                </h2>
-                <div class="coverage-summary" style="margin-bottom: 40px;">
-                    <!-- Overall Coverage SVG Bar Graphs -->
-                    <div class="coverage-bar-graph">
-                        {% if coverage.typescript or coverage.rust %}
-                        {% set ts_overall = coverage.typescript.overall_pct if coverage.typescript and coverage.typescript.get('overall_pct') is not none else coverage.typescript.lines.pct if coverage.typescript and coverage.typescript.get('lines') else 0 %}
-                        {% set rust_overall = coverage.rust.overall_pct if coverage.rust and coverage.rust.get('overall_pct') is not none else coverage.rust.lines.pct if coverage.rust and coverage.rust.get('lines') else 0 %}
-                        <div class="coverage-bar-row" style="display: flex; gap: 32px; align-items: flex-end;">
-                            {% if coverage.typescript %}
-                            <div style="flex:1; text-align:center;">
-                                <div class="coverage-bar-label" style="margin-bottom:8px; color:#2563eb; font-weight:600;">TypeScript</div>
-                                <svg width="100%" height="54" viewBox="0 0 220 54">
-                                    <!-- Thicker bar: height 28, y=12 -->
-                                    <rect x="0" y="12" width="220" height="28" rx="14" fill="#e3f0ff"/>
-                                    <rect x="0" y="12" width="{{ 2.2 * ts_overall }}" height="28" rx="14" fill="url(#tsBarGradient)"/>
-                                    <defs>
-                                        <linearGradient id="tsBarGradient" x1="0" y1="0" x2="220" y2="0" gradientUnits="userSpaceOnUse">
-                                            <stop stop-color="#2563eb"/>
-                                            <stop offset="1" stop-color="#60a5fa"/>
-                                        </linearGradient>
-                                    </defs>
-                                    <!-- Percentage text with background for legibility -->
-                                    <rect x="70" y="44" width="80" height="28" rx="8" fill="#fff" opacity="0.92" />
-                                    <text x="110" y="64" text-anchor="middle" font-size="22" fill="#2563eb" font-weight="bold" style="text-shadow:0 2px 8px #e3f0ff,0 0 2px #fff;">{{ ts_overall }}%</text>
-                                </svg>
-                            </div>
-                            {% endif %}
-                            {% if coverage.rust %}
-                            <div style="flex:1; text-align:center;">
-                                <div class="coverage-bar-label" style="margin-bottom:8px; color:#d97706; font-weight:600;">Rust</div>
-                                <svg width="100%" height="54" viewBox="0 0 220 54">
-                                    <rect x="0" y="12" width="220" height="28" rx="14" fill="#fdf6e3"/>
-                                    <rect x="0" y="12" width="{{ 2.2 * rust_overall }}" height="28" rx="14" fill="url(#rustBarGradient)"/>
-                                    <defs>
-                                        <linearGradient id="rustBarGradient" x1="0" y1="0" x2="220" y2="0" gradientUnits="userSpaceOnUse">
-                                            <stop stop-color="#d97706"/>
-                                            <stop offset="1" stop-color="#fbbf24"/>
-                                        </linearGradient>
-                                    </defs>
-                                    <rect x="70" y="44" width="80" height="28" rx="8" fill="#fff" opacity="0.92" />
-                                    <text x="110" y="64" text-anchor="middle" font-size="22" fill="#d97706" font-weight="bold" style="text-shadow:0 2px 8px #fdf6e3,0 0 2px #fff;">{{ rust_overall }}%</text>
-                                </svg>
-                            </div>
-                            {% endif %}
-                        </div>
-                        {% endif %}
-                    </div>
-                    {% if coverage.typescript %}
-                    <div class="coverage-metric">
-                        <h3 style="font-size:1.15em; color:#2563eb; margin-bottom:12px;">
-                            <span class="language-icon typescript">TS</span>
-                            TypeScript
-                        </h3>
-                        <div class="coverage-metrics" style="padding: 12px 0;">
-                            {% for metric in ['statements', 'branches', 'functions', 'lines'] %}
-                            <div class="metric">
-                                <div class="metric-label">{{ metric|capitalize }}</div>
-                                <div class="metric-value" style="padding-bottom: 10px;">
-                                    <svg width="100%" height="18" viewBox="0 0 180 18">
-                                        <rect x="0" y="4" width="180" height="18" rx="9" fill="#e3f0ff"/>
-                                        <rect x="0" y="4" width="{{ 1.8 * coverage.typescript[metric].pct }}" height="18" rx="9" fill="{{ coverage.typescript[metric].color }}"/>
-                                        <text x="90" y="16" text-anchor="middle" font-size="14" fill="#0f172a" font-weight="bold" style="text-shadow:0 1px 4px #e3f0ff,0 0 1px #fff;">{{ coverage.typescript[metric].pct }}%</text>
-                                    </svg>
-                                    <span class="fraction" style="margin-left:8px; color:#64748b; font-size:0.98em;">({{ coverage.typescript[metric].covered }}/{{ coverage.typescript[metric].total }})</span>
-                                </div>
-                            </div>
-                            {% endfor %}
+            <!-- Coverage Summary -->
+            {% if coverage.typescript or coverage.rust %}
+            <section class="coverage-summary">
+                {% if coverage.typescript %}
+                <div class="coverage-metric">
+                    <h3>TypeScript</h3>
+                    <div class="coverage-percentage-bar">
+                        <span class="coverage-percent-value coverage-ts">{{ coverage.typescript.lines.pct }}%</span>
+                        <div class="coverage-bar-bg">
+                            <div class="coverage-bar-fill coverage-ts" style="width:{{ coverage.typescript.lines.pct }}%;"></div>
                         </div>
                     </div>
-                    {% endif %}
-
-                    {% if coverage.rust %}
-                    <div class="coverage-metric">
-                        <h3 style="font-size:1.15em; color:#d97706; margin-bottom:12px;">
-                            <span class="language-icon rust">🦀</span>
-                            Rust
-                        </h3>
-                        <div class="coverage-metrics" style="padding: 12px 0;">
-                            <div class="metric">
-                                <div class="metric-label">Lines</div>
-                                <div class="metric-value" style="padding-bottom: 10px;">
-                                    <svg width="100%" height="18" viewBox="0 0 180 18">
-                                        <rect x="0" y="4" width="180" height="18" rx="9" fill="#fdf6e3"/>
-                                        <rect x="0" y="4" width="{{ 1.8 * coverage.rust.lines.pct }}" height="18" rx="9" fill="{{ coverage.rust.lines.color }}"/>
-                                        <text x="90" y="16" text-anchor="middle" font-size="14" fill="#7c2d12" font-weight="bold" style="text-shadow:0 1px 4px #fdf6e3,0 0 1px #fff;">{{ coverage.rust.lines.pct }}%</text>
-                                    </svg>
-                                    <span class="fraction" style="margin-left:8px; color:#64748b; font-size:0.98em;">({{ coverage.rust.lines.covered }}/{{ coverage.rust.lines.total }})</span>
-                                </div>
-                            </div>
-                            {% if coverage.rust.branches %}
-                            <div class="metric">
-                                <div class="metric-label">Branches</div>
-                                <div class="metric-value">
-                                    <svg width="100%" height="18" viewBox="0 0 180 18">
-                                        <rect x="0" y="4" width="180" height="18" rx="9" fill="#fdf6e3"/>
-                                        <rect x="0" y="4" width="{{ 1.8 * coverage.rust.branches.pct }}" height="18" rx="9" fill="{{ coverage.rust.branches.color }}"/>
-                                        <text x="90" y="16" text-anchor="middle" font-size="14" fill="#7c2d12" font-weight="bold" style="text-shadow:0 1px 4px #fdf6e3,0 0 1px #fff;">{{ coverage.rust.branches.pct }}%</text>
-                                    </svg>
-                                    <span class="fraction" style="margin-left:8px; color:#64748b; font-size:0.98em;">({{ coverage.rust.branches.covered }}/{{ coverage.rust.branches.total }})</span>
-                                </div>
-                            </div>
-                            {% endif %}
-                        </div>
-                        <div class="coverage-details">
-                            <p class="coverage-note" style="margin-top: 18px;">
-                                Generated by <strong>cargo-tarpaulin</strong>
-                            </p>
-                        </div>
-                    </div>
-                    {% endif %}
-                </div>
-            </section>
-
-            <!-- File Coverage Details -->
-            {% if coverage.files %}
-            <section class="file-coverage">
-                <h2>📁 File Coverage Details</h2>
-                
-                {% if coverage.typescript and coverage.typescript.files %}
-                <div class="coverage-section">
-                    <h3>
-                        <span class="language-icon typescript">TS</span>
-                        TypeScript Files
-                    </h3>
-                    <div class="file-list">
-                        {% for file in coverage.typescript.files %}
-                        <div class="file-item">
-                            <div class="file-name">{{ file.name }}</div>
-                            <div class="file-bar-graph">
-                                <div class="file-bar-label">Overall</div>
-                                <div class="file-bar-outer">
-                                    <div class="file-bar-fill" style="width: {{ file.overall_pct }}%; background: linear-gradient(90deg,#2563eb,#60a5fa);"></div>
-                                    <span class="file-bar-text">{{ file.overall_pct }}%</span>
-                                </div>
-                            </div>
-                            <div class="file-coverage-bars">
-                                <div class="coverage-mini-bar statements" title="Statements: {{ file.statements.pct }}%">
-                                    <div class="progress-fill" style="width: {{ file.statements.pct }}%; background-color: {{ file.statements.color }}"></div>
-                                </div>
-                                <div class="coverage-mini-bar branches" title="Branches: {{ file.branches.pct }}%">
-                                    <div class="progress-fill" style="width: {{ file.branches.pct }}%; background-color: {{ file.branches.color }}"></div>
-                                </div>
-                                <div class="coverage-mini-bar functions" title="Functions: {{ file.functions.pct }}%">
-                                    <div class="progress-fill" style="width: {{ file.functions.pct }}%; background-color: {{ file.functions.color }}"></div>
-                                </div>
-                                <div class="coverage-mini-bar lines" title="Lines: {{ file.lines.pct }}%;">
-                                    <div class="progress-fill" style="width: {{ file.lines.pct }}%; background-color: {{ file.lines.color }}"></div>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
+                    <div style="font-size:0.98em; color:#64748b; margin-top:6px;">{{ coverage.typescript.lines.covered }}/{{ coverage.typescript.lines.total }} lines</div>
+                    <style>
+                    .coverage-percentage-bar {
+                        margin: 18px 0 8px 0;
+                        text-align: center;
+                    }
+                    .coverage-percent-value.coverage-ts {
+                        font-size: 2.2em;
+                        font-weight: 700;
+                        color: #2563eb;
+                        text-shadow: 0 2px 8px #e0e7ff;
+                        letter-spacing: 1px;
+                        display: block;
+                        margin-bottom: 8px;
+                        transition: color 0.2s;
+                    }
+                    .coverage-percent-value.coverage-ts:hover {
+                        color: #60a5fa;
+                        text-shadow: 0 4px 16px #bae6fd;
+                    }
+                    .coverage-bar-bg {
+                        width: 100%;
+                        max-width: 320px;
+                        height: 16px;
+                        background: #e5e7eb;
+                        border-radius: 8px;
+                        margin: 0 auto;
+                        box-shadow: 0 2px 8px #e0e7ff33;
+                        overflow: hidden;
+                        position: relative;
+                    }
+                    .coverage-bar-fill.coverage-ts {
+                        height: 100%;
+                        background: linear-gradient(90deg, #2563eb 60%, #60a5fa 100%);
+                        border-radius: 8px 0 0 8px;
+                        box-shadow: 0 2px 8px #2563eb44;
+                        transition: width 0.7s cubic-bezier(.4,2,.3,1), background 0.2s;
+                    }
+                    </style>
                 </div>
                 {% endif %}
-
-                {% if coverage.rust and coverage.rust.files %}
-                <div class="coverage-section">
-                    <h3>
-                        <span class="language-icon rust">🦀</span>
-                        Rust Files
-                    </h3>
-                    <div class="file-list">
-                        {% for file in coverage.rust.files %}
-                        <div class="file-item">
-                            <div class="file-name">{{ file.name }}</div>
-                            <div class="file-bar-graph">
-                                <div class="file-bar-label">Overall</div>
-                                <div class="file-bar-outer">
-                                    <div class="file-bar-fill" style="width: {{ file.lines.pct }}%; background: linear-gradient(90deg,#d97706,#fbbf24);"></div>
-                                    <span class="file-bar-text">{{ file.lines.pct }}%</span>
-                                </div>
-                            </div>
-                            <div class="file-coverage-bars">
-                                <div class="coverage-mini-bar lines" title="Lines: {{ file.lines.pct }}%">
-                                    <div class="progress-fill" style="width: {{ file.lines.pct }}%; background-color: {{ file.lines.color }}"></div>
-                                </div>
-                            </div>
+                {% if coverage.rust %}
+                <div class="coverage-metric">
+                    <h3>Rust</h3>
+                    <div class="coverage-percentage-bar">
+                        <span class="coverage-percent-value coverage-rust">{{ coverage.rust.lines.pct }}%</span>
+                        <div class="coverage-bar-bg">
+                            <div class="coverage-bar-fill coverage-rust" style="width:{{ coverage.rust.lines.pct }}%;"></div>
                         </div>
-                        {% endfor %}
                     </div>
+                    <div style="font-size:0.98em; color:#64748b; margin-top:6px;">{{ coverage.rust.lines.covered }}/{{ coverage.rust.lines.total }} lines</div>
+                    <style>
+                    .coverage-percent-value.coverage-rust {
+                        font-size: 2.2em;
+                        font-weight: 700;
+                        color: #16a34a;
+                        text-shadow: 0 2px 8px #bbf7d0;
+                        letter-spacing: 1px;
+                        display: block;
+                        margin-bottom: 8px;
+                        transition: color 0.2s;
+                    }
+                    .coverage-percent-value.coverage-rust:hover {
+                        color: #4ade80;
+                        text-shadow: 0 4px 16px #bbf7d0;
+                    }
+                    .coverage-bar-fill.coverage-rust {
+                        height: 100%;
+                        background: linear-gradient(90deg, #16a34a 60%, #4ade80 100%);
+                        border-radius: 8px 0 0 8px;
+                        box-shadow: 0 2px 8px #16a34a44;
+                        transition: width 0.7s cubic-bezier(.4,2,.3,1), background 0.2s;
+                    }
+                    </style>
                 </div>
                 {% endif %}
             </section>
             {% endif %}
 
-            <!-- Coverage Trends -->
-            {% if coverage.trends %}
-            <section class="coverage-trends">
-                <h2>📈 Coverage Trends</h2>
-                <div class="trend-chart">
-                    <p class="feature-note">📊 Coverage trend visualization coming soon...</p>
-                </div>
+            <!-- File Coverage Details -->
+            {% if coverage.typescript and coverage.typescript.files %}
+            <section class="coverage-details">
+                <h2>TypeScript File Coverage</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>File</th>
+                            <th>Lines</th>
+                            <th>Statements</th>
+                            <th>Branches</th>
+                            <th>Functions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for file in coverage.typescript.files %}
+                        <tr>
+                            <td>{{ file.name }}</td>
+                            <td>{{ file.lines.covered }}/{{ file.lines.total }} ({{ file.lines.pct }}%)</td>
+                            <td>{{ file.statements.covered }}/{{ file.statements.total }} ({{ file.statements.pct }}%)</td>
+                            <td>{{ file.branches.covered }}/{{ file.branches.total }} ({{ file.branches.pct }}%)</td>
+                            <td>{{ file.functions.covered }}/{{ file.functions.total }} ({{ file.functions.pct }}%)</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </section>
+            {% endif %}
+
+            {% if coverage.rust and coverage.rust.files %}
+            <section class="coverage-details">
+                <h2>Rust File Coverage</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>File</th>
+                            <th>Lines</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for file in coverage.rust.files %}
+                        <tr>
+                            <td>{{ file.name }}</td>
+                            <td>{{ file.lines.covered }}/{{ file.lines.total }} ({{ file.lines.pct }}%)</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </section>
+            {% endif %}
+
+            <!-- Last Updated -->
+            {% if coverage.last_updated %}
+            <div style="margin-top:32px; color:#64748b; font-size:0.98em; text-align:right;">Last updated: {{ coverage.last_updated }}</div>
             {% endif %}
 
             <!-- Links to Detailed Reports -->
-            <section class="detailed-reports">
-                <h2>🔍 Detailed Reports</h2>
-                <div class="report-links">
-                    {% if coverage.typescript %}
-                    <a href="coverage/lcov-report/index.html" class="report-link" target="_blank">
-                        <div class="report-icon">📊</div>
-                        <div class="report-content">
-                            <h3>TypeScript Coverage Report</h3>
-                            <p>Interactive HTML coverage report with line-by-line details</p>
-                        </div>
-                    </a>
-                    {% endif %}
-                    
-                    {% if coverage.rust %}
-                    <a href="coverage/index.html" class="report-link" target="_blank">
-                        <div class="report-icon">🦀</div>
-                        <div class="report-content">
-                            <h3>Rust Coverage Report</h3>
-                            <p>Detailed Rust code coverage generated by cargo-tarpaulin</p>
-                        </div>
-                    </a>
-                    {% endif %}
-                </div>
-            </section>
-
-            <!-- Coverage Configuration -->
-            <section class="coverage-config">
-                <h2>⚙️ Coverage Configuration</h2>
-                <div class="config-info">
-                    <div class="config-item">
-                        <h3>TypeScript Coverage</h3>
-                        <ul>
-                            <li><strong>Tool:</strong> Jest with Istanbul</li>
-                            <li><strong>Command:</strong> <code>npm run test:coverage</code></li>
-                            <li><strong>Threshold:</strong> 80% overall coverage target</li>
-                            <li><strong>Formats:</strong> HTML, LCOV, JSON</li>
-                        </ul>
-                    </div>
-                    <div class="config-item">
-                        <h3>Rust Coverage</h3>
-                        <ul>
-                            <li><strong>Tool:</strong> cargo-tarpaulin</li>
-                            <li><strong>Command:</strong> <code>npm run test:coverage:rust</code></li>
-                            <li><strong>Formats:</strong> XML (Cobertura), HTML</li>
-                            <li><strong>Target:</strong> compiler/ directory</li>
-                        </ul>
-                    </div>
-                </div>
+            <section class="detailed-reports" style="margin-top:40px;">
+                <h2 style="font-size:1.15em; color:#2563eb; margin-bottom:12px;">Detailed Reports</h2>
+                <ul style="list-style:none; padding:0;">
+                    <li><a href="coverage/index.html" target="_blank" style="color:#0969da; text-decoration:underline;">TypeScript Coverage Report</a></li>
+                    <li><a href="coverage/lcov-report/index.html" target="_blank" style="color:#0969da; text-decoration:underline;">TypeScript LCOV Report</a></li>
+                    <li><a href="coverage/cobertura.xml" target="_blank" style="color:#0969da; text-decoration:underline;">Rust Cobertura XML</a></li>
+                </ul>
             </section>
         </div>
     </main>
@@ -301,7 +201,6 @@
         <div class="container">
             <div class="footer-content">
                 <p>{{ config.footer.copyright or '&copy; 2025 Cyl Programming Language' }}</p>
-                
                 {% if config.footer.links %}
                 <div class="footer-links">
                     {% for link in config.footer.links %}
@@ -316,7 +215,6 @@
                     {% endfor %}
                 </div>
                 {% endif %}
-                
                 {% if config.footer.license %}
                 <div class="footer-license">
                     <a href="{{ config.footer.license.url }}" class="license-link">
