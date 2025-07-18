@@ -2,7 +2,7 @@
     "site": {
         "title": "Cyl Programming Language",
         "description": "A modern systems programming language",
-        "version": "0.6.0",
+        "version": "0.6.1",
         "url": "https://cyl-lang.org"
     },
     "branding": {
