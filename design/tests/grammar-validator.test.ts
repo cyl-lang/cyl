@@ -1,5 +1,5 @@
-import { GrammarValidator } from '../src/tools/grammar-validator.js';
-import { LanguageGrammar } from '../src/types/grammar.js';
+import { GrammarValidator } from '../dist/tools/grammar-validator.js';
+import { LanguageGrammar } from '../dist/types/grammar.js';
 
 describe('GrammarValidator', () => {
     let validator: GrammarValidator;
