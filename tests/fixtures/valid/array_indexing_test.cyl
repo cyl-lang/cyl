@@ -1,6 +1,0 @@
-// Test array indexing
-fn main() -> void {
-    let arr = [10, 20, 30];
-    let first = arr[0];
-    print_int(first);
-}

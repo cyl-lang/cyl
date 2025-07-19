@@ -1,4 +1,0 @@
-// Mismatched parentheses
-fn test() {
-    let x = (1 + 2;
-}

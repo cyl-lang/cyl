@@ -1,191 +1,104 @@
-# cyl `.cyl`
+<!--
+  Cyl: Universal Language Engine
+  =============================
+-->
 
-```cyl
-// hello_world.cyl
-fn main() -> void {
-    print("Hello, World!");
-    print("Welcome to Cyl programming language!");
-}
-```
+# Cyl
 
-**Runtime Output:**
+**Cyl** is a universal, embeddable language engine and programmable meta-runtime. It is designed to let you:
 
-```
-$ cylc run hello_world.cyl
-Hello, World!
-Welcome to Cyl programming language!
-```
+- Inject, extend, or override language syntax and semantics in any host language (Python, JS, Rust, etc.)
+- Register new syntax, macros, or runtime hooks
+- Load plugins/add-ons to customize language behavior
+- Use a project-based config (`config.cyl`) to declaratively control your environment
+- Integrate with any language via adapters
 
-[![CI](https://github.com/cyl-lang/cyl/actions/workflows/ci.yml/badge.svg)](https://github.com/cyl-lang/cyl/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/cyl-lang/cyl/graph/badge.svg?token=9IXV4ZSEFI)](https://codecov.io/gh/cyl-lang/cyl)
-
-## Documentation
-
-- [Implementation Plan](IMPLEMENTATION_PLAN.md)
-- [Language Specification](LANGUAGE_SPEC.md)
-- [Standard Library](STDLIB.md)
-- [Tests](tests/README.md)
+---
 
 ## Quick Start
 
-```bash
-# Setup development environment
-make setup
-
-# Generate documentation
-make setup-docs
-make docs
-
-# Build everything
-make build-all
-```
-
-**Purpose:** Systems & web programming with simple syntax, multi-backend compilation, safe concurrency, OS & network integration
-
-**Paradigm:** Imperative, concurrent, safe systems language with modern syntax inspired by TypeScript/Python and safety from Rust/Go
-
-**Architecture:** Multi-backend compilation system supporting Cranelift (fast development), LLVM (optimized production), and interpreter (immediate execution)
+1. **Install Cyl CLI** (coming soon)
+2. **Create a `config.cyl` in your project root**
+3. **Run, build, or customize your code with the CLI**
 
 ---
 
-- [Usage](#usage)
-  - [Installation](#installation)
-  - [Commands](#commands)
-  - [Backend Selection](#backend-selection)
-- [Multi-Backend Architecture](#multi-backend-architecture)
-- [Development & CI/CD](#development--cicd)
-  - [Local Development](#local-development)
-  - [Continuous Integration](#continuous-integration)
+## Project Structure
+
+- `cli/` — CLI entrypoint and command dispatch
+- `engine/` — Core engine logic and API (syntax, plugins, events, adapters)
+- `plugins/` — Built-in and user plugins
+- `adapters/` — Host language integration (Python, JS, etc.)
+- `docs/` — Documentation system logic
+- `config.cyl` — Project configuration (syntax, plugins, events, engine settings)
 
 ---
 
-## Usage
+## Example: config.cyl
 
-### Installation
-
-```bash
-git clone https://github.com/clxrityy/cyl.git
-cd cyl
-make install
-
-# For development without LLVM dependencies:
-cd compiler && cargo build --no-default-features
-```
-
-### Commands
-
-```bash
-# Compile and run a Cyl program (default: Cranelift backend)
-cylc run examples/hello_world.cyl
-
-# Build a Cyl program to executable
-cylc build examples/hello_world.cyl
-./examples/hello_world
-
-# Check syntax without compiling
-cylc check examples/hello_world.cyl
-
-# Show AST for debugging
-cylc ast examples/hello_world.cyl
-
-# Run automated tests
-cylc test
-```
-
-### Backend Selection
-
-Cyl supports multiple compilation backends for different use cases:
-
-```bash
-# Fast development compilation (default)
-cylc run --backend cranelift examples/hello_world.cyl
-
-# Optimized production compilation (requires LLVM)
-cylc run --backend llvm examples/hello_world.cyl
-
-# Immediate execution for testing/development
-cylc run --backend interpreter examples/hello_world.cyl
-
-# Quiet mode for clean output (useful in CI/scripts)
-cylc run --backend interpreter --quiet examples/hello_world.cyl
-```
-
-## Multi-Backend Architecture
-
-Cyl features a flexible multi-backend compilation system designed to optimize for different workflows:
-
-### 🏗️ **Cranelift Backend** (Default)
-
-- **Use Case**: Fast development cycles, CI/CD pipelines
-- **Advantages**: Pure Rust implementation, fast compilation, no external dependencies
-- **Output**: Native object files and executables
-- **Best For**: Development, testing, and deployment where compile speed matters
-
-### 🚀 **LLVM Backend** (Optional)
-
-- **Use Case**: Production builds requiring maximum optimization
-- **Advantages**: Industry-standard optimizations, mature toolchain
-- **Output**: Highly optimized native code
-- **Best For**: Production releases and performance-critical applications
-
-### 💻 **Interpreter Backend**
-
-- **Use Case**: Educational, rapid prototyping, integration testing
-- **Advantages**: Immediate execution, no compilation step, full language support
-- **Output**: Direct program execution with real-time output
-- **Best For**: Learning, debugging, and scenarios requiring immediate feedback
-
-### Backend Feature Matrix
-
-| Feature              | Cranelift    | LLVM             | Interpreter  |
-| -------------------- | ------------ | ---------------- | ------------ |
-| Compilation Speed    | ⚡ Fast      | 🐌 Slow          | ⚡⚡ Instant |
-| Runtime Performance  | 🚀 Good      | 🚀🚀 Excellent   | 🐌 Moderate  |
-| Dependencies         | ✅ None      | ❌ LLVM Required | ✅ None      |
-| Development Workflow | ✅ Excellent | ❌ Slow          | ✅ Excellent |
-| Production Ready     | ✅ Yes       | ✅ Yes           | ❌ No        |
-| Debugging Support    | ✅ Good      | ✅ Excellent     | ✅ Excellent |
-
-### Build Options
-
-Cyl supports flexible compilation with optional LLVM:
-
-```bash
-# Full build with LLVM (requires LLVM 14+ installed)
-cargo build
-
-# Development build without LLVM (faster, fewer dependencies)
-cargo build --no-default-features
-
-# Testing both modes
-cargo test --no-default-features  # Test without LLVM
-cargo test                         # Test with LLVM
+```cyl
+declare config {
+    syntax: [
+        { operator: "|>", transform: (left, right) => `${right}(${left})` }
+    ],
+    plugins: [
+        "./plugins/log_calls.cyl"
+    ],
+    events: {
+        function_call: (fn, args) => println("Called", fn, args)
+    },
+    engine: {
+        backend: "cranelift",
+        optimize: true
+    },
+    language: {
+        host: "python",
+        version: "3.12"
+    }
+}
 ```
 
 ---
 
-## Development & CI/CD
+## CLI Usage (planned)
 
-### Local Development
+- `cyl run <file>` — Run a file with all config, plugins, and customizations applied
+- `cyl build <file>` — Build code to native, bytecode, or transformed source
+- `cyl check` — Validate `config.cyl` and all plugins
+- `cyl plugins` — Manage plugins
+- `cyl ast <file>` — Print the transformed AST after config/plugins
+- `cyl config` — Manage or validate the current config
 
-```bash
-make setup          # Set up development environment
-make test           # Run all tests
-make install        # Install cylc globally
+---
 
-# Development builds:
-cd compiler && cargo build --no-default-features  # Without LLVM
-cd compiler && cargo build                         # With LLVM (if available)
+## Plugin Example
+
+```rust
+// plugins/log_calls.rs
+pub struct LogCallsPlugin;
+
+impl LogCallsPlugin {
+    pub fn on_function_call(&self, fn_name: &str, args: &[Value]) {
+        println!("[Cyl] {} called with {:?}", fn_name, args);
+    }
+}
 ```
 
-### Continuous Integration
+---
 
-- ✅ **Automated testing** on push/PR to main branches
-- ✅ **Ubuntu-focused reliable CI** with progressive testing (no-LLVM first, then optional LLVM)
-- ✅ **Feature-flagged compilation** supporting both LLVM and non-LLVM builds
-- ✅ **Security auditing** for Rust and npm dependencies
-- ✅ **Code coverage** reporting with Codecov
-- ✅ **Automated releases** on version tags
-- ✅ **Weekly dependency updates** via automated PRs
+## Adapter Example (Python)
 
-See [CI/CD Documentation](.github/workflows/README.md) for details.
+```python
+import cyl
+
+engine = cyl.Engine()
+engine.register_syntax("|>", lambda left, right: f"{right}({left})")
+engine.on_event("function_call", lambda fn, args: print(f"[Cyl] {fn} called with {args}"))
+engine.run("result = 5 |> str")
+```
+
+---
+
+### Status
+
+See [changelog](CHANGELOG.md).

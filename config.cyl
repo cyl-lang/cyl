@@ -1,0 +1,3 @@
+declare config {
+    // Example: customize syntax, plugins, events, engine settings here
+}

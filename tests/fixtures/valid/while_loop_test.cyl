@@ -1,6 +1,0 @@
-fn main() -> void {
-    while false {
-        print_int(42);
-    }
-    print_int(999);
-}

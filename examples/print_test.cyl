@@ -1,8 +1,0 @@
-// Test print functionality with strings and integers
-fn main() -> void {
-    let message = "Hello, World!";
-    let number = 42;
-    
-    print(message);
-    print_int(number);
-}

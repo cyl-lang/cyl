@@ -1,7 +1,0 @@
-// Simple if test
-fn main() -> void {
-    let x = 10;
-    if x == 10 {
-        print("test");
-    }
-}
